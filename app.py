@@ -184,8 +184,7 @@ def get_db():
 
 def get_db_safe():
     """Safe get database instance for operations"""
-    db = get_db()
-    return db if db is not None else None
+    return get_db()
 
 def is_db_connected():
     """Check if database is connected"""
@@ -1510,13 +1509,7 @@ def doctor_dashboard():
     stats = get_dashboard_stats('doctor', session['user_id'])
     return render_template('doctor_dashboard.html', user=session, stats=stats)
 
-@app.route('/receptionist-dashboard')
-@login_required
-@role_required(['receptionist', 'admin'])
-def receptionist_dashboard():
-    """Receptionist dashboard"""
-    stats = get_dashboard_stats('receptionist', session['user_id'])
-    return render_template('receptionist_dashboard.html', user=session, stats=stats)
+
 
 @app.route('/admin-dashboard')
 @login_required
@@ -1658,7 +1651,7 @@ def get_role_redirect_url(role):
     redirect_routes = {
         'patient': '/book-appointment',
         'doctor': '/doctor-dashboard',
-        'receptionist': '/receptionist-dashboard',
+        'recepcionist': '/receptionist-dashboard',
         'admin': '/admin-dashboard'
     }
     return redirect_routes.get(role, '/dashboard')    
@@ -1676,9 +1669,13 @@ def acupressure_info():
 @app.route('/patient-info')
 @login_required
 def patient_info():
-    """Patient information page"""
-    return render_template('patient_info.html')
-
+    try:
+        # Pass user session data to the template
+        return render_template('patient_info.html', user=session)
+    except Exception as e:
+        logger.error(f"Error loading patient info: {e}")
+        return render_template('patient_info.html', user=session)
+    
 @app.route('/manage-appointments')
 @login_required
 def manage_appointments():
@@ -1877,95 +1874,354 @@ def cancel_appointment_api(appointment_id):
         return jsonify({'error': 'Failed to cancel appointment'}), 500
 
 # # Receptionist-specific routes
-# @app.route('/api/receptionist/appointments')
-# @login_required
-# @role_required(['receptionist', 'admin'])
-# def receptionist_appointments():
-#     """Get all appointments for receptionist"""
-#     try:
-#         current_db = get_db_safe()
+@app.route('/api/receptionist/appointments')
+@login_required
+@role_required(['receptionist', 'admin'])
+def get_receptionist_appointments():
+    """Get all appointments for receptionist view"""
+    try:
+        current_db = get_db_safe()
         
-#         # Demo data structure
-#         demo_appointments = [
-#             {
-#                 'appointment_id': 'APT001',
-#                 'patient_name': 'Rahul Kumar',
-#                 'patient_email': 'rahul@example.com',
-#                 'patient_phone': '+91-9876543210',
-#                 'therapy_type': 'acupressure',
-#                 'therapy_name': 'Acupressure/Acupuncture',
-#                 'doctor_name': 'Dr. Rajesh Sharma',
-#                 'date': datetime.utcnow().isoformat(),
-#                 'reason': 'Chronic back pain',
-#                 'status': 'pending',
-#                 'consultation_type': 'initial'
-#             },
-#             {
-#                 'appointment_id': 'APT002',
-#                 'patient_name': 'Priya Singh',
-#                 'patient_email': 'priya@example.com',
-#                 'patient_phone': '+91-9876543211',
-#                 'therapy_type': 'ayurveda',
-#                 'therapy_name': 'Ayurveda',
-#                 'doctor_name': 'Dr. Priya Gupta',
-#                 'date': (datetime.utcnow() + timedelta(days=1)).isoformat(),
-#                 'reason': 'Digestive issues',
-#                 'status': 'confirmed',
-#                 'consultation_type': 'follow-up'
-#             }
-#         ]
+        # Get filter parameters
+        status_filter = request.args.get('status', 'all')
+        therapy_filter = request.args.get('therapy', 'all')
         
-#         if current_db:
-#             appointments = list(current_db.appointments.find({}))
-#             # Convert to the expected format
-#             formatted_appointments = []
-#             for appt in appointments:
-#                 # Get patient and doctor details
-#                 patient = current_db.users.find_one({'user_id': appt.get('patient_id')})
-#                 doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
+        # Build query
+        query = {}
+        if status_filter != 'all':
+            query['status'] = status_filter
+        if therapy_filter != 'all':
+            query['therapy_type'] = therapy_filter
+        
+        # Get appointments from database or use demo data
+        appointments = []
+        if current_db is not None:
+            appointment_cursor = current_db.appointments.find(query).sort('date', 1)
+            appointments = list(appointment_cursor)
+            
+            # Enhance appointment data with user information
+            for appointment in appointments:
+                # Get patient details
+                patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+                if patient:
+                    appointment['patient_name'] = f"{patient.get('first_name', '')} {patient.get('last_name', '')}"
+                    appointment['patient_email'] = patient.get('email')
+                    appointment['patient_phone'] = patient.get('phone', 'N/A')
                 
-#                 formatted_appointments.append({
-#                     'appointment_id': appt.get('appointment_id'),
-#                     'patient_name': patient.get('first_name', '') + ' ' + patient.get('last_name', '') if patient else 'Unknown Patient',
-#                     'patient_email': patient.get('email', ''),
-#                     'patient_phone': appt.get('patient_phone', ''),
-#                     'therapy_type': appt.get('therapy_type'),
-#                     'therapy_name': appt.get('therapy_type', '').title(),
-#                     'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Unknown Doctor',
-#                     'date': appt.get('date').isoformat() if appt.get('date') else datetime.utcnow().isoformat(),
-#                     'reason': appt.get('reason', ''),
-#                     'status': appt.get('status', 'pending'),
-#                     'consultation_type': appt.get('consultation_type', 'initial')
-#                 })
+                # Get doctor details
+                doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+                if doctor:
+                    appointment['doctor_name'] = f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}"
+                    appointment['therapy_name'] = doctor.get('specialization', appointment.get('therapy_type', 'Unknown').title())
+        else:
+            # Demo data
+            appointments = [
+                {
+                    'appointment_id': 'APT001',
+                    'patient_id': 'PAT001',
+                    'patient_name': 'Rahul Kumar',
+                    'patient_email': 'rahul@example.com',
+                    'patient_phone': '+91-9876543210',
+                    'therapy_type': 'acupressure',
+                    'therapy_name': 'Acupressure/Acupuncture',
+                    'therapist_id': 'DOC001',
+                    'doctor_name': 'Dr. Rajesh Sharma',
+                    'date': datetime.now(timezone.utc) + timedelta(hours=24),
+                    'reason': 'Chronic back pain',
+                    'status': 'pending',
+                    'consultation_type': 'initial',
+                    'created_at': datetime.now(timezone.utc)
+                },
+                {
+                    'appointment_id': 'APT002',
+                    'patient_id': 'PAT002',
+                    'patient_name': 'Priya Singh',
+                    'patient_email': 'priya@example.com',
+                    'patient_phone': '+91-9876543211',
+                    'therapy_type': 'ayurveda',
+                    'therapy_name': 'Ayurveda',
+                    'therapist_id': 'DOC002',
+                    'doctor_name': 'Dr. Priya Gupta',
+                    'date': datetime.now(timezone.utc) + timedelta(hours=48),
+                    'reason': 'Digestive issues',
+                    'status': 'confirmed',
+                    'consultation_type': 'follow-up',
+                    'created_at': datetime.now(timezone.utc)
+                }
+            ]
+        
+        # Calculate stats
+        stats = {
+            'total': len(appointments),
+            'pending': len([a for a in appointments if a.get('status') == 'pending']),
+            'confirmed': len([a for a in appointments if a.get('status') == 'confirmed']),
+            'completed': len([a for a in appointments if a.get('status') == 'completed']),
+            'cancelled': len([a for a in appointments if a.get('status') == 'cancelled']),
+            'today': len([a for a in appointments if a.get('date').date() == datetime.now(timezone.utc).date()])
+        }
+        
+        return jsonify({
+            'appointments': appointments,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting receptionist appointments: {e}")
+        return jsonify({'error': 'Failed to load appointments'}), 500
+
+@app.route('/api/receptionist/appointments/<appointment_id>/confirm', methods=['POST'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def confirm_appointment(appointment_id):
+    """Confirm an appointment"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'message': 'Appointment confirmed (demo mode)'})
+        
+        # Update appointment status
+        result = current_db.appointments.update_one(
+            {'appointment_id': appointment_id},
+            {'$set': {
+                'status': 'confirmed',
+                'confirmed_by': session['user_id'],
+                'confirmed_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            return jsonify({'error': 'Appointment not found'}), 404
+        
+        # Get appointment details for notifications
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if appointment:
+            patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+            doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
             
-#             stats = {
-#                 'total': len(formatted_appointments),
-#                 'pending': len([a for a in formatted_appointments if a['status'] == 'pending']),
-#                 'confirmed': len([a for a in formatted_appointments if a['status'] == 'confirmed']),
-#                 'today': len([a for a in formatted_appointments if datetime.fromisoformat(a['date']).date() == datetime.utcnow().date()])
-#             }
+            # Create notifications
+            if patient:
+                create_notification(
+                    patient['user_id'],
+                    'Appointment Confirmed',
+                    f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed.',
+                    'success'
+                )
+                
+                # Send confirmation email to patient
+                send_appointment_confirmation_email(
+                    patient['email'],
+                    f"{patient.get('first_name', '')} {patient.get('last_name', '')}",
+                    appointment.get('date').strftime('%Y-%m-%d %H:%M'),
+                    appointment.get('therapy_type', 'Therapy').title(),
+                    doctor.get('first_name', 'Doctor') if doctor else 'Doctor'
+                )
             
-#             return jsonify({
-#                 'appointments': formatted_appointments,
-#                 'stats': stats
-#             })
-#         else:
-#             # Demo mode
-#             stats = {
-#                 'total': len(demo_appointments),
-#                 'pending': len([a for a in demo_appointments if a['status'] == 'pending']),
-#                 'confirmed': len([a for a in demo_appointments if a['status'] == 'confirmed']),
-#                 'today': 1
-#             }
+            if doctor:
+                create_notification(
+                    doctor['user_id'],
+                    'New Confirmed Appointment',
+                    f'New appointment confirmed with {patient.get("first_name", "Patient") if patient else "Patient"}.',
+                    'info'
+                )
+                
+                # Send notification to doctor
+                send_doctor_notification_email(
+                    doctor['email'],
+                    doctor.get('first_name', 'Doctor'),
+                    f"{patient.get('first_name', '')} {patient.get('last_name', '')}" if patient else "Patient",
+                    appointment.get('date').strftime('%Y-%m-%d %H:%M'),
+                    appointment.get('therapy_type', 'Therapy').title()
+                )
+        
+        logger.info(f"✅ Appointment {appointment_id} confirmed by {session['user_id']}")
+        return jsonify({'message': 'Appointment confirmed successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error confirming appointment: {e}")
+        return jsonify({'error': 'Failed to confirm appointment'}), 500
+
+@app.route('/api/receptionist/appointments/<appointment_id>/cancel', methods=['POST'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def cancel_appointment(appointment_id):
+    """Cancel an appointment"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'message': 'Appointment cancelled (demo mode)'})
+        
+        # Update appointment status
+        result = current_db.appointments.update_one(
+            {'appointment_id': appointment_id},
+            {'$set': {
+                'status': 'cancelled',
+                'cancelled_by': session['user_id'],
+                'cancelled_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            return jsonify({'error': 'Appointment not found'}), 404
+        
+        # Get appointment details for notifications
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if appointment:
+            patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+            doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
             
-#             return jsonify({
-#                 'appointments': demo_appointments,
-#                 'stats': stats
-#             })
+            # Create notifications
+            if patient:
+                create_notification(
+                    patient['user_id'],
+                    'Appointment Cancelled',
+                    f'Your {appointment.get("therapy_type", "therapy")} appointment has been cancelled.',
+                    'warning'
+                )
             
-#     except Exception as e:
-#         logger.error(f"Error fetching receptionist appointments: {e}")
-#         return jsonify({'error': 'Failed to fetch appointments'}), 500
+            if doctor:
+                create_notification(
+                    doctor['user_id'],
+                    'Appointment Cancelled',
+                    f'Appointment with {patient.get("first_name", "Patient") if patient else "Patient"} has been cancelled.',
+                    'warning'
+                )
+        
+        logger.info(f"❌ Appointment {appointment_id} cancelled by {session['user_id']}")
+        return jsonify({'message': 'Appointment cancelled successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error cancelling appointment: {e}")
+        return jsonify({'error': 'Failed to cancel appointment'}), 500
+
+@app.route('/api/receptionist/appointments/<appointment_id>/reschedule', methods=['POST'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def reschedule_appointment(appointment_id):
+    """Reschedule an appointment"""
+    try:
+        data = request.get_json()
+        new_date_str = data.get('new_date')
+        
+        if not new_date_str:
+            return jsonify({'error': 'New date is required'}), 400
+        
+        # Parse new date
+        new_date = datetime.fromisoformat(new_date_str.replace('Z', '+00:00'))
+        
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'message': 'Appointment rescheduled (demo mode)'})
+        
+        # Update appointment date
+        result = current_db.appointments.update_one(
+            {'appointment_id': appointment_id},
+            {'$set': {
+                'date': new_date,
+                'rescheduled_by': session['user_id'],
+                'rescheduled_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            return jsonify({'error': 'Appointment not found'}), 404
+        
+        # Get appointment details for notifications
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if appointment:
+            patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+            doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+            
+            # Create notifications
+            if patient:
+                create_notification(
+                    patient['user_id'],
+                    'Appointment Rescheduled',
+                    f'Your {appointment.get("therapy_type", "therapy")} appointment has been rescheduled to {new_date.strftime("%Y-%m-%d %H:%M")}.',
+                    'info'
+                )
+            
+            if doctor:
+                create_notification(
+                    doctor['user_id'],
+                    'Appointment Rescheduled',
+                    f'Appointment with {patient.get("first_name", "Patient") if patient else "Patient"} rescheduled to {new_date.strftime("%Y-%m-%d %H:%M")}.',
+                    'info'
+                )
+        
+        logger.info(f"📅 Appointment {appointment_id} rescheduled by {session['user_id']}")
+        return jsonify({'message': 'Appointment rescheduled successfully'})
+        
+    except Exception as e:
+        logger.error(f"Error rescheduling appointment: {e}")
+        return jsonify({'error': 'Failed to reschedule appointment'}), 500
+
+# Notification routes
+@app.route('/api/notifications')
+@login_required
+def get_notifications():
+    """Get notifications for current user"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            # Return demo notifications
+            demo_notifications = [
+                {
+                    'title': 'New Appointment Request',
+                    'message': 'Rahul Kumar requested Acupressure therapy',
+                    'type': 'info',
+                    'is_read': False,
+                    'created_at': datetime.now(timezone.utc).isoformat()
+                },
+                {
+                    'title': 'Appointment Confirmed',
+                    'message': 'You confirmed appointment with Priya Singh',
+                    'type': 'success',
+                    'is_read': True,
+                    'created_at': (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+                }
+            ]
+            return jsonify(demo_notifications)
+        
+        # Get notifications from database
+        notifications = list(current_db.notifications.find(
+            {'user_id': session['user_id']}
+        ).sort('created_at', -1).limit(20))
+        
+        # Convert ObjectId to string
+        for notification in notifications:
+            notification['_id'] = str(notification['_id'])
+        
+        return jsonify(notifications)
+        
+    except Exception as e:
+        logger.error(f"Error getting notifications: {e}")
+        return jsonify([])
+
+@app.route('/api/notifications/read', methods=['POST'])
+@login_required
+def mark_all_notifications_read():
+    """Mark all notifications as read"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is not None:
+            current_db.notifications.update_many(
+                {'user_id': session['user_id'], 'is_read': False},
+                {'$set': {'is_read': True}}
+            )
+        
+        return jsonify({'message': 'All notifications marked as read'})
+        
+    except Exception as e:
+        logger.error(f"Error marking notifications as read: {e}")
+        return jsonify({'error': 'Failed to mark notifications as read'}), 500
 
 @app.route('/api/receptionist/appointments/<appointment_id>/confirm', methods=['POST'])
 @login_required
@@ -2056,49 +2312,7 @@ def reschedule_appointment_api(appointment_id):
         return jsonify({'error': 'Failed to reschedule appointment'}), 500
 
 # Notifications API
-@app.route('/api/notifications')
-@login_required
-def get_notifications():
-    """Get user notifications"""
-    try:
-        current_db = get_db_safe()
-        user_id = session['user_id']
-        
-        if current_db:
-            notifications = list(current_db.notifications.find(
-                {'user_id': user_id}
-            ).sort('created_at', -1).limit(10))
-            
-            # Convert ObjectId to string
-            for notification in notifications:
-                notification['_id'] = str(notification['_id'])
-                
-            return jsonify(notifications)
-        else:
-            # Demo notifications
-            demo_notifications = [
-                {
-                    '_id': '1',
-                    'title': 'Welcome to DCAM',
-                    'message': 'Your account has been created successfully',
-                    'type': 'success',
-                    'is_read': True,
-                    'created_at': (datetime.utcnow() - timedelta(hours=2)).isoformat()
-                },
-                {
-                    '_id': '2',
-                    'title': 'New Feature Available',
-                    'message': 'You can now book appointments online',
-                    'type': 'info',
-                    'is_read': False,
-                    'created_at': datetime.utcnow().isoformat()
-                }
-            ]
-            return jsonify(demo_notifications)
-            
-    except Exception as e:
-        logger.error(f"Error fetching notifications: {e}")
-        return jsonify([])
+
 
 @app.route('/api/notifications/<notification_id>/read', methods=['POST'])
 @login_required
@@ -2122,28 +2336,6 @@ def mark_notification_read(notification_id):
     except Exception as e:
         logger.error(f"Error marking notification as read: {e}")
         return jsonify({'error': 'Failed to mark notification as read'}), 500
-
-@app.route('/api/notifications/read', methods=['POST'])
-@login_required
-def mark_all_notifications_read():
-    """Mark all notifications as read"""
-    try:
-        current_db = get_db_safe()
-        user_id = session['user_id']
-        
-        if current_db:
-            result = current_db.notifications.update_many(
-                {'user_id': user_id, 'is_read': False},
-                {'$set': {'is_read': True}}
-            )
-            
-            return jsonify({'message': f'{result.modified_count} notifications marked as read'})
-        else:
-            return jsonify({'message': 'All notifications marked as read (demo mode)'})
-            
-    except Exception as e:
-        logger.error(f"Error marking all notifications as read: {e}")
-        return jsonify({'error': 'Failed to mark notifications as read'}), 500
 
 @app.route('/logout')
 def logout():
