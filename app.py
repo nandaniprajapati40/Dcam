@@ -1667,12 +1667,6 @@ def get_role_redirect_url(role):
 
 
 
-@app.route('/book-appointment')
-@login_required
-def book_appointment():
-    """Book appointment page"""
-    return render_template('book_appointment.html')
-
 @app.route('/acupressure-info')
 @login_required
 def acupressure_info():
@@ -1698,13 +1692,6 @@ def manage_appointments():
 def appointment_receipt(appointment_id):
     """Appointment receipt page"""
     return render_template('appointment_receipt.html', appointment_id=appointment_id)
-
-@app.route('/receptionist-dashboard')
-@login_required
-@role_required(['receptionist', 'admin'])
-def receptionist_dashboard():
-    """Receptionist dashboard"""
-    return render_template('receptionist_dashboard.html')
 
 # ========== API ROUTES ==========
 
@@ -1889,96 +1876,96 @@ def cancel_appointment_api(appointment_id):
         logger.error(f"Error cancelling appointment: {e}")
         return jsonify({'error': 'Failed to cancel appointment'}), 500
 
-# Receptionist-specific routes
-@app.route('/api/receptionist/appointments')
-@login_required
-@role_required(['receptionist', 'admin'])
-def receptionist_appointments():
-    """Get all appointments for receptionist"""
-    try:
-        current_db = get_db_safe()
+# # Receptionist-specific routes
+# @app.route('/api/receptionist/appointments')
+# @login_required
+# @role_required(['receptionist', 'admin'])
+# def receptionist_appointments():
+#     """Get all appointments for receptionist"""
+#     try:
+#         current_db = get_db_safe()
         
-        # Demo data structure
-        demo_appointments = [
-            {
-                'appointment_id': 'APT001',
-                'patient_name': 'Rahul Kumar',
-                'patient_email': 'rahul@example.com',
-                'patient_phone': '+91-9876543210',
-                'therapy_type': 'acupressure',
-                'therapy_name': 'Acupressure/Acupuncture',
-                'doctor_name': 'Dr. Rajesh Sharma',
-                'date': datetime.utcnow().isoformat(),
-                'reason': 'Chronic back pain',
-                'status': 'pending',
-                'consultation_type': 'initial'
-            },
-            {
-                'appointment_id': 'APT002',
-                'patient_name': 'Priya Singh',
-                'patient_email': 'priya@example.com',
-                'patient_phone': '+91-9876543211',
-                'therapy_type': 'ayurveda',
-                'therapy_name': 'Ayurveda',
-                'doctor_name': 'Dr. Priya Gupta',
-                'date': (datetime.utcnow() + timedelta(days=1)).isoformat(),
-                'reason': 'Digestive issues',
-                'status': 'confirmed',
-                'consultation_type': 'follow-up'
-            }
-        ]
+#         # Demo data structure
+#         demo_appointments = [
+#             {
+#                 'appointment_id': 'APT001',
+#                 'patient_name': 'Rahul Kumar',
+#                 'patient_email': 'rahul@example.com',
+#                 'patient_phone': '+91-9876543210',
+#                 'therapy_type': 'acupressure',
+#                 'therapy_name': 'Acupressure/Acupuncture',
+#                 'doctor_name': 'Dr. Rajesh Sharma',
+#                 'date': datetime.utcnow().isoformat(),
+#                 'reason': 'Chronic back pain',
+#                 'status': 'pending',
+#                 'consultation_type': 'initial'
+#             },
+#             {
+#                 'appointment_id': 'APT002',
+#                 'patient_name': 'Priya Singh',
+#                 'patient_email': 'priya@example.com',
+#                 'patient_phone': '+91-9876543211',
+#                 'therapy_type': 'ayurveda',
+#                 'therapy_name': 'Ayurveda',
+#                 'doctor_name': 'Dr. Priya Gupta',
+#                 'date': (datetime.utcnow() + timedelta(days=1)).isoformat(),
+#                 'reason': 'Digestive issues',
+#                 'status': 'confirmed',
+#                 'consultation_type': 'follow-up'
+#             }
+#         ]
         
-        if current_db:
-            appointments = list(current_db.appointments.find({}))
-            # Convert to the expected format
-            formatted_appointments = []
-            for appt in appointments:
-                # Get patient and doctor details
-                patient = current_db.users.find_one({'user_id': appt.get('patient_id')})
-                doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
+#         if current_db:
+#             appointments = list(current_db.appointments.find({}))
+#             # Convert to the expected format
+#             formatted_appointments = []
+#             for appt in appointments:
+#                 # Get patient and doctor details
+#                 patient = current_db.users.find_one({'user_id': appt.get('patient_id')})
+#                 doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
                 
-                formatted_appointments.append({
-                    'appointment_id': appt.get('appointment_id'),
-                    'patient_name': patient.get('first_name', '') + ' ' + patient.get('last_name', '') if patient else 'Unknown Patient',
-                    'patient_email': patient.get('email', ''),
-                    'patient_phone': appt.get('patient_phone', ''),
-                    'therapy_type': appt.get('therapy_type'),
-                    'therapy_name': appt.get('therapy_type', '').title(),
-                    'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Unknown Doctor',
-                    'date': appt.get('date').isoformat() if appt.get('date') else datetime.utcnow().isoformat(),
-                    'reason': appt.get('reason', ''),
-                    'status': appt.get('status', 'pending'),
-                    'consultation_type': appt.get('consultation_type', 'initial')
-                })
+#                 formatted_appointments.append({
+#                     'appointment_id': appt.get('appointment_id'),
+#                     'patient_name': patient.get('first_name', '') + ' ' + patient.get('last_name', '') if patient else 'Unknown Patient',
+#                     'patient_email': patient.get('email', ''),
+#                     'patient_phone': appt.get('patient_phone', ''),
+#                     'therapy_type': appt.get('therapy_type'),
+#                     'therapy_name': appt.get('therapy_type', '').title(),
+#                     'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Unknown Doctor',
+#                     'date': appt.get('date').isoformat() if appt.get('date') else datetime.utcnow().isoformat(),
+#                     'reason': appt.get('reason', ''),
+#                     'status': appt.get('status', 'pending'),
+#                     'consultation_type': appt.get('consultation_type', 'initial')
+#                 })
             
-            stats = {
-                'total': len(formatted_appointments),
-                'pending': len([a for a in formatted_appointments if a['status'] == 'pending']),
-                'confirmed': len([a for a in formatted_appointments if a['status'] == 'confirmed']),
-                'today': len([a for a in formatted_appointments if datetime.fromisoformat(a['date']).date() == datetime.utcnow().date()])
-            }
+#             stats = {
+#                 'total': len(formatted_appointments),
+#                 'pending': len([a for a in formatted_appointments if a['status'] == 'pending']),
+#                 'confirmed': len([a for a in formatted_appointments if a['status'] == 'confirmed']),
+#                 'today': len([a for a in formatted_appointments if datetime.fromisoformat(a['date']).date() == datetime.utcnow().date()])
+#             }
             
-            return jsonify({
-                'appointments': formatted_appointments,
-                'stats': stats
-            })
-        else:
-            # Demo mode
-            stats = {
-                'total': len(demo_appointments),
-                'pending': len([a for a in demo_appointments if a['status'] == 'pending']),
-                'confirmed': len([a for a in demo_appointments if a['status'] == 'confirmed']),
-                'today': 1
-            }
+#             return jsonify({
+#                 'appointments': formatted_appointments,
+#                 'stats': stats
+#             })
+#         else:
+#             # Demo mode
+#             stats = {
+#                 'total': len(demo_appointments),
+#                 'pending': len([a for a in demo_appointments if a['status'] == 'pending']),
+#                 'confirmed': len([a for a in demo_appointments if a['status'] == 'confirmed']),
+#                 'today': 1
+#             }
             
-            return jsonify({
-                'appointments': demo_appointments,
-                'stats': stats
-            })
+#             return jsonify({
+#                 'appointments': demo_appointments,
+#                 'stats': stats
+#             })
             
-    except Exception as e:
-        logger.error(f"Error fetching receptionist appointments: {e}")
-        return jsonify({'error': 'Failed to fetch appointments'}), 500
+#     except Exception as e:
+#         logger.error(f"Error fetching receptionist appointments: {e}")
+#         return jsonify({'error': 'Failed to fetch appointments'}), 500
 
 @app.route('/api/receptionist/appointments/<appointment_id>/confirm', methods=['POST'])
 @login_required
