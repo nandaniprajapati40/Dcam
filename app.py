@@ -752,7 +752,7 @@ def get_dashboard_stats(role, user_id):
             'admin': {'total_users': 12, 'total_patients': 0, 'total_doctors': 11, 'total_appointments': 0},
             'doctor': {'todays_appointments': 0, 'total_patients': 0, 'completed_sessions': 0},
             'patient': {'upcoming_appointments': 0, 'completed_sessions': 0},
-            'receptionist': {'todays_appointments': 0, 'pending_registrations': 0}
+            'receptionist': {'todays_appointments': 0, 'pending_registrations': 0, 'total_patients': 0, 'total_doctors': 0}
         }
         return demo_stats.get(role, {})
     
@@ -1509,7 +1509,14 @@ def doctor_dashboard():
     stats = get_dashboard_stats('doctor', session['user_id'])
     return render_template('doctor_dashboard.html', user=session, stats=stats)
 
-
+# ADD THE MISSING RECEPTIONIST DASHBOARD ROUTE
+@app.route('/receptionist-dashboard')
+@login_required
+@role_required(['receptionist'])
+def receptionist_dashboard():
+    """Receptionist dashboard - Only for receptionists"""
+    stats = get_dashboard_stats('receptionist', session['user_id'])
+    return render_template('receptionist_dashboard.html', user=session, stats=stats)
 
 @app.route('/admin-dashboard')
 @login_required
@@ -1651,7 +1658,7 @@ def get_role_redirect_url(role):
     redirect_routes = {
         'patient': '/book-appointment',
         'doctor': '/doctor-dashboard',
-        'receptionist': '/receptionist-dashboard',
+        'receptionist': '/receptionist-dashboard',  # Fixed: Added receptionist route
         'admin': '/admin-dashboard'
     }
     return redirect_routes.get(role, '/dashboard')    
@@ -2501,6 +2508,32 @@ def update_patient_info():
     except Exception as e:
         logger.error(f"Error updating patient info: {e}")
         return jsonify({'error': 'Failed to update patient information'}), 500
+
+# ADD THE MISSING API ENDPOINT FOR RECEPTIONIST PATIENT LIST
+@app.route('/api/receptionist/patients')
+@login_required
+@role_required(['receptionist', 'admin'])
+def get_receptionist_patients():
+    """Get all patients for receptionist view"""
+    try:
+        current_db = get_db_safe()
+        patients = []
+        
+        if current_db:
+            patients_cursor = current_db.users.find({'role': 'patient'})
+            patients = list(patients_cursor)
+            
+            # Remove sensitive information
+            for patient in patients:
+                if 'password' in patient:
+                    del patient['password']
+                patient['_id'] = str(patient['_id'])
+        
+        return jsonify(patients)
+        
+    except Exception as e:
+        logger.error(f"Error getting patients: {e}")
+        return jsonify([])
 
 if __name__ == '__main__':
     # Log startup information
