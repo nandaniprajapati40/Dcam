@@ -1651,7 +1651,7 @@ def get_role_redirect_url(role):
     redirect_routes = {
         'patient': '/book-appointment',
         'doctor': '/doctor-dashboard',
-        'recepcionist': '/receptionist-dashboard',
+        'receptionist': '/receptionist-dashboard',
         'admin': '/admin-dashboard'
     }
     return redirect_routes.get(role, '/dashboard')    
