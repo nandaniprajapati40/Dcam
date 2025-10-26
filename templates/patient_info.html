@@ -88,7 +88,7 @@
                 <h1 class="text-2xl font-bold text-gray-800">Patient Information</h1>
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center">
-                        <div class="avatar mr-3">{{ user.first_name[0] }}{{ user.last_name[0] }}</div>
+                       <div class="avatar mr-3">{% if user %}{{ user.first_name[0] }}{{ user.last_name[0] }}{% else %}UN{% endif %}</div>
                         <div>
                             <p class="font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
                             <p class="text-sm text-gray-600">{{ user.role.title() }}</p>
