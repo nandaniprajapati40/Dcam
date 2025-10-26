@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - DCAM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f5f7fb; color: #2c3e50; }
+        .header { background: linear-gradient(90deg, #4a6fa5 0%, #385d8a 100%); color: white; padding: 1rem 2rem; }
+        .nav-container { display: flex; align-items: center; justify-content: space-between; }
+        .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-item { padding: 10px 16px; border-radius: 8px; transition: all 0.3s ease; cursor: pointer; text-decoration: none; color: white; }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.15); }
+        .nav-item.active { background-color: rgba(255, 255, 255, 0.25); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #4a6fa5; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .time-slot { border: 2px solid #e5e7eb; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.3s ease; }
+        .time-slot:hover { border-color: #4a6fa5; background-color: #f8faff; transform: scale(1.02); }
+        .time-slot.selected { border-color: #4a6fa5; background-color: #e6f0ff; transform: scale(1.02); }
+        .form-section { margin-bottom: 1.5rem; }
+        .form-section-title { font-size: 1.125rem; font-weight: 600; color: #374151; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
+        
+        .mobile-menu-btn { display: none; }
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: fixed; top: 0; left: 0; right: 0; background: #4a6fa5; flex-direction: column; padding: 2rem; z-index: 100; transform: translateY(-100%); transition: transform 0.3s ease; }
+            .nav-links.active { transform: translateY(0); display: flex; }
+            .mobile-menu-btn { display: block; }
+            .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; }
+            .overlay.active { display: block; }
+        }
+
+        .therapy-option { border: 2px solid #e5e7eb; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; }
+        .therapy-option:hover { border-color: #4a6fa5; background-color: #f8faff; }
+        .therapy-option.selected { border-color: #4a6fa5; background-color: #e6f0ff; }
+        .therapy-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
+        
+        .horizontal-container { display: flex; flex-direction: column; }
+        .main-content { padding: 2rem; }
+        
+        .form-row { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .form-column { flex: 1; }
+        
+        .time-slots-horizontal { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .time-slot-horizontal { flex: 1 1 calc(16.66% - 0.75rem); min-width: 100px; border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+        .time-slot-horizontal:hover { border-color: #4a6fa5; background-color: #f8faff; transform: scale(1.02); }
+        .time-slot-horizontal.selected { border-color: #4a6fa5; background-color: #e6f0ff; transform: scale(1.02); }
+        
+        /* Custom dropdown styling */
+        .therapy-dropdown-container { position: relative; }
+        .therapy-dropdown { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; background-color: white; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s ease; }
+        .therapy-dropdown:hover { border-color: #4a6fa5; }
+        .therapy-dropdown.open { border-color: #4a6fa5; box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1); }
+        .therapy-dropdown-options { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); z-index: 10; max-height: 300px; overflow-y: auto; display: none; }
+        .therapy-dropdown-options.open { display: block; }
+        .therapy-dropdown-option { padding: 12px 16px; display: flex; align-items: center; cursor: pointer; transition: all 0.2s ease; }
+        .therapy-dropdown-option:hover { background-color: #f8faff; }
+        .therapy-dropdown-option.selected { background-color: #e6f0ff; }
+        .therapy-dropdown-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; }
+    </style>
+</head>
+<body>
+    <div class="horizontal-container">
+        <!-- Header with Horizontal Navigation -->
+        <header class="header">
+            <div class="nav-container">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 font-bold mr-3">
+                        <i class="fas fa-hands"></i>
+                    </div>
+                    <span class="text-xl font-bold">DCAM</span>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="mobile-menu-btn">
+                    <button id="menuToggle" class="p-2 bg-blue-600 text-white rounded-lg shadow-lg">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="nav-links" id="navLinks">
+                    <a href="/dashboard" class="nav-item">
+                        <i class="fas fa-tachometer-alt mr-2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/acupressure-info" class="nav-item">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <span>Acupressure Info</span>
+                    </a>
+                    <div class="nav-item active">
+                        <i class="fas fa-calendar-plus mr-2"></i>
+                        <span>Book Appointment</span>
+                    </div>
+                    <a href="/patient-info" class="nav-item">
+                        <i class="fas fa-user mr-2"></i>
+                        <span>My Information</span>
+                    </a>
+                    <a href="/manage-appointments" class="nav-item">
+                        <i class="fas fa-tasks mr-2"></i>
+                        <span>Manage Appointments</span>
+                    </a>
+                    
+                    <!-- User Info in Nav -->
+                    <div class="flex items-center p-3 bg-white/10 rounded-lg ml-4">
+                        <div class="avatar mr-3" id="userAvatar">{{ session.first_name[0] }}{{ session.last_name[0] }}</div>
+                        <div>
+                            <p class="font-semibold" id="userName">{{ session.first_name }} {{ session.last_name }}</p>
+                            <p class="text-sm opacity-80">{{ session.role|title }}</p>
+                            <p class="text-sm opacity-80">ID: {{ session.user_id }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Logout Button -->
+                    <a href="/logout" class="px-4 py-2 text-white font-medium hover:bg-white/20 transition rounded-lg">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="overlay"></div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="max-w-6xl mx-auto">
+                <h1 class="text-2xl font-bold text-gray-800 mb-6">Book New Appointment</h1>
+                
+                <!-- Appointment Status Alert -->
+                <div id="appointmentAlert" class="hidden mb-6 p-4 rounded-lg"></div>
+                
+                <div class="card p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Appointment Information</h2>
+                    
+                    <form id="appointmentForm">
+                        <!-- Therapy Selection Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Select Therapy Type</h3>
+                            <p class="text-gray-600 mb-4">Choose the therapy you want to book an appointment for</p>
+                            
+                            <!-- Therapy Dropdown -->
+                            <div class="therapy-dropdown-container">
+                                <div class="therapy-dropdown" id="therapyDropdown">
+                                    <div class="flex items-center">
+                                        <span id="selectedTherapyText">Select a therapy type...</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down transition-transform" id="dropdownArrow"></i>
+                                </div>
+                                <div class="therapy-dropdown-options" id="therapyOptions">
+                                    <!-- Therapy options will be populated here -->
+                                </div>
+                            </div>
+                            <input type="hidden" id="selectedTherapy" name="therapy_type" required>
+                        </div>
+
+                        <!-- Patient Information Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Patient Information</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Full Name</label>
+                                    <input type="text" id="patientName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" value="{{ session.first_name }} {{ session.last_name }}" required readonly>
+                                </div>
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Date of Birth</label>
+                                    <input type="date" id="patientDob" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Gender</label>
+                                    <select id="patientGender" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
+                                        <option value="">Select gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                        <option value="prefer_not_to_say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Phone Number</label>
+                                    <input type="tel" id="patientPhone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Address</label>
+                                    <textarea id="patientAddress" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter your complete address" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Health Information Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Health Information</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Height (cm)</label>
+                                    <input type="number" id="patientHeight" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter height in centimeters">
+                                </div>
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Weight (kg)</label>
+                                    <input type="number" id="patientWeight" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Enter weight in kilograms">
+                                </div>
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Blood Group</label>
+                                    <select id="patientBloodGroup" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                        <option value="">Select blood group</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Known Allergies</label>
+                                    <textarea id="patientAllergies" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="List any known allergies (food, medicine, environmental, etc.)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Medical History Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Medical History</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Existing Medical Conditions</label>
+                                    <textarea id="medicalConditions" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="List any existing medical conditions (e.g., diabetes, hypertension, asthma, etc.)"></textarea>
+                                </div>
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Current Medications</label>
+                                    <textarea id="currentMedications" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="List any medications you are currently taking"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Previous Surgeries</label>
+                                    <textarea id="previousSurgeries" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="List any previous surgeries with dates"></textarea>
+                                </div>
+                                <div class="form-column">
+                                    <label class="block text-gray-700 font-medium mb-2">Family Medical History</label>
+                                    <textarea id="familyMedicalHistory" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Any significant medical conditions in your family"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appointment Details Section -->
+                        <div class="form-section">
+                            <h3 class="form-section-title">Appointment Details</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-column">
+                                    <!-- Therapist Selection -->
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Select Doctor</label>
+                                        <select id="therapistSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required disabled>
+                                            <option value="">Please select a therapy type first</option>
+                                        </select>
+                                        <p class="text-sm text-gray-500 mt-2" id="doctorInfo">Choose a therapy type to see available doctors</p>
+                                    </div>
+
+                                    <!-- Date Selection -->
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Preferred Date</label>
+                                        <input type="date" id="appointmentDate" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
+                                        <p class="text-sm text-gray-500 mt-2">Note: Receptionist will confirm the exact time slot</p>
+                                    </div>
+
+                                    <!-- Consultation Type -->
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Consultation Type</label>
+                                        <select id="consultationType" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
+                                            <option value="">Select consultation type...</option>
+                                            <option value="initial">Initial Consultation</option>
+                                            <option value="follow-up">Follow-up Session</option>
+                                            <option value="emergency">Emergency Session</option>
+                                            <option value="routine">Routine Checkup</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-column">
+                                    <!-- Preferred Time Slots -->
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Preferred Time Slots</label>
+                                        <div class="time-slots-horizontal" id="timeSlots">
+                                            <!-- Time slots will be populated here -->
+                                        </div>
+                                        <p class="text-sm text-gray-500 mt-2">Select your preferred time. Final slot will be confirmed by receptionist.</p>
+                                    </div>
+
+                                    <!-- Reason for Visit -->
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Reason for Visit</label>
+                                        <textarea id="reason" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Please describe your symptoms or reason for seeking therapy..." required></textarea>
+                                    </div>
+
+                                    <!-- Additional Notes -->
+                                    <div class="mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Additional Notes (Optional)</label>
+                                        <textarea id="additionalNotes" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Any other information you'd like to share with the doctor"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center shadow-md hover:shadow-lg">
+                                <i class="fas fa-calendar-check mr-2"></i>
+                                Request Appointment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Appointment Guidelines -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">Appointment Guidelines</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-start"><i class="fas fa-clock text-blue-500 mr-2 mt-1"></i> Appointments are available between 9:00 AM - 5:00 PM</div>
+                        <div class="flex items-start"><i class="fas fa-calendar text-blue-500 mr-2 mt-1"></i> Please arrive 10 minutes before your scheduled time</div>
+                        <div class="flex items-start"><i class="fas fa-notes-medical text-blue-500 mr-2 mt-1"></i> Bring any relevant medical reports or prescriptions</div>
+                        <div class="flex items-start"><i class="fas fa-ban text-blue-500 mr-2 mt-1"></i> Avoid heavy meals 2 hours before your session</div>
+                        <div class="flex items-start"><i class="fas fa-clock text-blue-500 mr-2 mt-1"></i> Sessions typically last 45-60 minutes</div>
+                        <div class="flex items-start"><i class="fas fa-info-circle text-blue-500 mr-2 mt-1"></i> Appointment will be confirmed by receptionist within 24 hours</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        const overlay = document.getElementById('overlay');
+        
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        overlay.addEventListener('click', () => {
+            navLinks.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const therapyDropdown = document.getElementById('therapyDropdown');
+            const therapyOptions = document.getElementById('therapyOptions');
+            const therapistSelect = document.getElementById('therapistSelect');
+            const appointmentDate = document.getElementById('appointmentDate');
+            const timeSlots = document.getElementById('timeSlots');
+            const appointmentForm = document.getElementById('appointmentForm');
+            const doctorInfo = document.getElementById('doctorInfo');
+            const appointmentAlert = document.getElementById('appointmentAlert');
+            const selectedTherapyText = document.getElementById('selectedTherapyText');
+            const dropdownArrow = document.getElementById('dropdownArrow');
+            
+            let selectedTimeSlot = null;
+            let allTherapists = [];
+            let selectedTherapy = '';
+
+            // Therapy options data
+            const therapies = [
+                { id: 'acupressure', name: 'Acupressure/Acupuncture', icon: 'fas fa-hand-holding-heart', color: 'bg-blue-100 text-blue-600' },
+                { id: 'ayurveda', name: 'Ayurveda', icon: 'fas fa-spa', color: 'bg-green-100 text-green-600' },
+                { id: 'homeopathy', name: 'Homeopathy', icon: 'fas fa-flask', color: 'bg-purple-100 text-purple-600' },
+                { id: 'naturopathy', name: 'Naturopathy', icon: 'fas fa-leaf', color: 'bg-teal-100 text-teal-600' },
+                { id: 'yoga', name: 'Yoga & Meditation', icon: 'fas fa-peace', color: 'bg-orange-100 text-orange-600' },
+                { id: 'unani', name: 'Unani Medicine', icon: 'fas fa-mortar-pestle', color: 'bg-indigo-100 text-indigo-600' },
+                { id: 'chiropractic', name: 'Chiropractic', icon: 'fas fa-bone', color: 'bg-pink-100 text-pink-600' },
+                { id: 'physiotherapy', name: 'Physiotherapy', icon: 'fas fa-walking', color: 'bg-red-100 text-red-600' },
+                { id: 'diet', name: 'Diet & Nutrition', icon: 'fas fa-apple-alt', color: 'bg-yellow-100 text-yellow-600' },
+                { id: 'herbal', name: 'Herbal Medicine', icon: 'fas fa-seedling', color: 'bg-lime-100 text-lime-600' },
+                { id: 'sound', name: 'Sound Healing', icon: 'fas fa-music', color: 'bg-cyan-100 text-cyan-600' }
+            ];
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            appointmentDate.min = today;
+
+            // Load therapy options in dropdown
+            function loadTherapyOptions() {
+                therapyOptions.innerHTML = therapies.map(therapy => `
+                    <div class="therapy-dropdown-option" data-therapy="${therapy.id}">
+                        <div class="therapy-dropdown-icon ${therapy.color}">
+                            <i class="${therapy.icon}"></i>
+                        </div>
+                        <span>${therapy.name}</span>
+                    </div>
+                `).join('');
+
+                // Add click event listeners to therapy options
+                document.querySelectorAll('.therapy-dropdown-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        // Remove selected class from all options
+                        document.querySelectorAll('.therapy-dropdown-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to clicked option
+                        this.classList.add('selected');
+                        
+                        // Set selected therapy
+                        selectedTherapy = this.getAttribute('data-therapy');
+                        document.getElementById('selectedTherapy').value = selectedTherapy;
+                        
+                        // Update dropdown text
+                        const therapyName = this.querySelector('span').textContent;
+                        selectedTherapyText.textContent = therapyName;
+                        
+                        // Close dropdown
+                        therapyDropdown.classList.remove('open');
+                        therapyOptions.classList.remove('open');
+                        dropdownArrow.style.transform = 'rotate(0deg)';
+                        
+                        // Enable therapist selection and load therapists for this therapy
+                        therapistSelect.disabled = false;
+                        loadTherapists(selectedTherapy);
+                    });
+                });
+            }
+
+            // Toggle dropdown
+            therapyDropdown.addEventListener('click', function() {
+                const isOpen = therapyOptions.classList.contains('open');
+                
+                if (isOpen) {
+                    therapyDropdown.classList.remove('open');
+                    therapyOptions.classList.remove('open');
+                    dropdownArrow.style.transform = 'rotate(0deg)';
+                } else {
+                    therapyDropdown.classList.add('open');
+                    therapyOptions.classList.add('open');
+                    dropdownArrow.style.transform = 'rotate(180deg)';
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!therapyDropdown.contains(event.target) && !therapyOptions.contains(event.target)) {
+                    therapyDropdown.classList.remove('open');
+                    therapyOptions.classList.remove('open');
+                    dropdownArrow.style.transform = 'rotate(0deg)';
+                }
+            });
+
+            // Load therapists for selected therapy
+            function loadTherapists(therapyType) {
+                fetch('/api/users/therapists')
+                    .then(response => response.json())
+                    .then(therapists => {
+                        allTherapists = therapists;
+                        filterTherapistsByTherapy(therapyType);
+                    })
+                    .catch(error => {
+                        console.error('Error loading therapists:', error);
+                        // Fallback to predefined therapists
+                        const demoTherapists = [
+                            { user_id: 'DOC001', first_name: 'Rajesh', last_name: 'Sharma', specialization: 'Acupressure Specialist', therapy_type: 'acupressure' },
+                            { user_id: 'DOC002', first_name: 'Priya', last_name: 'Gupta', specialization: 'Ayurveda Expert', therapy_type: 'ayurveda' },
+                            { user_id: 'DOC003', first_name: 'Amit', last_name: 'Verma', specialization: 'Homeopathy Specialist', therapy_type: 'homeopathy' },
+                            { user_id: 'DOC004', first_name: 'Sunita', last_name: 'Patel', specialization: 'Naturopathy Doctor', therapy_type: 'naturopathy' },
+                            { user_id: 'DOC005', first_name: 'Ravi', last_name: 'Kumar', specialization: 'Yoga Master', therapy_type: 'yoga' },
+                            { user_id: 'DOC006', first_name: 'Anjali', last_name: 'Singh', specialization: 'Unani Specialist', therapy_type: 'unani' },
+                            { user_id: 'DOC007', first_name: 'Deepak', last_name: 'Joshi', specialization: 'Chiropractic Expert', therapy_type: 'chiropractic' },
+                            { user_id: 'DOC008', first_name: 'Neha', last_name: 'Sharma', specialization: 'Physiotherapist', therapy_type: 'physiotherapy' },
+                            { user_id: 'DOC009', first_name: 'Sanjay', last_name: 'Malhotra', specialization: 'Nutritionist', therapy_type: 'diet' },
+                            { user_id: 'DOC010', first_name: 'Meera', last_name: 'Reddy', specialization: 'Herbal Medicine Expert', therapy_type: 'herbal' },
+                            { user_id: 'DOC011', first_name: 'Arun', last_name: 'Desai', specialization: 'Sound Healing Therapist', therapy_type: 'sound' }
+                        ];
+                        allTherapists = demoTherapists;
+                        filterTherapistsByTherapy(therapyType);
+                    });
+            }
+
+            function filterTherapistsByTherapy(therapyType) {
+                const filteredTherapists = allTherapists.filter(therapist => 
+                    therapist.therapy_type === therapyType
+                );
+
+                therapistSelect.innerHTML = '<option value="">Select a doctor...</option>';
+                
+                if (filteredTherapists.length === 0) {
+                    therapistSelect.innerHTML = '<option value="">No doctors available for this therapy</option>';
+                    doctorInfo.textContent = 'No doctors currently available for this therapy type. Please check back later.';
+                    therapistSelect.disabled = true;
+                    return;
+                }
+
+                filteredTherapists.forEach(therapist => {
+                    const option = document.createElement('option');
+                    option.value = therapist.user_id;
+                    option.textContent = `${therapist.first_name} ${therapist.last_name} - ${therapist.specialization}`;
+                    therapistSelect.appendChild(option);
+                });
+
+                doctorInfo.textContent = `${filteredTherapists.length} doctor(s) available for ${getTherapyName(therapyType)}`;
+                therapistSelect.disabled = false;
+            }
+
+            function getTherapyName(therapyType) {
+                const therapy = therapies.find(t => t.id === therapyType);
+                return therapy ? therapy.name : therapyType;
+            }
+
+            // Generate time slots in horizontal layout
+            function generateTimeSlots() {
+                timeSlots.innerHTML = '';
+                selectedTimeSlot = null;
+                
+                const timeRanges = [
+                    { start: 9, end: 12 }, // 9 AM - 12 PM
+                    { start: 14, end: 17 }  // 2 PM - 5 PM
+                ];
+
+                timeRanges.forEach(range => {
+                    for (let hour = range.start; hour < range.end; hour++) {
+                        const timeString = `${hour.toString().padStart(2, '0')}:00`;
+                        const displayTime = `${hour > 12 ? hour - 12 : hour}:00 ${hour >= 12 ? 'PM' : 'AM'}`;
+                        
+                        const slotDiv = document.createElement('div');
+                        slotDiv.className = 'time-slot-horizontal';
+                        slotDiv.innerHTML = `
+                            <div class="font-semibold text-sm">${displayTime}</div>
+                        `;
+                        
+                        slotDiv.addEventListener('click', () => {
+                            document.querySelectorAll('.time-slot-horizontal').forEach(s => s.classList.remove('selected'));
+                            slotDiv.classList.add('selected');
+                            selectedTimeSlot = timeString;
+                        });
+                        
+                        timeSlots.appendChild(slotDiv);
+                    }
+                });
+            }
+
+            // Show alert message
+            function showAlert(message, type = 'info') {
+                const alertClass = type === 'error' ? 'bg-red-100 border-red-400 text-red-700' : 'bg-blue-100 border-blue-400 text-blue-700';
+                appointmentAlert.className = `${alertClass} border-l-4 p-4`;
+                appointmentAlert.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'} mr-3"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                appointmentAlert.classList.remove('hidden');
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    appointmentAlert.classList.add('hidden');
+                }, 5000);
+            }
+
+            // Initial setup
+            loadTherapyOptions();
+            generateTimeSlots();
+
+            // Handle form submission
+            appointmentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!selectedTherapy) {
+                    showAlert('Please select a therapy type', 'error');
+                    return;
+                }
+
+                if (!therapistSelect.value) {
+                    showAlert('Please select a doctor', 'error');
+                    return;
+                }
+
+                const formData = {
+                    // Therapy Information
+                    therapy_type: selectedTherapy,
+                    
+                    // Patient Information
+                    patient_name: document.getElementById('patientName').value,
+                    patient_dob: document.getElementById('patientDob').value,
+                    patient_gender: document.getElementById('patientGender').value,
+                    patient_phone: document.getElementById('patientPhone').value,
+                    patient_address: document.getElementById('patientAddress').value,
+                    
+                    // Health Information
+                    patient_height: document.getElementById('patientHeight').value,
+                    patient_weight: document.getElementById('patientWeight').value,
+                    patient_blood_group: document.getElementById('patientBloodGroup').value,
+                    patient_allergies: document.getElementById('patientAllergies').value,
+                    
+                    // Medical History
+                    medical_conditions: document.getElementById('medicalConditions').value,
+                    current_medications: document.getElementById('currentMedications').value,
+                    previous_surgeries: document.getElementById('previousSurgeries').value,
+                    family_medical_history: document.getElementById('familyMedicalHistory').value,
+                    
+                    // Appointment Details
+                    therapist_id: therapistSelect.value,
+                    date: `${appointmentDate.value}T${selectedTimeSlot || '10:00'}:00`,
+                    reason: document.getElementById('reason').value,
+                    consultation_type: document.getElementById('consultationType').value,
+                    additional_notes: document.getElementById('additionalNotes').value,
+                    preferred_time_slot: selectedTimeSlot
+                };
+
+                // Show loading state
+                const submitBtn = appointmentForm.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Requesting Appointment...';
+                submitBtn.disabled = true;
+
+                fetch('/api/appointments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showAlert(data.message, 'info');
+                        
+                        // Reset form
+                        appointmentForm.reset();
+                        selectedTherapy = '';
+                        selectedTimeSlot = null;
+                        selectedTherapyText.textContent = 'Select a therapy type...';
+                        document.querySelectorAll('.therapy-dropdown-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        document.querySelectorAll('.time-slot-horizontal').forEach(slot => {
+                            slot.classList.remove('selected');
+                        });
+                        therapistSelect.disabled = true;
+                        therapistSelect.innerHTML = '<option value="">Please select a therapy type first</option>';
+                        doctorInfo.textContent = 'Choose a therapy type to see available doctors';
+                        
+                        // Redirect to dashboard after 3 seconds
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 3000);
+                    } else {
+                        showAlert(data.error || 'Failed to book appointment', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error booking appointment:', error);
+                    showAlert('Failed to book appointment. Please try again.', 'error');
+                })
+                .finally(() => {
+                    // Restore button state
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // Close mobile menu if open
+                    if (window.innerWidth < 768) {
+                        navLinks.classList.remove('active');
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - DCAM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f5f7fb; color: #2c3e50; }
+        .sidebar { background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%); color: white; min-height: 100vh; transition: all 0.3s ease; }
+        .sidebar-item { padding: 14px 20px; border-radius: 8px; margin-bottom: 6px; transition: all 0.3s ease; cursor: pointer; }
+        .sidebar-item:hover { background-color: rgba(255, 255, 255, 0.15); transform: translateX(5px); }
+        .sidebar-item.active { background-color: rgba(255, 255, 255, 0.25); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08); transform: translateY(-2px); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #1e40af; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        .mobile-menu-btn { display: none; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -100%; z-index: 100; width: 280px; transition: all 0.3s ease; }
+            .sidebar.active { left: 0; }
+            .mobile-menu-btn { display: block; }
+            .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; }
+            .overlay.active { display: block; }
+        }
+        
+        .appointment-card { border-left: 4px solid; transition: all 0.3s; }
+        .appointment-card.scheduled { border-left-color: #3b82f6; }
+        .appointment-card.completed { border-left-color: #10b981; }
+        .appointment-card.cancelled { border-left-color: #ef4444; }
+        
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+        .status-scheduled { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #dc2626; }
+        
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- Mobile Menu Button -->
+        <div class="mobile-menu-btn fixed top-4 left-4 z-50 lg:hidden">
+            <button id="menuToggle" class="p-2 bg-blue-600 text-white rounded-lg shadow-lg">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="overlay"></div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar w-64 min-h-screen p-4 z-40">
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <span class="text-xl font-bold">DCAM Doctor</span>
+            </div>
+            
+            <div class="mb-8">
+                <div class="flex items-center p-3 bg-white/10 rounded-lg">
+                    <div class="avatar mr-3" id="doctorAvatar">RS</div>
+                    <div>
+                        <p class="font-semibold" id="doctorName">Dr. Rajesh Sharma</p>
+                        <p class="text-sm opacity-80" id="doctorSpecialization">Acupressure Specialist</p>
+                        <p class="text-sm opacity-80">ID: DOC001</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="space-y-2">
+                <div class="sidebar-item active">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-calendar-check mr-3"></i>
+                    <span>My Appointments</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-user-injured mr-3"></i>
+                    <span>My Patients</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-file-medical mr-3"></i>
+                    <span>Treatment Records</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    <span>Reports & Analytics</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-cog mr-3"></i>
+                    <span>Settings</span>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-4 lg:p-6 w-full lg:w-auto">
+            <header class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Doctor Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notificationBtn" class="p-2 text-gray-600 hover:text-blue-600 transition relative">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationCount" class="notification-dot hidden">0</span>
+                        </button>
+                        <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
+                            <div class="p-4 border-b bg-gray-50">
+                                <h3 class="font-semibold text-gray-800">Notifications</h3>
+                            </div>
+                            <div id="notificationList" class="max-h-60 overflow-y-auto">
+                                <!-- Notifications will be loaded here -->
+                            </div>
+                            <div class="p-2 border-t bg-gray-50 text-center">
+                                <button id="markAllRead" class="text-sm text-blue-600 hover:text-blue-800">Mark all as read</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <div class="avatar mr-3" id="headerAvatar">RS</div>
+                        <div>
+                            <p class="font-semibold" id="headerName">Dr. Rajesh Sharma</p>
+                            <p class="text-sm text-gray-600">Acupressure Specialist</p>
+                        </div>
+                    </div>
+                    <a href="/logout" class="px-4 py-2 text-red-600 font-medium hover:text-red-800 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Today's Appointments</p>
+                            <h3 class="text-2xl font-bold mt-2" id="todayAppointments">0</h3>
+                        </div>
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <i class="fas fa-calendar-day text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Total Patients</p>
+                            <h3 class="text-2xl font-bold mt-2" id="totalPatients">0</h3>
+                        </div>
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fas fa-user-injured text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Completed Sessions</p>
+                            <h3 class="text-2xl font-bold mt-2" id="completedSessions">0</h3>
+                        </div>
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <i class="fas fa-check-circle text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Pending Follow-ups</p>
+                            <h3 class="text-2xl font-bold mt-2" id="pendingFollowups">0</h3>
+                        </div>
+                        <div class="p-3 bg-orange-100 rounded-lg">
+                            <i class="fas fa-clock text-orange-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Schedule -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Today's Schedule</h2>
+                    <div id="todaySchedule">
+                        <!-- Today's appointments will be loaded here -->
+                    </div>
+                    <div id="noSchedule" class="text-center py-8 hidden">
+                        <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No appointments scheduled for today</p>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                    <div class="space-y-3">
+                        <button class="w-full flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition" onclick="viewAllAppointments()">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mr-3">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <span class="font-medium text-gray-700">View All Appointments</span>
+                        </button>
+                        <button class="w-full flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition" onclick="addTreatmentRecord()">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mr-3">
+                                <i class="fas fa-file-medical"></i>
+                            </div>
+                            <span class="font-medium text-gray-700">Add Treatment Record</span>
+                        </button>
+                        <button class="w-full flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition" onclick="generateReport()">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mr-3">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <span class="font-medium text-gray-700">Generate Report</span>
+                        </button>
+                        <button class="w-full flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition" onclick="updateAvailability()">
+                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 mr-3">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <span class="font-medium text-gray-700">Update Availability</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Appointments -->
+            <div class="card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Recent Appointments</h2>
+                    <div class="flex space-x-2">
+                        <select id="filterAppointments" class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="all">All Appointments</option>
+                            <option value="today">Today</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                        <button id="refreshAppointments" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="appointmentsList">
+                    <!-- Appointments will be loaded here -->
+                </div>
+                
+                <div id="noAppointments" class="text-center py-8 hidden">
+                    <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">No appointments found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Modal -->
+    <div id="appointmentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Appointment Details</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="modalContent">
+                <!-- Appointment details will be loaded here -->
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button id="startSession" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition hidden">
+                    <i class="fas fa-play mr-2"></i>Start Session
+                </button>
+                <button id="completeSession" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition hidden">
+                    <i class="fas fa-check mr-2"></i>Complete Session
+                </button>
+                <button id="addNotes" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition hidden">
+                    <i class="fas fa-notes-medical mr-2"></i>Add Notes
+                </button>
+                <button id="closeModalBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        let currentAppointmentId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDoctorData();
+            loadAppointments();
+            loadNotifications();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Filter events
+            document.getElementById('filterAppointments').addEventListener('change', filterAppointments);
+            document.getElementById('refreshAppointments').addEventListener('click', loadAppointments);
+            
+            // Modal events
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+            document.getElementById('startSession').addEventListener('click', startSession);
+            document.getElementById('completeSession').addEventListener('click', completeSession);
+            document.getElementById('addNotes').addEventListener('click', addNotes);
+            
+            // Notification events
+            document.getElementById('notificationBtn').addEventListener('click', toggleNotifications);
+            document.getElementById('markAllRead').addEventListener('click', markAllNotificationsRead);
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#notificationBtn') && !e.target.closest('#notificationDropdown')) {
+                    document.getElementById('notificationDropdown').classList.add('hidden');
+                }
+            });
+        }
+
+        function toggleNotifications(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        function loadDoctorData() {
+            // In a real app, this would come from the backend
+            const doctorData = {
+                name: "Dr. Rajesh Sharma",
+                specialization: "Acupressure Specialist",
+                user_id: "DOC001",
+                therapy_type: "acupressure"
+            };
+            
+            document.getElementById('doctorName').textContent = doctorData.name;
+            document.getElementById('doctorSpecialization').textContent = doctorData.specialization;
+            document.getElementById('headerName').textContent = doctorData.name;
+            document.getElementById('headerAvatar').textContent = doctorData.name.split(' ').map(n => n[0]).join('');
+            document.getElementById('doctorAvatar').textContent = doctorData.name.split(' ').map(n => n[0]).join('');
+        }
+
+        function loadAppointments() {
+            fetch('/api/doctor/appointments')
+                .then(response => response.json())
+                .then(data => {
+                    updateStats(data.stats || {});
+                    renderTodaySchedule(data.todayAppointments || []);
+                    renderAppointments(data.appointments || []);
+                })
+                .catch(error => {
+                    console.error('Error loading appointments:', error);
+                    // Demo data for testing
+                    const demoData = {
+                        stats: {
+                            today: 3,
+                            totalPatients: 45,
+                            completedSessions: 120,
+                            pendingFollowups: 8
+                        },
+                        todayAppointments: [
+                            {
+                                appointment_id: 'APT001',
+                                patient_name: 'Rahul Kumar',
+                                time: '10:00 AM',
+                                therapy: 'Acupressure',
+                                status: 'scheduled'
+                            },
+                            {
+                                appointment_id: 'APT002',
+                                patient_name: 'Priya Singh',
+                                time: '11:30 AM',
+                                therapy: 'Acupressure',
+                                status: 'scheduled'
+                            }
+                        ],
+                        appointments: [
+                            {
+                                appointment_id: 'APT001',
+                                patient_name: 'Rahul Kumar',
+                                patient_email: 'rahul@example.com',
+                                therapy_type: 'acupressure',
+                                therapy_name: 'Acupressure',
+                                date: new Date(Date.now() + 3600000).toISOString(),
+                                reason: 'Chronic back pain',
+                                status: 'scheduled',
+                                consultation_type: 'follow-up'
+                            },
+                            {
+                                appointment_id: 'APT002',
+                                patient_name: 'Priya Singh',
+                                patient_email: 'priya@example.com',
+                                therapy_type: 'acupressure',
+                                therapy_name: 'Acupressure',
+                                date: new Date(Date.now() + 86400000).toISOString(),
+                                reason: 'Shoulder pain',
+                                status: 'scheduled',
+                                consultation_type: 'initial'
+                            }
+                        ]
+                    };
+                    updateStats(demoData.stats);
+                    renderTodaySchedule(demoData.todayAppointments);
+                    renderAppointments(demoData.appointments);
+                });
+        }
+
+        function loadNotifications() {
+            fetch('/api/doctor/notifications')
+                .then(response => response.json())
+                .then(notifications => {
+                    updateNotificationUI(notifications);
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    // Demo notifications
+                    const demoNotifications = [
+                        {
+                            title: 'New Appointment',
+                            message: 'Rahul Kumar booked Acupressure session',
+                            type: 'info',
+                            is_read: false,
+                            created_at: new Date().toISOString()
+                        },
+                        {
+                            title: 'Session Reminder',
+                            message: 'You have appointment with Priya Singh in 30 minutes',
+                            type: 'warning',
+                            is_read: true,
+                            created_at: new Date(Date.now() - 1800000).toISOString()
+                        }
+                    ];
+                    updateNotificationUI(demoNotifications);
+                });
+        }
+
+        function updateNotificationUI(notifications) {
+            const unreadCount = notifications.filter(n => !n.is_read).length;
+            const notificationCount = document.getElementById('notificationCount');
+            const notificationList = document.getElementById('notificationList');
+
+            if (unreadCount > 0) {
+                notificationCount.textContent = unreadCount;
+                notificationCount.classList.remove('hidden');
+            } else {
+                notificationCount.classList.add('hidden');
+            }
+
+            if (notifications.length === 0) {
+                notificationList.innerHTML = '<p class="p-4 text-gray-500 text-center">No notifications</p>';
+            } else {
+                notificationList.innerHTML = notifications.map(notification => `
+                    <div class="p-4 border-b border-gray-100 hover:bg-gray-50 ${!notification.is_read ? 'bg-blue-50' : ''}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-sm text-gray-800">${notification.title}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                                <p class="text-xs text-gray-400 mt-2">${formatTime(notification.created_at)}</p>
+                            </div>
+                            ${!notification.is_read ? '<span class="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-1 flex-shrink-0"></span>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        function markAllNotificationsRead() {
+            fetch('/api/notifications/read', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    loadNotifications();
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notifications as read:', error);
+            });
+        }
+
+        function updateStats(stats) {
+            document.getElementById('todayAppointments').textContent = stats.today || 0;
+            document.getElementById('totalPatients').textContent = stats.totalPatients || 0;
+            document.getElementById('completedSessions').textContent = stats.completedSessions || 0;
+            document.getElementById('pendingFollowups').textContent = stats.pendingFollowups || 0;
+        }
+
+        function renderTodaySchedule(appointments) {
+            const container = document.getElementById('todaySchedule');
+            const noSchedule = document.getElementById('noSchedule');
+            
+            if (appointments.length === 0) {
+                container.innerHTML = '';
+                noSchedule.classList.remove('hidden');
+                return;
+            }
+            
+            noSchedule.classList.add('hidden');
+            
+            container.innerHTML = appointments.map(appt => `
+                <div class="appointment-card scheduled p-4 mb-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${appt.patient_name}</h4>
+                            <p class="text-sm text-gray-600">${appt.therapy}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-gray-800">${appt.time}</p>
+                            <span class="status-badge status-scheduled">${appt.status}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 mt-2">
+                        <button onclick="viewAppointment('${appt.appointment_id}')" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition">
+                            <i class="fas fa-eye mr-1"></i>View
+                        </button>
+                        <button onclick="startSession('${appt.appointment_id}')" class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition">
+                            <i class="fas fa-play mr-1"></i>Start
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAppointments(appointments) {
+            const container = document.getElementById('appointmentsList');
+            const noAppointments = document.getElementById('noAppointments');
+            
+            if (appointments.length === 0) {
+                container.innerHTML = '';
+                noAppointments.classList.remove('hidden');
+                return;
+            }
+            
+            noAppointments.classList.add('hidden');
+            
+            container.innerHTML = appointments.map(appt => {
+                const date = new Date(appt.date);
+                const dateString = date.toLocaleDateString();
+                const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const statusClass = {
+                    'scheduled': 'status-scheduled',
+                    'completed': 'status-completed',
+                    'cancelled': 'status-cancelled'
+                }[appt.status] || 'status-scheduled';
+                
+                return `
+                    <div class="appointment-card ${appt.status} p-4 mb-3">
+                        <div class="flex justify-between items-center">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800">${appt.patient_name}</h4>
+                                <p class="text-sm text-gray-600">${appt.therapy_name} - ${appt.consultation_type}</p>
+                                <p class="text-xs text-gray-500">${appt.reason}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-gray-800">${dateString}</p>
+                                <p class="text-sm text-gray-600">${timeString}</p>
+                                <span class="status-badge ${statusClass}">${appt.status}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-2 mt-2">
+                            <button onclick="viewAppointment('${appt.appointment_id}')" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition">
+                                <i class="fas fa-eye mr-1"></i>View
+                            </button>
+                            ${appt.status === 'scheduled' ? `
+                                <button onclick="startSession('${appt.appointment_id}')" class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition">
+                                    <i class="fas fa-play mr-1"></i>Start
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterAppointments() {
+            const filter = document.getElementById('filterAppointments').value;
+            // In a real app, this would filter the appointments list
+            alert(`Filtering appointments by: ${filter}`);
+        }
+
+        function viewAppointment(appointmentId) {
+            const appointment = {
+                appointment_id: appointmentId,
+                patient_name: 'Rahul Kumar',
+                patient_email: 'rahul@example.com',
+                patient_phone: '+91-9876543210',
+                therapy_name: 'Acupressure',
+                date: new Date().toISOString(),
+                reason: 'Chronic back pain',
+                status: 'scheduled',
+                consultation_type: 'follow-up',
+                medical_history: 'Hypertension, occasional back pain',
+                previous_sessions: 3
+            };
+            
+            currentAppointmentId = appointmentId;
+            const date = new Date(appointment.date);
+            const dateString = date.toLocaleDateString();
+            const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            document.getElementById('modalContent').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-3">Patient Information</h4>
+                        <div class="space-y-2">
+                            <p><strong class="text-gray-600">Name:</strong> ${appointment.patient_name}</p>
+                            <p><strong class="text-gray-600">Phone:</strong> ${appointment.patient_phone}</p>
+                            <p><strong class="text-gray-600">Email:</strong> ${appointment.patient_email}</p>
+                            <p><strong class="text-gray-600">Previous Sessions:</strong> ${appointment.previous_sessions}</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-3">Appointment Details</h4>
+                        <div class="space-y-2">
+                            <p><strong class="text-gray-600">Therapy:</strong> ${appointment.therapy_name}</p>
+                            <p><strong class="text-gray-600">Date:</strong> ${dateString}</p>
+                            <p><strong class="text-gray-600">Time:</strong> ${timeString}</p>
+                            <p><strong class="text-gray-600">Type:</strong> ${appointment.consultation_type}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <h4 class="font-semibold text-gray-700 mb-3">Medical History</h4>
+                    <p class="text-gray-700">${appointment.medical_history}</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-gray-700 mb-3">Reason for Visit</h4>
+                    <p class="text-gray-700">${appointment.reason}</p>
+                </div>
+            `;
+            
+            // Show appropriate action buttons
+            const startBtn = document.getElementById('startSession');
+            const completeBtn = document.getElementById('completeSession');
+            const notesBtn = document.getElementById('addNotes');
+            
+            startBtn.classList.remove('hidden');
+            completeBtn.classList.add('hidden');
+            notesBtn.classList.remove('hidden');
+            
+            if (appointment.status === 'in-progress') {
+                startBtn.classList.add('hidden');
+                completeBtn.classList.remove('hidden');
+            }
+            
+            document.getElementById('appointmentModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('appointmentModal').classList.add('hidden');
+            currentAppointmentId = null;
+        }
+
+        function startSession(appointmentId = null) {
+            const id = appointmentId || currentAppointmentId;
+            if (!id) return;
+            
+            fetch(`/api/doctor/appointments/${id}/start`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('✅ Session started successfully!');
+                    closeModal();
+                    loadAppointments();
+                } else {
+                    alert(data.error || 'Failed to start session');
+                }
+            })
+            .catch(error => {
+                console.error('Error starting session:', error);
+                alert('Failed to start session');
+            });
+        }
+
+        function completeSession() {
+            if (!currentAppointmentId) return;
+            
+            const notes = prompt('Enter session notes and recommendations:');
+            if (notes === null) return;
+            
+            fetch(`/api/doctor/appointments/${currentAppointmentId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ notes: notes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('✅ Session completed successfully!');
+                    closeModal();
+                    loadAppointments();
+                } else {
+                    alert(data.error || 'Failed to complete session');
+                }
+            })
+            .catch(error => {
+                console.error('Error completing session:', error);
+                alert('Failed to complete session');
+            });
+        }
+
+        function addNotes() {
+            if (!currentAppointmentId) return;
+            
+            const notes = prompt('Enter additional notes:');
+            if (notes === null) return;
+            
+            fetch(`/api/doctor/appointments/${currentAppointmentId}/notes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ notes: notes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('✅ Notes added successfully!');
+                } else {
+                    alert(data.error || 'Failed to add notes');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding notes:', error);
+                alert('Failed to add notes');
+            });
+        }
+
+        // Quick action functions
+        function viewAllAppointments() {
+            alert('Opening all appointments view...');
+        }
+
+        function addTreatmentRecord() {
+            alert('Opening treatment record form...');
+        }
+
+        function generateReport() {
+            alert('Opening report generator...');
+        }
+
+        function updateAvailability() {
+            alert('Opening availability settings...');
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadAppointments, 30000);
+    </script>
+</body>
+</html>

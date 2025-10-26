@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - DCAM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f5f7fb; color: #2c3e50; }
+        .sidebar { background: linear-gradient(180deg, #10b981 0%, #059669 100%); color: white; min-height: 100vh; transition: all 0.3s ease; }
+        .sidebar-item { padding: 14px 20px; border-radius: 8px; margin-bottom: 6px; transition: all 0.3s ease; cursor: pointer; }
+        .sidebar-item:hover { background-color: rgba(255, 255, 255, 0.15); transform: translateX(5px); }
+        .sidebar-item.active { background-color: rgba(255, 255, 255, 0.25); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08); transform: translateY(-2px); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        .mobile-menu-btn { display: none; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -100%; z-index: 100; width: 280px; transition: all 0.3s ease; }
+            .sidebar.active { left: 0; }
+            .mobile-menu-btn { display: block; }
+            .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 99; }
+            .overlay.active { display: block; }
+        }
+        
+        .appointment-card { border-left: 4px solid #10b981; transition: all 0.3s; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-confirmed { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #dc2626; }
+        .status-completed { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="flex">
+        <!-- Mobile Menu Button -->
+        <div class="mobile-menu-btn fixed top-4 left-4 z-50 lg:hidden">
+            <button id="menuToggle" class="p-2 bg-green-600 text-white rounded-lg shadow-lg">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="overlay"></div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar w-64 min-h-screen p-4 z-40">
+            <div class="flex items-center mb-8">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-green-600 font-bold mr-3">
+                    <i class="fas fa-user-injured"></i>
+                </div>
+                <span class="text-xl font-bold">DCAM Patient</span>
+            </div>
+            
+            <div class="mb-8">
+                <div class="flex items-center p-3 bg-white/10 rounded-lg">
+                    <div class="avatar mr-3">{{ session.first_name[0] }}{{ session.last_name[0] }}</div>
+                    <div>
+                        <p class="font-semibold">{{ session.first_name }} {{ session.last_name }}</p>
+                        <p class="text-sm opacity-80">Patient</p>
+                        <p class="text-sm opacity-80">ID: {{ session.patient_id }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="/patient-dashboard" class="sidebar-item active">
+                    <i class="fas fa-tachometer-alt mr-3"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/book-appointment" class="sidebar-item">
+                    <i class="fas fa-calendar-plus mr-3"></i>
+                    <span>Book Appointment</span>
+                </a>
+                <a href="/acupressure-info" class="sidebar-item">
+                    <i class="fas fa-info-circle mr-3"></i>
+                    <span>Therapies Information</span>
+                </a>
+                <a href="/patient-info" class="sidebar-item">
+                    <i class="fas fa-user mr-3"></i>
+                    <span>My Information</span>
+                </a>
+                <a href="/my-appointments" class="sidebar-item">
+                    <i class="fas fa-list-alt mr-3"></i>
+                    <span>My Appointments</span>
+                </a>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-4 lg:p-6 w-full lg:w-auto">
+            <header class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">Patient Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div class="avatar mr-3">{{ session.first_name[0] }}{{ session.last_name[0] }}</div>
+                        <div>
+                            <p class="font-semibold">{{ session.first_name }} {{ session.last_name }}</p>
+                            <p class="text-sm text-gray-600">Patient</p>
+                        </div>
+                    </div>
+                    <a href="/logout" class="px-4 py-2 text-red-600 font-medium hover:text-red-800 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Welcome Section -->
+            <div class="card p-6 mb-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                <h2 class="text-2xl font-bold mb-2">Welcome, {{ session.first_name }}!</h2>
+                <p class="opacity-90">We're here to support your healing journey with comprehensive therapy services.</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Upcoming Appointments</p>
+                            <h3 class="text-2xl font-bold mt-2" id="upcomingAppointments">0</h3>
+                        </div>
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <i class="fas fa-calendar-check text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Completed Sessions</p>
+                            <h3 class="text-2xl font-bold mt-2" id="completedSessions">0</h3>
+                        </div>
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Pending Approval</p>
+                            <h3 class="text-2xl font-bold mt-2" id="pendingAppointments">0</h3>
+                        </div>
+                        <div class="p-3 bg-yellow-100 rounded-lg">
+                            <i class="fas fa-clock text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500">Therapies Tried</p>
+                            <h3 class="text-2xl font-bold mt-2" id="therapiesTried">0</h3>
+                        </div>
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <i class="fas fa-spa text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions & Recent Appointments -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Quick Actions -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                    <div class="space-y-3">
+                        <a href="/book-appointment" class="w-full flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mr-3">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <span class="font-medium text-gray-700">Book New Appointment</span>
+                        </a>
+                        <a href="/acupressure-info" class="w-full flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mr-3">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <span class="font-medium text-gray-700">Explore Therapies</span>
+                        </a>
+                        <a href="/patient-info" class="w-full flex items-center p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mr-3">
+                                <i class="fas fa-user-edit"></i>
+                            </div>
+                            <span class="font-medium text-gray-700">Update Profile</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Appointments -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Appointments</h2>
+                    <div id="recentAppointments">
+                        <!-- Appointments will be loaded here -->
+                    </div>
+                    <div id="noAppointments" class="text-center py-8 hidden">
+                        <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No appointments scheduled yet</p>
+                        <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                            Book Your First Appointment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // Load patient data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPatientStats();
+            loadRecentAppointments();
+        });
+
+        function loadPatientStats() {
+            fetch('/api/dashboard-stats')
+                .then(response => response.json())
+                .then(stats => {
+                    document.getElementById('upcomingAppointments').textContent = stats.upcoming_appointments || 0;
+                    document.getElementById('completedSessions').textContent = stats.completed_sessions || 0;
+                    document.getElementById('pendingAppointments').textContent = stats.pending_appointments || 0;
+                    document.getElementById('therapiesTried').textContent = stats.therapies_tried || 0;
+                })
+                .catch(error => {
+                    console.error('Error loading patient stats:', error);
+                });
+        }
+
+        function loadRecentAppointments() {
+            fetch('/api/patient-appointments')
+                .then(response => response.json())
+                .then(appointments => {
+                    const container = document.getElementById('recentAppointments');
+                    const noAppointments = document.getElementById('noAppointments');
+                    
+                    if (!appointments || appointments.length === 0) {
+                        container.innerHTML = '';
+                        noAppointments.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    noAppointments.classList.add('hidden');
+                    
+                    container.innerHTML = appointments.map(appt => {
+                        const date = new Date(appt.date);
+                        const dateString = date.toLocaleDateString();
+                        const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
+                        const statusClass = {
+                            'pending': 'status-pending',
+                            'confirmed': 'status-confirmed',
+                            'cancelled': 'status-cancelled',
+                            'completed': 'status-completed'
+                        }[appt.status] || 'status-pending';
+                        
+                        return `
+                            <div class="appointment-card p-4 mb-3">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">${appt.therapy_type || 'Therapy Session'}</h4>
+                                        <p class="text-sm text-gray-600">Appointment ID: ${appt.appointment_id}</p>
+                                        <p class="text-xs text-gray-500">${dateString} at ${timeString}</p>
+                                    </div>
+                                    <span class="status-badge ${statusClass}">${appt.status}</span>
+                                </div>
+                                <p class="text-sm text-gray-700 mt-2">${appt.reason || 'General consultation'}</p>
+                            </div>
+                        `;
+                    }).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading appointments:', error);
+                    document.getElementById('noAppointments').classList.remove('hidden');
+                });
+        }
+
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Close mobile menu if open
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

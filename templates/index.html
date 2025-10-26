@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCAM Therapy Center - DSVV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        :root {
+            --primary: #5D8A7F;
+            --primary-dark: #4A6F64;
+            --primary-light: #7BA89A;
+            --secondary: #F4A261;
+            --secondary-dark: #E07A3F;
+            --accent: #9B5DE5;
+            --neutral-light: #F8F9FA;
+            --neutral-dark: #2C3E50;
+            --neutral-mid: #6B7280;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+        
+        body {
+            background-color: var(--neutral-light);
+            color: var(--neutral-dark);
+            line-height: 1.6;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }
+        
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--secondary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .dsvv-logo {
+            max-height: 50px;
+            width: auto;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .gallery-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-image:hover {
+            transform: scale(1.03);
+        }
+        
+        .dsvv-section {
+            background-color: rgba(123, 168, 154, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .auth-btn {
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .login-btn {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .login-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .register-btn {
+            background: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+        }
+        
+        .register-btn:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary);
+            cursor: pointer;
+        }
+        
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .mobile-menu.active {
+            display: block;
+        }
+        
+        .mobile-menu a {
+            display: block;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--neutral-dark);
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        
+        .mobile-menu a:hover {
+            background: var(--neutral-light);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--neutral-dark);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--neutral-mid);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: var(--neutral-dark);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--neutral-dark);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(93, 138, 127, 0.1);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--neutral-mid);
+        }
+        
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .therapy-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .therapy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .therapy-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .therapy-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .therapy-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--neutral-dark);
+            margin-bottom: 10px;
+        }
+        
+        .therapy-description {
+            color: var(--neutral-mid);
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+        
+        .therapy-benefits {
+            margin-bottom: 15px;
+        }
+        
+        .benefit-tag {
+            display: inline-block;
+            background: rgba(93, 138, 127, 0.1);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .therapy-actions {
+            margin-top: auto;
+        }
+        
+        .learn-more-btn {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .learn-more-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .user-welcome {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--neutral-dark);
+        }
+        
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background-color: var(--primary);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+        }
+        
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 4px solid var(--primary);
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .left {
+            left: 0;
+        }
+        
+        .right {
+            left: 50%;
+        }
+        
+        .left::after {
+            right: -10px;
+        }
+        
+        .right::after {
+            left: -10px;
+        }
+        
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.75rem;
+        }
+        
+        .feature-icon.primary {
+            background: rgba(93, 138, 127, 0.1);
+            color: var(--primary);
+        }
+        
+        .feature-icon.secondary {
+            background: rgba(244, 162, 97, 0.1);
+            color: var(--secondary);
+        }
+        
+        .feature-icon.accent {
+            background: rgba(155, 93, 229, 0.1);
+            color: var(--accent);
+        }
+        
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .testimonial-avatar.primary {
+            background: rgba(93, 138, 127, 0.2);
+            color: var(--primary);
+        }
+        
+        .testimonial-avatar.secondary {
+            background: rgba(244, 162, 97, 0.2);
+            color: var(--secondary);
+        }
+        
+        .testimonial-avatar.accent {
+            background: rgba(155, 93, 229, 0.2);
+            color: var(--accent);
+        }
+        
+        .footer-section {
+            background: var(--neutral-dark);
+            color: white;
+        }
+        
+        .footer-links a {
+            color: #CBD5E1;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .footer-contact i {
+            color: var(--primary-light);
+        }
+        
+        /* Google OAuth Button Styles */
+        .google-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .google-btn:hover {
+            border-color: #d1d5db;
+            background: #f9fafb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .google-btn img {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: var(--neutral-mid);
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .divider span {
+            padding: 0 16px;
+            font-size: 0.875rem;
+        }
+        
+        /* New styles for improved therapy cards */
+        .therapy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .therapy-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .therapy-hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .therapy-hero p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .book-now-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .book-now-btn:hover {
+            background: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .therapy-section {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--neutral-dark);
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--neutral-mid);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--neutral-mid);
+            font-weight: 500;
+        }
+
+        /* Enhanced Navigation Styles */
+        .nav-container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nav-container.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .desktop-nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--neutral-dark);
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        /* Enhanced Button Styles */
+        .btn-modern {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s;
+        }
+
+        .btn-modern:hover::before {
+            left: 100%;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-modern:active {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Enhanced Hero Section */
+        .hero-section {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-bg-pattern {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="none" width="100" height="100"/><path fill="rgba(255,255,255,0.05)" d="M0,0 L100,0 L100,100 Z"/></svg>');
+            background-size: cover;
+        }
+
+        /* Enhanced Card Styles */
+        .card-modern {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .card-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .card-modern:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-modern:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Enhanced Form Styles */
+        .form-modern .form-input {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            padding: 14px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-modern .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(93, 138, 127, 0.15);
+        }
+
+        /* Enhanced Modal Styles */
+        .modal-modern {
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .modal-modern .modal-header {
+            padding: 24px 30px 0;
+            margin-bottom: 20px;
+        }
+
+        .modal-modern .modal-content {
+            padding: 0 30px 30px;
+        }
+
+        /* Enhanced Footer Styles */
+        .footer-modern {
+            background: linear-gradient(135deg, var(--neutral-dark) 0%, #1a2530 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        /* Enhanced Mobile Menu */
+        .mobile-menu-modern {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-menu-modern a {
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mobile-menu-modern a:hover {
+            background: rgba(93, 138, 127, 0.05);
+            color: var(--primary);
+            padding-left: 28px;
+        }
+
+        .mobile-menu-modern a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: loading-dots 1.4s ease-in-out infinite both;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes loading-dots {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Floating Animation */
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Pulse Animation */
+        .pulse-slow {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(93, 138, 127, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(93, 138, 127, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(93, 138, 127, 0); }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .desktop-nav {
+                display: none;
+            }
+            
+            .auth-buttons {
+                display: none;
+            }
+            
+            .mobile-auth {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px 20px;
+                border-top: 1px solid #f0f0f0;
+            }
+            
+            .mobile-auth .auth-btn {
+                justify-content: center;
+            }
+            
+            .timeline::after {
+                left: 31px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            
+            .timeline-item::after {
+                left: 21px;
+            }
+            
+            .right {
+                left: 0%;
+            }
+
+            .therapy-hero h2 {
+                font-size: 2rem;
+            }
+
+            .therapy-hero p {
+                font-size: 1.1rem;
+                padding: 0 1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .section-subtitle {
+                font-size: 1.1rem;
+                padding: 0 1rem;
+            }
+
+            .hero-bg-pattern {
+                width: 100%;
+                opacity: 0.3;
+            }
+        }
+
+        /* Security Badge Styles */
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50px;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed w-full nav-container z-50" id="mainNav">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <img src="/static/images__1_-removebg-preview.png" alt="DSVV Logo" class="dsvv-logo mr-3">
+                    <span class="text-xl font-bold" style="color: var(--primary);">DCAM</span>
+                </div>
+                
+                <div class="desktop-nav">
+                    <a href="#" class="nav-link active">Home</a>
+                    <a href="#therapy" class="nav-link">Therapies</a>
+                    <a href="#about-dsvv" class="nav-link">About DSVV</a>
+                    <a href="#testimonials" class="nav-link">Testimonials</a>
+                </div>
+                
+                <div class="auth-buttons" id="authButtons">
+                    <button id="loginBtn" class="auth-btn login-btn btn-modern">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </button>
+                    <button id="registerBtn" class="auth-btn register-btn btn-modern">
+                        <i class="fas fa-user-plus"></i>
+                        Register
+                    </button>
+                </div>
+                
+                <div class="user-welcome hidden" id="userWelcome">
+                    <!-- Will be populated when user is logged in -->
+                </div>
+                
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="mobile-menu mobile-menu-modern" id="mobileMenu">
+                <a href="#">
+                    <i class="fas fa-home"></i>
+                    Home
+                </a>
+                <a href="#therapy">
+                    <i class="fas fa-spa"></i>
+                    Therapies
+                </a>
+                <a href="#about-dsvv">
+                    <i class="fas fa-university"></i>
+                    About DSVV
+                </a>
+                <a href="#testimonials">
+                    <i class="fas fa-comment-alt"></i>
+                    Testimonials
+                </a>
+                <div class="mobile-auth" id="mobileAuth">
+                    <button id="mobileLoginBtn" class="auth-btn login-btn btn-modern">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </button>
+                    <button id="mobileRegisterBtn" class="auth-btn register-btn btn-modern">
+                        <i class="fas fa-user-plus"></i>
+                        Register
+                    </button>
+                </div>
+                <div class="mobile-user hidden" id="mobileUser">
+                    <!-- Will be populated when user is logged in -->
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient pt-24 pb-16 md:pt-32 md:pb-24 text-white hero-section">
+        <div class="hero-bg-pattern"></div>
+        <div class="container mx-auto px-6 hero-content">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">Department of Complementary and Alternative Medicines</h1>
+                    <p class="text-xl mb-8 opacity-90">Integrating traditional healing wisdom with modern therapeutic approaches for holistic wellness</p>
+                    <div class="flex space-x-4">
+                        <button id="getStartedBtn" class="px-8 py-3 bg-white rounded-lg font-semibold transition btn-modern" style="color: var(--primary);">
+                            Get Started
+                        </button>
+                        <button id="exploreBtn" class="px-8 py-3 bg-transparent text-white border-2 border-white rounded-lg font-semibold hover:bg-white transition btn-modern" style="color: var(--primary);">
+                            Explore Therapies
+                        </button>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-8 shadow-2xl floating">
+                        <div class="text-center">
+                            <p class="text-sm opacity-80 mt-2">Patients • Appointments • Therapy Sessions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="stats-grid">
+                <div class="stat-card card-modern">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Healing Therapies</div>
+                </div>
+                <div class="stat-card card-modern">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Expert Doctors</div>
+                </div>
+                <div class="stat-card card-modern">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Secure Platform</div>
+                </div>
+                <div class="stat-card card-modern">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Support Available</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Therapy Hero Section -->
+    <section class="therapy-hero">
+        <div class="container mx-auto px-6">
+            <h2>Comprehensive Healing Therapies</h2>
+            <button id="exploreTherapiesBtn" class="book-now-btn btn-modern pulse-slow">
+                <i class="fas fa-search"></i>
+                Explore All Therapies
+            </button>
+        </div>
+    </section>
+
+    <!-- Therapies Section -->
+    <section id="therapy" class="therapy-section bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title">Our Healing Therapies</h2>
+            <p class="section-subtitle">Comprehensive range of traditional and modern therapeutic approaches for holistic wellness</p>
+            
+            <div class="therapy-grid">
+                <!-- Ayurveda Therapy -->
+                <div class="therapy-card card-modern">
+                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Ayurveda Therapy" class="therapy-image">
+                    <div class="therapy-content">
+                        <h3 class="therapy-title">Ayurveda Therapy</h3>
+                        <p class="therapy-description">Ancient Indian healing system focusing on balancing body, mind, and spirit through natural remedies, diet, and lifestyle.</p>
+                        <div class="therapy-benefits">
+                            <span class="benefit-tag">Detoxification</span>
+                            <span class="benefit-tag">Balance Doshas</span>
+                            <span class="benefit-tag">Holistic Healing</span>
+                        </div>
+                        <div class="therapy-actions">
+                            <button class="learn-more-btn btn-modern" data-therapy="ayurveda">
+                                <i class="fas fa-info-circle"></i>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Homeopathy -->
+                <div class="therapy-card card-modern">
+                    <img src="https://images.unsplash.com/photo-1585435557343-3b092031d5ad?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Homeopathy" class="therapy-image">
+                    <div class="therapy-content">
+                        <h3 class="therapy-title">Homeopathy</h3>
+                        <p class="therapy-description">Natural system of medicine that uses highly diluted substances to trigger the body's own healing mechanisms.</p>
+                        <div class="therapy-benefits">
+                            <span class="benefit-tag">Gentle Treatment</span>
+                            <span class="benefit-tag">No Side Effects</span>
+                            <span class="benefit-tag">Individualized Care</span>
+                        </div>
+                        <div class="therapy-actions">
+                            <button class="learn-more-btn btn-modern" data-therapy="homeopathy">
+                                <i class="fas fa-info-circle"></i>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Naturopathy -->
+                <div class="therapy-card card-modern">
+                    <img src="https://images.unsplash.com/photo-1543365067-f488401f5c6a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Naturopathy" class="therapy-image">
+                    <div class="therapy-content">
+                        <h3 class="therapy-title">Naturopathy</h3>
+                        <p class="therapy-description">Focuses on natural remedies and the body's ability to heal itself through lifestyle changes and natural therapies.</p>
+                        <div class="therapy-benefits">
+                            <span class="benefit-tag">Natural Healing</span>
+                            <span class="benefit-tag">Preventive Care</span>
+                            <span class="benefit-tag">Lifestyle Medicine</span>
+                        </div>
+                        <div class="therapy-actions">
+                            <button class="learn-more-btn btn-modern" data-therapy="naturopathy">
+                                <i class="fas fa-info-circle"></i>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yoga and Meditation Therapy -->
+                <div class="therapy-card card-modern">
+                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Yoga and Meditation Therapy" class="therapy-image">
+                    <div class="therapy-content">
+                        <h3 class="therapy-title">Yoga and Meditation Therapy</h3>
+                        <p class="therapy-description">Combines physical postures, breathing techniques, and meditation to promote mental and physical well-being.</p>
+                        <div class="therapy-benefits">
+                            <span class="benefit-tag">Stress Reduction</span>
+                            <span class="benefit-tag">Flexibility</span>
+                            <span class="benefit-tag">Mindfulness</span>
+                        </div>
+                        <div class="therapy-actions">
+                            <button class="learn-more-btn btn-modern" data-therapy="yoga">
+                                <i class="fas fa-info-circle"></i>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unani Medicine -->
+                <div class="therapy-card card-modern">
+                    <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Unani Medicine" class="therapy-image">
+                    <div class="therapy-content">
+                        <h3 class="therapy-title">Unani Medicine</h3>
+                        <p class="therapy-description">Traditional healing system based on the teachings of Hippocrates, focusing on balancing bodily humors.</p>
+                        <div class="therapy-benefits">
+                            <span class="benefit-tag">Humoral Balance</span>
+                            <span class="benefit-tag">Natural Remedies</span>
+                            <span class="benefit-tag">Diet Therapy</span>
+                        </div>
+                        <div class="therapy-actions">
+                            <button class="learn-more-btn btn-modern" data-therapy="unani">
+                                <i class="fas fa-info-circle"></i>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acupuncture / Acupressure -->
+                <div class="therapy-card card-modern">
+                    <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Acupuncture / Acupressure" class="therapy-image">
+                    <div class="therapy-content">
+                        <h3 class="therapy-title">Acupuncture / Acupressure</h3>
+                        <p class="therapy-description">Traditional Chinese medicine techniques that stimulate specific points on the body to promote healing and relieve pain.</p>
+                        <div class="therapy-benefits">
+                            <span class="benefit-tag">Pain Management</span>
+                            <span class="benefit-tag">Energy Flow</span>
+                            <span class="benefit-tag">Stress Relief</span>
+                        </div>
+                        <div class="therapy-actions">
+                            <button class="learn-more-btn btn-modern" data-therapy="acupressure">
+                                <i class="fas fa-info-circle"></i>
+                                Learn More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Appointment CTA -->
+            <div class="text-center mt-16">
+                <p class="text-lg mb-8" style="color: var(--neutral-mid);">Book your appointment with our expert therapists today</p>
+                <button id="bookAppointmentBtn" class="book-now-btn btn-modern">
+                    <i class="fas fa-calendar-plus"></i>
+                    Book Appointment Now
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About DSVV Section -->
+    <section id="about-dsvv" class="py-16" style="background-color: var(--neutral-light);">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--neutral-dark);">About Dev Sanskriti Vishwavidyalaya</h2>
+                <p class="text-xl max-w-3xl mx-auto" style="color: var(--neutral-mid);">A unique university established with the vision of synthesizing the spiritual values of the East with the scientific temper of the West.</p>
+            </div>
+            
+            <div class="dsvv-section card-modern">
+                <h3 class="text-2xl font-bold mb-6 text-center" style="color: var(--neutral-dark);">Department of Complementary & Alternative Medicine (DCAM)</h3>
+                
+                <div class="mb-8">
+                    <h4 class="text-xl font-semibold mb-4" style="color: var(--neutral-dark);">Department History</h4>
+                    <div class="timeline">
+                        <div class="timeline-item left">
+                            <div class="timeline-content card-modern">
+                                <h5 class="font-bold text-lg" style="color: var(--primary);">March 2007</h5>
+                                <p>Established as 'Yog Arogya Polyclinic' under the guidance and patronage of Hon'ble Chancellor, Dr Pranav Pandya</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item right">
+                            <div class="timeline-content card-modern">
+                                <h5 class="font-bold text-lg" style="color: var(--primary);">March 2016</h5>
+                                <p>Name changed to 'Centre of Complementary & Alternative Medicine' (CCAM)</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item left">
+                            <div class="timeline-content card-modern">
+                                <h5 class="font-bold text-lg" style="color: var(--primary);">May 2018</h5>
+                                <p>Formed as a Department and given its current name 'The Department of Complementary & Alternative Medicine' (DCAM)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h4 class="text-xl font-semibold mb-4" style="color: var(--neutral-dark);">Location</h4>
+                    <p class="mb-4" style="color: var(--neutral-mid);">The department is situated in natural and spiritual ambience on the ground floor of Chaitanya Bhavan & near Yagyashala of Dev Sanskriti University, Gayatrikunj- Shantikunj, Haridwar (Bharat).</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-4" style="color: var(--neutral-dark);">Vision</h4>
+                        <div class="bg-white p-6 rounded-lg shadow-sm card-modern" style="border-left: 4px solid var(--primary);">
+                            <p class="italic" style="color: var(--neutral-mid);">"The Department has a vision to establish as a leader in academic excellence, innovation, and community impact in the field of Complementary and Alternative Medicine, fostering a holistic approach to global health and well-being."</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-xl font-semibold mb-4" style="color: var(--neutral-dark);">Mission</h4>
+                        <div class="bg-white p-6 rounded-lg shadow-sm card-modern" style="border-left: 4px solid var(--secondary);">
+                            <ul class="space-y-3" style="color: var(--neutral-mid);">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check mt-1 mr-2" style="color: var(--secondary);"></i>
+                                    <span>To deliver education and training in Complementary and Alternative Medicine with science and spirituality.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check mt-1 mr-2" style="color: var(--secondary);"></i>
+                                    <span>To promote an interdisciplinary approach to CAM education and practice.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check mt-1 mr-2" style="color: var(--secondary);"></i>
+                                    <span>To contribute to community health by providing accessible and effective CAM-based healthcare solutions.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check mt-1 mr-2" style="color: var(--secondary);"></i>
+                                    <span>To cultivate future leaders in the field of CAM with a deep sense of human values and universal brotherhood.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="image-gallery">
+                <img src="https://www.dsvv.ac.in/wp-content/uploads/2022/04/SU-1-768x533.jpg" alt="DSVV Campus" class="gallery-image card-modern">
+                <img src="https://www.dsvv.ac.in/wp-content/uploads/2022/04/Untitled_Panorama1-3-min.jpg" alt="DSVV Panorama" class="gallery-image card-modern">
+                <img src="https://www.dsvv.ac.in/wp-content/uploads/2022/04/Untitled-design.jpg" alt="DSVV Environment" class="gallery-image card-modern">
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-16" style="background-color: var(--neutral-light);">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--neutral-dark);">Patient Testimonials</h2>
+                <p class="text-xl max-w-2xl mx-auto" style="color: var(--neutral-mid);">Hear from those who have experienced the healing power of our therapies</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-md card-modern">
+                    <div class="flex items-center mb-4">
+                        <div class="testimonial-avatar primary">
+                            AS
+                        </div>
+                        <div>
+                            <h4 class="font-bold" style="color: var(--neutral-dark);">Anita Sharma</h4>
+                            <p class="text-sm" style="color: var(--neutral-mid);">Sujok Therapy Patient</p>
+                        </div>
+                    </div>
+                    <p class="italic" style="color: var(--neutral-mid);">"After just three sessions of Sujok therapy, my chronic back pain has significantly reduced. The therapists at DCAM are truly knowledgeable and caring."</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-md card-modern">
+                    <div class="flex items-center mb-4">
+                        <div class="testimonial-avatar secondary">
+                            RK
+                        </div>
+                        <div>
+                            <h4 class="font-bold" style="color: var(--neutral-dark);">Rajesh Kumar</h4>
+                            <p class="text-sm" style="color: var(--neutral-mid);">Reflexology Patient</p>
+                        </div>
+                    </div>
+                    <p class="italic" style="color: var(--neutral-mid);">"The reflexology sessions have helped me manage my stress levels effectively. I feel more balanced and energetic throughout the day."</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-md card-modern">
+                    <div class="flex items-center mb-4">
+                        <div class="testimonial-avatar accent">
+                            PM
+                        </div>
+                        <div>
+                            <h4 class="font-bold" style="color: var(--neutral-dark);">Priya Mehta</h4>
+                            <p class="text-sm" style="color: var(--neutral-mid);">Acupuncture Patient</p>
+                        </div>
+                    </div>
+                    <p class="italic" style="color: var(--neutral-mid);">"I was skeptical about acupuncture at first, but the treatment has helped with my migraines more than any medication I've tried. Highly recommended!"</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section footer-modern py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <img src="https://www.dsvv.ac.in/wp-content/uploads/2022/04/SU-1-768x533.jpg" alt="DSVV Logo" class="dsvv-logo mr-3">
+                        <span class="text-xl font-bold">DSVV Acupressure Therapy</span>
+                    </div>
+                    <p class="footer-contact">Department of Complementary and Alternative Medicine, Dev Sanskriti Vishwavidyalaya.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 footer-links">
+                        <li><a href="#" class="transition">Home</a></li>
+                        <li><a href="#features" class="transition">Features</a></li>
+                        <li><a href="#therapy" class="transition">Therapies</a></li>
+                        <li><a href="#about-dsvv" class="transition">About DSVV</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact</h3>
+                    <ul class="space-y-2 footer-contact">
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2"></i>
+                            <span>dcam@dsvv.ac.in</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            <span>Department of Complementary and Alternative Medicines Chaitanya Bhawan Dev Sanskriti Vishwavidyalaya Gayatrikunj-Shantikunj, Haridwar - 249411
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal-overlay hidden">
+        <div class="modal-content modal-modern">
+            <div class="modal-header">
+                <h2 class="modal-title">Login to Your Account</h2>
+                <button class="close-btn" id="closeLoginModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="loginAlert"></div>
+            
+            <!-- Google OAuth Button -->
+            <button type="button" id="googleLoginBtn" class="google-btn btn-modern">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
+                <span>Continue with Google</span>
+            </button>
+            
+            <div class="divider">
+                <span>or</span>
+            </div>
+            
+            <form id="loginForm" class="form-modern">
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="submit-btn btn-modern" id="loginSubmitBtn">
+                    <span id="loginBtnText">Login</span>
+                    <div id="loginSpinner" class="spinner hidden"></div>
+                </button>
+                
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="#" id="switchToRegister">Register</a></p>
+                    <p><a href="#" id="forgotPasswordLink" style="color: var(--primary);">Forgot your password?</a></p>
+                    <p><a href="#" id="otpLoginLink" style="color: var(--secondary);">Login with OTP</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal-overlay hidden">
+        <div class="modal-content modal-modern">
+            <div class="modal-header">
+                <h2 class="modal-title">Create an Account</h2>
+                <button class="close-btn" id="closeRegisterModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="registerAlert"></div>
+            
+            <!-- Google OAuth Button -->
+            <button type="button" id="googleRegisterBtn" class="google-btn btn-modern">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google">
+                <span>Continue with Google</span>
+            </button>
+            
+            <div class="divider">
+                <span>or</span>
+            </div>
+            
+            <form id="registerForm" class="form-modern">
+                <div class="form-group">
+                    <label class="form-label" for="registerFirstName">First Name</label>
+                    <input type="text" id="registerFirstName" class="form-input" placeholder="Enter your first name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="registerLastName">Last Name</label>
+                    <input type="text" id="registerLastName" class="form-input" placeholder="Enter your last name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="registerEmail">Email Address</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Create a password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="registerRole">Role</label>
+                    <select id="registerRole" class="form-input" required>
+                        <option value="">Select your role</option>
+                        <option value="patient">Patient</option>
+                        <option value="doctor">Doctor/Therapist</option>
+                        <option value="admin">Admin</option>
+                        <option value="receptionist">Receptionist</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="submit-btn btn-modern" id="registerSubmitBtn">
+                    <span id="registerBtnText">Create Account</span>
+                    <div id="registerSpinner" class="spinner hidden"></div>
+                </button>
+                
+                <div class="form-footer">
+                    <p>Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal-overlay hidden">
+        <div class="modal-content modal-modern">
+            <div class="modal-header">
+                <h2 class="modal-title">Reset Your Password</h2>
+                <button class="close-btn" id="closeForgotPasswordModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="forgotPasswordAlert"></div>
+            
+            <form id="forgotPasswordForm" class="form-modern">
+                <div class="form-group">
+                    <label class="form-label" for="forgotPasswordEmail">Email Address</label>
+                    <input type="email" id="forgotPasswordEmail" class="form-input" placeholder="Enter your registered email" required>
+                    <p class="text-sm mt-1" style="color: var(--neutral-mid);">We'll send an OTP to reset your password</p>
+                </div>
+                
+                <button type="submit" class="submit-btn btn-modern" id="forgotPasswordSubmitBtn">
+                    <span id="forgotPasswordBtnText">Send Reset OTP</span>
+                    <div id="forgotPasswordSpinner" class="spinner hidden"></div>
+                </button>
+                
+                <div class="form-footer">
+                    <p>Remember your password? <a href="#" id="switchToLoginFromForgot">Back to Login</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="resetPasswordModal" class="modal-overlay hidden">
+        <div class="modal-content modal-modern">
+            <div class="modal-header">
+                <h2 class="modal-title">Set New Password</h2>
+                <button class="close-btn" id="closeResetPasswordModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="resetPasswordAlert"></div>
+            
+            <form id="resetPasswordForm" class="form-modern">
+                <input type="hidden" id="resetPasswordEmail">
+                
+                <div class="form-group">
+                    <label class="form-label" for="resetPasswordOtp">Enter OTP</label>
+                    <input type="text" id="resetPasswordOtp" class="form-input" placeholder="Enter 6-digit OTP" maxlength="6" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" class="form-input" placeholder="Enter new password" required>
+                </div>
+                
+                <button type="submit" class="submit-btn btn-modern" id="resetPasswordSubmitBtn">
+                    <span id="resetPasswordBtnText">Reset Password</span>
+                    <div id="resetPasswordSpinner" class="spinner hidden"></div>
+                </button>
+                
+                <div class="form-footer">
+                    <p>Didn't receive OTP? <a href="#" id="resendResetOtp">Resend OTP</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let otpEmail = '';
+
+        // DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+        const resetPasswordModal = document.getElementById('resetPasswordModal');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const authButtons = document.getElementById('authButtons');
+        const userWelcome = document.getElementById('userWelcome');
+        const mobileAuth = document.getElementById('mobileAuth');
+        const mobileUser = document.getElementById('mobileUser');
+        const mainNav = document.getElementById('mainNav');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserSession();
+            setupEventListeners();
+            setupScrollEffects();
+        });
+
+        function setupScrollEffects() {
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 50) {
+                    mainNav.classList.add('scrolled');
+                } else {
+                    mainNav.classList.remove('scrolled');
+                }
+            });
+
+            // Active nav link highlighting
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            window.addEventListener('scroll', function() {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (scrollY >= (sectionTop - 100)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        function setupEventListeners() {
+            // Modal triggers
+            document.getElementById('loginBtn').addEventListener('click', showLoginModal);
+            document.getElementById('registerBtn').addEventListener('click', showRegisterModal);
+            document.getElementById('mobileLoginBtn').addEventListener('click', showLoginModal);
+            document.getElementById('mobileRegisterBtn').addEventListener('click', showRegisterModal);
+            document.getElementById('getStartedBtn').addEventListener('click', showRegisterModal);
+            document.getElementById('exploreBtn').addEventListener('click', () => {
+                document.getElementById('therapy').scrollIntoView({ behavior: 'smooth' });
+            });
+            document.getElementById('exploreTherapiesBtn').addEventListener('click', () => {
+                document.getElementById('therapy').scrollIntoView({ behavior: 'smooth' });
+            });
+
+            // Google OAuth buttons
+            document.getElementById('googleLoginBtn').addEventListener('click', handleGoogleLogin);
+            document.getElementById('googleRegisterBtn').addEventListener('click', handleGoogleLogin);
+
+            // Close modals
+            document.getElementById('closeLoginModal').addEventListener('click', () => hideModal(loginModal));
+            document.getElementById('closeRegisterModal').addEventListener('click', () => hideModal(registerModal));
+            document.getElementById('closeForgotPasswordModal').addEventListener('click', () => hideModal(forgotPasswordModal));
+            document.getElementById('closeResetPasswordModal').addEventListener('click', () => hideModal(resetPasswordModal));
+
+            // Form submissions
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            document.getElementById('forgotPasswordForm').addEventListener('submit', handleForgotPassword);
+            document.getElementById('resetPasswordForm').addEventListener('submit', handleResetPassword);
+            document.getElementById('resendResetOtp').addEventListener('click', handleResendResetOtp);
+
+            // Modal switches
+            document.getElementById('switchToRegister').addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(loginModal);
+                showRegisterModal();
+            });
+
+            document.getElementById('switchToLogin').addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(registerModal);
+                showLoginModal();
+            });
+
+            document.getElementById('switchToLoginFromForgot').addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(forgotPasswordModal);
+                showLoginModal();
+            });
+
+            // Forgot password and OTP login links
+            document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(loginModal);
+                showForgotPasswordModal();
+            });
+
+            document.getElementById('otpLoginLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                hideModal(loginModal);
+                showForgotPasswordModal();
+            });
+
+            // Mobile menu
+            document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+                mobileMenu.classList.toggle('active');
+            });
+
+            // Close modals on outside click
+            window.addEventListener('click', (e) => {
+                if (e.target === loginModal) hideModal(loginModal);
+                if (e.target === registerModal) hideModal(registerModal);
+                if (e.target === forgotPasswordModal) hideModal(forgotPasswordModal);
+                if (e.target === resetPasswordModal) hideModal(resetPasswordModal);
+            });
+
+            // Learn more buttons
+            document.querySelectorAll('.learn-more-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const therapy = this.getAttribute('data-therapy');
+                    if (!currentUser) {
+                        showLoginModal();
+                        showAlert('loginAlert', 'Please login to learn more about therapies', 'error');
+                    } else {
+                        window.location.href = '/acupressure-info';
+                    }
+                });
+            });
+
+            // Book appointment button
+            document.getElementById('bookAppointmentBtn').addEventListener('click', function() {
+                if (!currentUser) {
+                    showLoginModal();
+                    showAlert('loginAlert', 'Please login to book an appointment', 'error');
+                } else {
+                    window.location.href = '/book-appointment';
+                }
+            });
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                        // Close mobile menu if open
+                        mobileMenu.classList.remove('active');
+                    }
+                });
+            });
+        }
+
+        function handleGoogleLogin() {
+            window.location.href = '/google-login';
+        }
+
+        function checkUserSession() {
+            // Check if user is logged in by making a request to the server
+            fetch('/api/dashboard-data', { 
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Not logged in');
+            })
+            .then(data => {
+                // User is logged in, update UI
+                updateUIForLoggedInUser();
+            })
+            .catch(error => {
+                // User is not logged in, show auth buttons
+                showAuthButtons();
+            });
+        }
+
+        function updateUIForLoggedInUser() {
+            // Update navigation to show user-specific options
+            authButtons.classList.add('hidden');
+            userWelcome.classList.remove('hidden');
+            
+            // For mobile menu
+            mobileAuth.classList.add('hidden');
+            mobileUser.classList.remove('hidden');
+
+            // Create user welcome message
+            userWelcome.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <span>Welcome!</span>
+                    <a href="/dashboard" class="px-3 py-1 rounded hover:bg-blue-700 transition btn-modern" style="background-color: var(--primary); color: white;">
+                        Dashboard
+                    </a>
+                    <button onclick="handleLogout()" class="px-3 py-1 rounded hover:bg-red-700 transition btn-modern" style="background-color: var(--error); color: white;">
+                        Logout
+                    </button>
+                </div>
+            `;
+
+            mobileUser.innerHTML = `
+                <div class="p-4 border-t" style="border-color: #f0f0f0;">
+                    <div class="flex flex-col space-y-2">
+                        <a href="/dashboard" class="font-medium" style="color: var(--primary);">Dashboard</a>
+                        <button onclick="handleLogout()" class="font-medium text-left" style="color: var(--error);">Logout</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showAuthButtons() {
+            authButtons.classList.remove('hidden');
+            userWelcome.classList.add('hidden');
+            mobileAuth.classList.remove('hidden');
+            mobileUser.classList.add('hidden');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const btnText = document.getElementById('loginBtnText');
+            const spinner = document.getElementById('loginSpinner');
+
+            // Show loading state
+            btnText.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('loginAlert', data.message, 'success');
+                    currentUser = data.user;
+                    
+                    setTimeout(() => {
+                        hideModal(loginModal);
+                        updateUIForLoggedInUser();
+                        window.location.href = data.redirect_url || '/dashboard';
+                    }, 1000);
+                } else {
+                    showAlert('loginAlert', data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('loginAlert', 'Login failed. Please try again.', 'error');
+            } finally {
+                // Reset loading state
+                btnText.textContent = 'Login';
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const formData = {
+                first_name: document.getElementById('registerFirstName').value,
+                last_name: document.getElementById('registerLastName').value,
+                email: document.getElementById('registerEmail').value,
+                password: document.getElementById('registerPassword').value,
+                confirm_password: document.getElementById('registerConfirmPassword').value,
+                role: document.getElementById('registerRole').value
+            };
+
+            const submitBtn = document.getElementById('registerSubmitBtn');
+            const btnText = document.getElementById('registerBtnText');
+            const spinner = document.getElementById('registerSpinner');
+
+            // Show loading state
+            btnText.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('registerAlert', data.message, 'success');
+                    currentUser = data.user;
+                    
+                    // Direct redirect to dashboard after registration
+                    setTimeout(() => {
+                        hideModal(registerModal);
+                        updateUIForLoggedInUser();
+                        window.location.href = data.redirect_url || '/dashboard';
+                    }, 1000);
+                } else {
+                    showAlert('registerAlert', data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert('registerAlert', 'Registration failed. Please try again.', 'error');
+            } finally {
+                // Reset loading state
+                btnText.textContent = 'Create Account';
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('forgotPasswordEmail').value;
+            const submitBtn = document.getElementById('forgotPasswordSubmitBtn');
+            const btnText = document.getElementById('forgotPasswordBtnText');
+            const spinner = document.getElementById('forgotPasswordSpinner');
+
+            // Show loading state
+            btnText.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/forgot-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('forgotPasswordAlert', data.message, 'success');
+                    
+                    setTimeout(() => {
+                        hideModal(forgotPasswordModal);
+                        showResetPasswordModal(email);
+                    }, 1500);
+                } else {
+                    showAlert('forgotPasswordAlert', data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showAlert('forgotPasswordAlert', 'Failed to process request. Please try again.', 'error');
+            } finally {
+                // Reset loading state
+                btnText.textContent = 'Send Reset OTP';
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function handleResetPassword(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('resetPasswordEmail').value;
+            const otp = document.getElementById('resetPasswordOtp').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+            
+            const submitBtn = document.getElementById('resetPasswordSubmitBtn');
+            const btnText = document.getElementById('resetPasswordBtnText');
+            const spinner = document.getElementById('resetPasswordSpinner');
+
+            // Show loading state
+            btnText.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+            spinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        otp: otp,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('resetPasswordAlert', data.message, 'success');
+                    
+                    setTimeout(() => {
+                        hideModal(resetPasswordModal);
+                        showLoginModal();
+                        showAlert('loginAlert', 'Password reset successfully! Please login with your new password.', 'success');
+                    }, 1500);
+                } else {
+                    showAlert('resetPasswordAlert', data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Reset password error:', error);
+                showAlert('resetPasswordAlert', 'Failed to reset password. Please try again.', 'error');
+            } finally {
+                // Reset loading state
+                btnText.textContent = 'Reset Password';
+                spinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function handleResendResetOtp(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('resetPasswordEmail').value;
+            
+            try {
+                const response = await fetch('/resend-password-reset-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('resetPasswordAlert', data.message, 'success');
+                } else {
+                    showAlert('resetPasswordAlert', data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Resend reset OTP error:', error);
+                showAlert('resetPasswordAlert', 'Failed to resend OTP. Please try again.', 'error');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                const response = await fetch('/logout', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                currentUser = null;
+                showAuthButtons();
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Force logout by redirecting
+                window.location.href = '/?logout=true';
+            }
+        }
+
+        function showLoginModal() {
+            hideAllModals();
+            loginModal.classList.remove('hidden');
+            document.getElementById('loginAlert').innerHTML = '';
+            document.getElementById('loginForm').reset();
+        }
+
+        function showRegisterModal() {
+            hideAllModals();
+            registerModal.classList.remove('hidden');
+            document.getElementById('registerAlert').innerHTML = '';
+            document.getElementById('registerForm').reset();
+        }
+
+        function showForgotPasswordModal() {
+            hideAllModals();
+            forgotPasswordModal.classList.remove('hidden');
+            document.getElementById('forgotPasswordAlert').innerHTML = '';
+            document.getElementById('forgotPasswordForm').reset();
+        }
+
+        function showResetPasswordModal(email) {
+            hideAllModals();
+            resetPasswordModal.classList.remove('hidden');
+            document.getElementById('resetPasswordEmail').value = email;
+            document.getElementById('resetPasswordAlert').innerHTML = '';
+            document.getElementById('resetPasswordForm').reset();
+        }
+
+        function hideModal(modal) {
+            modal.classList.add('hidden');
+            mobileMenu.classList.remove('active');
+        }
+
+        function hideAllModals() {
+            [loginModal, registerModal, forgotPasswordModal, resetPasswordModal, mobileMenu].forEach(hideModal);
+        }
+
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            container.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+        }
+
+        // Demo credentials info
+        console.log('Demo Credentials:');
+        console.log('Admin: admin@dsvv.ac.in / Admin@123');
+        console.log('Doctor: dr.sharma@dsvv.ac.in / Doctor@123');
+        console.log('Reception: reception@dsvv.ac.in / Reception@123');
+        console.log('Patient: patient@dsvv.com / Patient@123');
+        console.log('Google OAuth: Available for quick patient registration');
+    </script>
+</body>
+</html>
