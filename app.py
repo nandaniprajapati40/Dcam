@@ -319,6 +319,7 @@ PREDEFINED_USERS = {
         'specialization': 'Sound Healing Therapist',
         'therapy_type': 'sound'
     }
+
 }
 
 # Therapy to Doctor mapping
@@ -754,7 +755,7 @@ def get_dashboard_stats(role, user_id):
             'admin': {'total_users': 12, 'total_patients': 0, 'total_doctors': 11, 'total_appointments': 0},
             'doctor': {'todays_appointments': 0, 'total_patients': 0, 'completed_sessions': 0},
             'patient': {'upcoming_appointments': 0, 'completed_sessions': 0},
-            'receptionist': {'todays_appointments': 0, 'pending_registrations': 0, 'total_patients': 0, 'total_doctors': 0}
+            'receptionist': {'todays_appointments': 0, 'pending_registrations': 0, 'total_patients': 0, 'total_doctors': 11}
         }
         return demo_stats.get(role, {})
     
@@ -1230,6 +1231,21 @@ def register():
         if data['role'] == 'doctor':
             user_doc['specialization'] = data.get('specialization', 'Acupressure Therapy')
             user_doc['therapy_type'] = data.get('therapy_type', 'acupressure')
+
+
+        if data['role'] == 'patient':
+            user_doc.update({
+                'phone': data.get('phone', ''),
+                'address': data.get('address', ''),
+                'date_of_birth': data.get('date_of_birth', ''),
+                'gender': data.get('gender', ''),
+                'blood_group': data.get('blood_group', ''),
+                'allergies': data.get('allergies', ''),
+                'medical_conditions': data.get('medical_conditions', ''),
+                'current_medications': data.get('current_medications', ''),
+                'emergency_contact': data.get('emergency_contact', '')
+            })
+
         
         # Insert into database if connected
         if current_db is not None:
@@ -2475,7 +2491,7 @@ if __name__ == '__main__':
     # Log predefined user credentials for testing
     logger.info("👥 Predefined Users Available:")
     for user_key, user_data in PREDEFINED_USERS.items():
-        if user_data['role'] in ['admin', 'receptionist']:
+        if user_data['role'] in ['admin', 'receptionist','doctor']:
             logger.info(f"   📧 {user_data['email']} / {user_data['password']} ({user_data['role']})")
     
     app.run(host='0.0.0.0', port=5000, debug=True)
