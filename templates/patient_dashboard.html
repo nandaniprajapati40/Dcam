@@ -33,6 +33,7 @@
         .status-confirmed { background: #d1fae5; color: #065f46; }
         .status-cancelled { background: #fee2e2; color: #dc2626; }
         .status-completed { background: #dbeafe; color: #1e40af; }
+        
     </style>
 </head>
 <body>
@@ -305,6 +306,68 @@
                 }
             });
         });
+
+        //load notification for patient 
+        // Load notifications for patient
+function loadNotifications() {
+    fetch('/api/notifications')
+        .then(response => response.json())
+        .then(notifications => {
+            const unreadNotifications = notifications.filter(n => !n.is_read);
+            
+            if (unreadNotifications.length > 0) {
+                // Show notification badge
+                const notificationBadge = document.createElement('div');
+                notificationBadge.className = 'absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center';
+                notificationBadge.textContent = unreadNotifications.length;
+                
+                const bellIcon = document.querySelector('[data-notification-bell]');
+                if (bellIcon) {
+                    bellIcon.parentElement.classList.add('relative');
+                    bellIcon.parentElement.appendChild(notificationBadge);
+                }
+                
+                // Show latest notification as toast
+                const latestNotification = unreadNotifications[0];
+                showNotificationToast(latestNotification);
+            }
+        })
+        .catch(error => console.error('Error loading notifications:', error));
+}
+
+// Show notification as toast
+function showNotificationToast(notification) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-white border-l-4 border-green-500 shadow-lg rounded-lg p-4 max-w-sm z-50 animate-slide-in';
+    toast.innerHTML = `
+        <div class="flex items-start">
+            <i class="fas fa-bell text-green-500 mt-1 mr-3"></i>
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-800">${notification.title}</h4>
+                <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 5000);
+}
+
+// Add to DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatientStats();
+    loadRecentAppointments();
+    loadNotifications(); // Load notifications
+});
     </script>
 </body>
 </html>

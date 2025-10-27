@@ -256,17 +256,17 @@
                 <span class="text-xl font-bold">DCAM</span>
             </div>
             
-            <div class="mb-8">
-                <div class="flex items-center p-3 bg-white/10 rounded-lg">
-                    <div class="avatar mr-3" id="userAvatar">JD</div>
+           <div class="mb-8 p-4 bg-slate-800/50 rounded-xl">
+                <div class="flex items-center">
+                    <div class="avatar mr-3">
+                        <span id="userAvatar">{{ session.first_name[0] }}{{ session.last_name[0] }}</span>
+                    </div>
                     <div>
-                        <p class="font-semibold">John Doe</p>
-                        <p class="text-sm opacity-80">Patient</p>
-                        <p class="text-sm opacity-80">ID: PT12345</p>
+                        <p class="font-semibold" id="userName">{{ session.first_name }} {{ session.last_name }}</p>
+                        <p class="text-sm text-slate-300" id="userRole">{{ session.role|title }}</p>
                     </div>
                 </div>
             </div>
-            
             <nav class="space-y-2">
                 <a href="/dashboard" class="sidebar-item">
                     <i class="fas fa-tachometer-alt mr-3"></i>
@@ -293,12 +293,7 @@
                 <h1 class="text-2xl font-bold text-gray-800">Therapies Information</h1>
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center">
-                        <div class="avatar mr-3">JD</div>
-                        <div>
-                            <p class="font-semibold">John Doe</p>
-                            <p class="text-sm text-gray-600">Patient</p>
-                        </div>
-                    </div>
+                       
                     <a href="/logout" class="px-4 py-2 text-red-600 font-medium hover:text-red-800 transition">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </a>

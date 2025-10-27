@@ -71,6 +71,9 @@ google = oauth.register(
 # MongoDB configuration from .env
 MONGODB_URI = os.environ.get('MONGODB_URI')
 DB_NAME = os.environ.get('DB_NAME')
+# # MongoDB configuration from .env
+# MONGODB_URI = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/acupressure_db')
+# DB_NAME = os.environ.get('DB_NAME', 'acupressure_db')
 
 # Initialize MongoDB connection with enhanced error handling
 db_connected = False
@@ -121,19 +124,19 @@ def init_mongodb_connection():
         
         db_connected = True
         
-        logger.info(f"✅ Successfully connected to MongoDB Atlas!")
-        logger.info(f"📊 Database: {DB_NAME}")
-        logger.info(f"🔌 Host: {server_info.get('hosts', ['Unknown'])}")
+        logger.info(f"Successfully connected to MongoDB Atlas!")
+        logger.info(f"Database: {DB_NAME}")
+        logger.info(f"Host: {server_info.get('hosts', ['Unknown'])}")
         logger.info(f"⚡ MongoDB Version: {server_info.get('version', 'Unknown')}")
         
         return True
         
     except ServerSelectionTimeoutError as e:
-        logger.error(f"❌ MongoDB connection timeout: {str(e)}")
-        logger.error("💡 Tip: Check your internet connection and MongoDB Atlas cluster status")
-        logger.error("💡 Tip: Ensure your IP is whitelisted in MongoDB Atlas network settings")
+        logger.error(f"MongoDB connection timeout: {str(e)}")
+        logger.error("Tip: Check your internet connection and MongoDB Atlas cluster status")
+        logger.error("Tip: Ensure your IP is whitelisted in MongoDB Atlas network settings")
     except Exception as e:
-        logger.error(f"❌ MongoDB connection failed: {str(e)}")
+        logger.error(f"MongoDB connection failed: {str(e)}")
         
         # Provide specific troubleshooting tips
         error_str = str(e).lower()
@@ -167,7 +170,7 @@ def check_db_health():
         # Simple ping to check connection
         client.admin.command('ping')
         if not db_connected:
-            logger.info("✅ MongoDB connection restored")
+            logger.info("MongoDB connection restored")
             db_connected = True
         return True
     except Exception as e:
@@ -393,7 +396,7 @@ def send_otp_email(email, otp):
         sender = EMAIL_CONFIG.get('sender_email')
         password = EMAIL_CONFIG.get('sender_password')
 
-        subject = "Your AcuPressor Pro OTP"
+        subject = "Your Dcam OTP"
         body = f"Your verification code is: {otp}\nThis code will expire in 10 minutes."
 
         if sender is None or password is None:
@@ -486,21 +489,19 @@ def send_appointment_confirmation_email(patient_email, patient_name, appointment
         sender = EMAIL_CONFIG.get('sender_email')
         password = EMAIL_CONFIG.get('sender_password')
 
-        subject = f"Appointment Confirmed - {therapy_name}"
+        subject = f"Appointment Confirmation - {therapy_name}"
         body = f"""
 Dear {patient_name},
 
-🎉 Your appointment has been confirmed!
+Your appointment has been confirmed!
 
 Appointment Details:
 - Therapy: {therapy_name}
 - Doctor: {doctor_name}
 - Date & Time: {appointment_date}
-- Status: Confirmed ✅
+- Status: Confirmed
 
-Please arrive 10 minutes before your scheduled time and bring your appointment receipt.
-
-You can download your appointment receipt from your dashboard.
+Please arrive 10 minutes before your scheduled time.
 
 Thank you for choosing DCAM Therapy Center.
 
@@ -540,11 +541,11 @@ def send_doctor_notification_email(doctor_email, doctor_name, patient_name, appo
         sender = EMAIL_CONFIG.get('sender_email')
         password = EMAIL_CONFIG.get('sender_password')
 
-        subject = f"New Appointment Confirmed - {therapy_name}"
+        subject = f"New Appointment - {therapy_name}"
         body = f"""
 Dear Dr. {doctor_name},
 
-You have a new confirmed appointment scheduled:
+You have a new appointment scheduled:
 
 Patient: {patient_name}
 Therapy: {therapy_name}
@@ -1283,6 +1284,7 @@ def register():
         logger.error(f"🔥 Registration error: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+
 # Existing OTP verification routes
 @app.route('/verify-otp', methods=['POST'])
 def verify_otp():
@@ -1365,7 +1367,6 @@ def resend_otp():
     except Exception as e:
         logger.error(f"Error resending OTP: {e}")
         return jsonify({'error': 'Failed to resend OTP'}), 500
-
 # ========== PATIENT-SPECIFIC API ROUTES ==========
 
 @app.route('/api/patient-dashboard-stats')
@@ -1384,11 +1385,12 @@ def patient_dashboard_stats():
             'wellness_score': '0%'
         }
         
-        if current_db is not None:
+        if current_db:
             # Upcoming appointments
             stats['upcoming_appointments'] = current_db.appointments.count_documents({
                 'patient_id': patient_id,
-                'status': 'scheduled'
+                'status': 'scheduled',
+                'date': {'$gte': datetime.utcnow()}
             })
             
             # Completed sessions
@@ -1428,7 +1430,7 @@ def patient_appointments():
         
         appointments = []
         
-        if current_db is not None:
+        if current_db:
             appointments_cursor = current_db.appointments.find(
                 {'patient_id': patient_id}
             ).sort('date', -1).limit(5)
@@ -1454,6 +1456,19 @@ def patient_appointments():
         return jsonify([])    
 
 # ========== MAIN APPLICATION ROUTES ==========
+
+# @app.route('/dashboard')
+# @login_required
+# def dashboard():
+#     try:
+#         stats = get_dashboard_stats(session['role'], session['user_id'])
+#         return render_template('dashboard.html', user=session, stats=stats)
+#     except Exception as e:
+#         logger.error(f"Dashboard error: {e}")
+#         session.clear()
+#         return redirect(url_for('index'))
+
+# ========== ENHANCED ROLE-BASED ROUTING ==========
 
 @app.route('/dashboard')
 @login_required
@@ -1497,6 +1512,7 @@ def doctor_dashboard():
     stats = get_dashboard_stats('doctor', session['user_id'])
     return render_template('doctor_dashboard.html', user=session, stats=stats)
 
+# ADD THE MISSING RECEPTIONIST DASHBOARD ROUTE
 @app.route('/receptionist-dashboard')
 @login_required
 @role_required(['receptionist'])
@@ -1645,10 +1661,14 @@ def get_role_redirect_url(role):
     redirect_routes = {
         'patient': '/book-appointment',
         'doctor': '/doctor-dashboard',
-        'receptionist': '/receptionist-dashboard',
+        'receptionist': '/receptionist-dashboard', 
         'admin': '/admin-dashboard'
     }
-    return redirect_routes.get(role, '/dashboard')
+    return redirect_routes.get(role, '/dashboard')    
+
+
+
+
 
 @app.route('/acupressure-info')
 @login_required
@@ -1680,7 +1700,36 @@ def appointment_receipt(appointment_id):
     """Appointment receipt page"""
     return render_template('appointment_receipt.html', appointment_id=appointment_id)
 
-# ========== ENHANCED APPOINTMENT API ROUTES ==========
+# ========== API ROUTES ==========
+
+@app.route('/api/dashboard-stats')
+@login_required
+def dashboard_stats():
+    """Get dashboard statistics for the current user"""
+    try:
+        stats = get_dashboard_stats(session['role'], session['user_id'])
+        return jsonify(stats)
+    except Exception as e:
+        logger.error(f"Error getting dashboard stats: {e}")
+        return jsonify({'error': 'Failed to load dashboard statistics'}), 500
+
+@app.route('/api/dashboard-data')
+@login_required
+def dashboard_data():
+    """Get dashboard data for the current user"""
+    try:
+        stats = get_dashboard_stats(session['role'], session['user_id'])
+        user_data = {
+            'first_name': session.get('first_name'),
+            'last_name': session.get('last_name'),
+            'email': session.get('email'),
+            'role': session.get('role'),
+            'user_id': session.get('user_id')
+        }
+        return jsonify({'user': user_data, 'stats': stats})
+    except Exception as e:
+        logger.error(f"Error getting dashboard data: {e}")
+        return jsonify({'error': 'Failed to load dashboard data'}), 500
 
 @app.route('/api/appointments', methods=['GET', 'POST'])
 @login_required
@@ -1718,7 +1767,7 @@ def get_appointments():
                         'doctor_name': 'Dr. Rajesh Sharma',
                         'date': (datetime.utcnow() + timedelta(days=1)).isoformat(),
                         'reason': 'Regular checkup',
-                        'status': 'pending',
+                        'status': 'scheduled',
                         'consultation_type': 'follow-up'
                     }
                 ]
@@ -1729,93 +1778,64 @@ def get_appointments():
             return jsonify([])
     
     elif request.method == 'POST':
-        # Create new appointment with enhanced notification system
-        return create_appointment()
-
-def create_appointment():
-    """Create new appointment with enhanced notification system"""
-    try:
-        data = request.get_json()
-        
-        # Generate appointment ID
-        appointment_id = f"APT{random.randint(1000, 9999)}"
-        
-        # Parse appointment date
-        appointment_date = datetime.fromisoformat(data.get('date').replace('Z', '+00:00'))
-        
-        appointment_data = {
-            'appointment_id': appointment_id,
-            'patient_id': session['user_id'],
-            'patient_name': data.get('patient_name'),
-            'therapy_type': data.get('therapy_type'),
-            'therapist_id': data.get('therapist_id'),
-            'date': appointment_date,
-            'reason': data.get('reason'),
-            'consultation_type': data.get('consultation_type'),
-            'status': 'pending',  # Receptionist confirmation required
-            'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
-        }
-        
-        # Add optional fields if provided
-        optional_fields = [
-            'patient_dob', 'patient_gender', 'patient_phone', 'patient_address',
-            'patient_height', 'patient_weight', 'patient_blood_group', 'patient_allergies',
-            'medical_conditions', 'current_medications', 'previous_surgeries',
-            'family_medical_history', 'additional_notes', 'preferred_time_slot'
-        ]
-        
-        for field in optional_fields:
-            if field in data:
-                appointment_data[field] = data[field]
-        
-        current_db = get_db_safe()
-        if current_db is not None:
-            result = current_db.appointments.insert_one(appointment_data)
+        # Create new appointment
+        try:
+            data = request.get_json()
             
-            # Create notification for receptionist
-            create_notification(
-                'REC001',  # Receptionist user ID
-                'New Appointment Request',
-                f'New appointment request from {data.get("patient_name")} for {data.get("therapy_type")} therapy. Please review and confirm.',
-                'info'
-            )
+            # Generate appointment ID
+            appointment_id = f"APT{random.randint(1000, 9999)}"
             
-            # Create notification for patient
-            create_notification(
-                session['user_id'],
-                'Appointment Request Submitted',
-                f'Your {data.get("therapy_type")} appointment request has been submitted. Waiting for receptionist confirmation.',
-                'info'
-            )
+            appointment_data = {
+                'appointment_id': appointment_id,
+                'patient_id': session['user_id'],
+                'patient_name': data.get('patient_name'),
+                'therapy_type': data.get('therapy_type'),
+                'therapist_id': data.get('therapist_id'),
+                'date': datetime.fromisoformat(data.get('date').replace('Z', '+00:00')),
+                'reason': data.get('reason'),
+                'consultation_type': data.get('consultation_type'),
+                'status': 'pending',
+                'created_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }
             
-            # Get doctor details for notification
-            doctor = current_db.users.find_one({'user_id': data.get('therapist_id')})
-            if doctor:
+            # Add optional fields if provided
+            optional_fields = [
+                'patient_dob', 'patient_gender', 'patient_phone', 'patient_address',
+                'patient_height', 'patient_weight', 'patient_blood_group', 'patient_allergies',
+                'medical_conditions', 'current_medications', 'previous_surgeries',
+                'family_medical_history', 'additional_notes'
+            ]
+            
+            for field in optional_fields:
+                if field in data:
+                    appointment_data[field] = data[field]
+            
+            current_db = get_db_safe()
+            if current_db:
+                result = current_db.appointments.insert_one(appointment_data)
+                
+                # Create notification for receptionist
                 create_notification(
-                    doctor['user_id'],
+                    'REC001',  # Receptionist user ID
                     'New Appointment Request',
-                    f'New appointment request from {data.get("patient_name")} for {data.get("therapy_type")}. Waiting for confirmation.',
+                    f'New appointment request from {data.get("patient_name")} for {data.get("therapy_type")} therapy',
                     'info'
                 )
-            
-            logger.info(f"✅ Appointment {appointment_id} created and notifications sent")
-            
-            return jsonify({
-                'message': 'Appointment booked successfully! Waiting for receptionist confirmation.',
-                'appointment_id': appointment_id,
-                'status': 'pending'
-            }), 201
-        else:
-            return jsonify({
-                'message': 'Appointment request recorded (demo mode)',
-                'appointment_id': appointment_id,
-                'status': 'pending'
-            }), 201
-            
-    except Exception as e:
-        logger.error(f"Error creating appointment: {e}")
-        return jsonify({'error': 'Failed to book appointment'}), 500
+                
+                return jsonify({
+                    'message': 'Appointment booked successfully! Waiting for confirmation.',
+                    'appointment_id': appointment_id
+                }), 201
+            else:
+                return jsonify({
+                    'message': 'Appointment request recorded (demo mode)',
+                    'appointment_id': appointment_id
+                }), 201
+                
+        except Exception as e:
+            logger.error(f"Error creating appointment: {e}")
+            return jsonify({'error': 'Failed to book appointment'}), 500
 
 @app.route('/api/appointments/<appointment_id>/complete', methods=['POST'])
 @login_required
@@ -1823,7 +1843,7 @@ def complete_appointment(appointment_id):
     """Complete an appointment"""
     try:
         current_db = get_db_safe()
-        if current_db is not None:
+        if current_db:
             result = current_db.appointments.update_one(
                 {'appointment_id': appointment_id},
                 {'$set': {'status': 'completed', 'updated_at': datetime.utcnow()}}
@@ -1846,7 +1866,7 @@ def cancel_appointment_api(appointment_id):
     """Cancel an appointment"""
     try:
         current_db = get_db_safe()
-        if current_db is not None:
+        if current_db:
             result = current_db.appointments.update_one(
                 {'appointment_id': appointment_id},
                 {'$set': {'status': 'cancelled', 'updated_at': datetime.utcnow()}}
@@ -1863,8 +1883,7 @@ def cancel_appointment_api(appointment_id):
         logger.error(f"Error cancelling appointment: {e}")
         return jsonify({'error': 'Failed to cancel appointment'}), 500
 
-# ========== RECEPTIONIST APPOINTMENT MANAGEMENT ==========
-
+# # Receptionist-specific routes
 @app.route('/api/receptionist/appointments')
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -1963,8 +1982,8 @@ def get_receptionist_appointments():
 @app.route('/api/receptionist/appointments/<appointment_id>/confirm', methods=['POST'])
 @login_required
 @role_required(['receptionist', 'admin'])
-def confirm_appointment_api(appointment_id):
-    """Confirm an appointment with enhanced notifications"""
+def confirm_appointment(appointment_id):
+    """Confirm an appointment"""
     try:
         current_db = get_db_safe()
         
@@ -1985,18 +2004,18 @@ def confirm_appointment_api(appointment_id):
         if result.modified_count == 0:
             return jsonify({'error': 'Appointment not found'}), 404
         
-        # Get appointment details for notifications and receipt
+        # Get appointment details for notifications
         appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
         if appointment:
             patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
             doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
             
-            # Create notification for patient
+            # Create notifications
             if patient:
                 create_notification(
                     patient['user_id'],
-                    'Appointment Confirmed! 🎉',
-                    f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed by receptionist. Date: {appointment.get("date").strftime("%d %b %Y at %I:%M %p")}. You can download your receipt now.',
+                    'Appointment Confirmed',
+                    f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed.',
                     'success'
                 )
                 
@@ -2006,15 +2025,14 @@ def confirm_appointment_api(appointment_id):
                     f"{patient.get('first_name', '')} {patient.get('last_name', '')}",
                     appointment.get('date').strftime('%Y-%m-%d %H:%M'),
                     appointment.get('therapy_type', 'Therapy').title(),
-                    f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Doctor'
+                    doctor.get('first_name', 'Doctor') if doctor else 'Doctor'
                 )
             
-            # Create notification for doctor
             if doctor:
                 create_notification(
                     doctor['user_id'],
                     'New Confirmed Appointment',
-                    f'New appointment confirmed with {patient.get("first_name", "Patient") if patient else "Patient"} for {appointment.get("therapy_type")} on {appointment.get("date").strftime("%d %b %Y at %I:%M %p")}.',
+                    f'New appointment confirmed with {patient.get("first_name", "Patient") if patient else "Patient"}.',
                     'info'
                 )
                 
@@ -2026,15 +2044,9 @@ def confirm_appointment_api(appointment_id):
                     appointment.get('date').strftime('%Y-%m-%d %H:%M'),
                     appointment.get('therapy_type', 'Therapy').title()
                 )
-            
-            logger.info(f"✅ Appointment {appointment_id} confirmed by {session['user_id']}")
-            
-            return jsonify({
-                'message': 'Appointment confirmed successfully',
-                'appointment_id': appointment_id,
-                'patient_notified': True,
-                'doctor_notified': True if doctor else False
-            })
+        
+        logger.info(f"✅ Appointment {appointment_id} confirmed by {session['user_id']}")
+        return jsonify({'message': 'Appointment confirmed successfully'})
         
     except Exception as e:
         logger.error(f"Error confirming appointment: {e}")
@@ -2098,7 +2110,7 @@ def cancel_appointment(appointment_id):
 @app.route('/api/receptionist/appointments/<appointment_id>/reschedule', methods=['POST'])
 @login_required
 @role_required(['receptionist', 'admin'])
-def reschedule_appointment_api(appointment_id):
+def reschedule_appointment(appointment_id):
     """Reschedule an appointment"""
     try:
         data = request.get_json()
@@ -2159,8 +2171,7 @@ def reschedule_appointment_api(appointment_id):
         logger.error(f"Error rescheduling appointment: {e}")
         return jsonify({'error': 'Failed to reschedule appointment'}), 500
 
-# ========== NOTIFICATION SYSTEM ==========
-
+# Notification routes
 @app.route('/api/notifications')
 @login_required
 def get_notifications():
@@ -2222,13 +2233,104 @@ def mark_all_notifications_read():
         logger.error(f"Error marking notifications as read: {e}")
         return jsonify({'error': 'Failed to mark notifications as read'}), 500
 
+@app.route('/api/receptionist/appointments/<appointment_id>/confirm', methods=['POST'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def confirm_appointment_api(appointment_id):
+    """Confirm an appointment"""
+    try:
+        current_db = get_db_safe()
+        if current_db:
+            result = current_db.appointments.update_one(
+                {'appointment_id': appointment_id},
+                {'$set': {'status': 'confirmed', 'updated_at': datetime.utcnow()}}
+            )
+            
+            if result.modified_count > 0:
+                # Get appointment details for notification
+                appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+                patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+                doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+                
+                # Create notifications
+                if patient:
+                    create_notification(
+                        patient['user_id'],
+                        'Appointment Confirmed',
+                        f'Your {appointment.get("therapy_type")} appointment has been confirmed',
+                        'success'
+                    )
+                
+                if doctor:
+                    create_notification(
+                        doctor['user_id'],
+                        'New Confirmed Appointment',
+                        f'New appointment confirmed with {patient.get("first_name", "Patient")} for {appointment.get("therapy_type")}',
+                        'info'
+                    )
+                
+                return jsonify({'message': 'Appointment confirmed successfully'})
+            else:
+                return jsonify({'error': 'Appointment not found'}), 404
+        else:
+            return jsonify({'message': 'Appointment confirmed (demo mode)'})
+            
+    except Exception as e:
+        logger.error(f"Error confirming appointment: {e}")
+        return jsonify({'error': 'Failed to confirm appointment'}), 500
+
+@app.route('/api/receptionist/appointments/<appointment_id>/reschedule', methods=['POST'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def reschedule_appointment_api(appointment_id):
+    """Reschedule an appointment"""
+    try:
+        data = request.get_json()
+        new_date = data.get('new_date')
+        
+        if not new_date:
+            return jsonify({'error': 'New date is required'}), 400
+            
+        current_db = get_db_safe()
+        if current_db:
+            result = current_db.appointments.update_one(
+                {'appointment_id': appointment_id},
+                {'$set': {'date': datetime.fromisoformat(new_date.replace('Z', '+00:00')), 'updated_at': datetime.utcnow()}}
+            )
+            
+            if result.modified_count > 0:
+                # Get appointment details for notification
+                appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+                patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+                
+                if patient:
+                    create_notification(
+                        patient['user_id'],
+                        'Appointment Rescheduled',
+                        f'Your {appointment.get("therapy_type")} appointment has been rescheduled',
+                        'warning'
+                    )
+                
+                return jsonify({'message': 'Appointment rescheduled successfully'})
+            else:
+                return jsonify({'error': 'Appointment not found'}), 404
+        else:
+            return jsonify({'message': 'Appointment rescheduled (demo mode)'})
+            
+    except Exception as e:
+        logger.error(f"Error rescheduling appointment: {e}")
+        return jsonify({'error': 'Failed to reschedule appointment'}), 500
+
+# Notifications API
+
+
 @app.route('/api/notifications/<notification_id>/read', methods=['POST'])
 @login_required
 def mark_notification_read(notification_id):
     """Mark notification as read"""
     try:
         current_db = get_db_safe()
-        if current_db is not None:
+        if current_db:
             result = current_db.notifications.update_one(
                 {'_id': ObjectId(notification_id)},
                 {'$set': {'is_read': True}}
@@ -2275,7 +2377,7 @@ def patient_data():
         current_db = get_db_safe()
         user_id = session['user_id']
         
-        if current_db is not None:
+        if current_db:
             patient = current_db.users.find_one({'user_id': user_id})
             if patient:
                 patient_data = {
@@ -2326,7 +2428,7 @@ def get_therapists():
     try:
         current_db = get_db_safe()
         
-        if current_db is not None:
+        if current_db:
             therapists = list(current_db.users.find({'role': 'doctor'}))
             therapist_list = []
             for therapist in therapists:
@@ -2378,7 +2480,7 @@ def update_patient_info():
         user_id = session['user_id']
         
         current_db = get_db_safe()
-        if current_db is not None:
+        if current_db:
             update_data = {}
             allowed_fields = [
                 'phone', 'address', 'date_of_birth', 'gender', 'blood_group',
@@ -2410,6 +2512,7 @@ def update_patient_info():
         logger.error(f"Error updating patient info: {e}")
         return jsonify({'error': 'Failed to update patient information'}), 500
 
+# ADD THE MISSING API ENDPOINT FOR RECEPTIONIST PATIENT LIST
 @app.route('/api/receptionist/patients')
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -2435,42 +2538,13 @@ def get_receptionist_patients():
         logger.error(f"Error getting patients: {e}")
         return jsonify([])
 
-@app.route('/api/dashboard-stats')
-@login_required
-def dashboard_stats():
-    """Get dashboard statistics for the current user"""
-    try:
-        stats = get_dashboard_stats(session['role'], session['user_id'])
-        return jsonify(stats)
-    except Exception as e:
-        logger.error(f"Error getting dashboard stats: {e}")
-        return jsonify({'error': 'Failed to load dashboard statistics'}), 500
-
-@app.route('/api/dashboard-data')
-@login_required
-def dashboard_data():
-    """Get dashboard data for the current user"""
-    try:
-        stats = get_dashboard_stats(session['role'], session['user_id'])
-        user_data = {
-            'first_name': session.get('first_name'),
-            'last_name': session.get('last_name'),
-            'email': session.get('email'),
-            'role': session.get('role'),
-            'user_id': session.get('user_id')
-        }
-        return jsonify({'user': user_data, 'stats': stats})
-    except Exception as e:
-        logger.error(f"Error getting dashboard data: {e}")
-        return jsonify({'error': 'Failed to load dashboard data'}), 500
-
 if __name__ == '__main__':
     # Log startup information
-    logger.info("🚀 Starting DCAM Therapy Management System")
-    logger.info(f"📊 Database Connected: {db_connected}")
-    logger.info(f"🔐 Demo Mode: {not db_connected}")
-    logger.info(f"🔑 Google OAuth Enabled: {bool(os.environ.get('GOOGLE_CLIENT_ID'))}")
-    logger.info(f"💳 Payment System: {'Enabled' if os.environ.get('STRIPE_SECRET_KEY') else 'Demo Mode'}")
+    logger.info(" Starting DCAM Therapy Management System")
+    logger.info(f" Database Connected: {db_connected}")
+    logger.info(f" Demo Mode: {not db_connected}")
+    logger.info(f" Google OAuth Enabled: {bool(os.environ.get('GOOGLE_CLIENT_ID'))}")
+    logger.info(f"Payment System: {'Enabled' if os.environ.get('STRIPE_SECRET_KEY') else 'Demo Mode'}")
     
     # Log predefined user credentials for testing
     logger.info("👥 Predefined Users Available:")

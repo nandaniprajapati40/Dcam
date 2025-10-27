@@ -639,29 +639,14 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.message) {
-                        showAlert(data.message, 'info');
-                        
-                        // Reset form
-                        appointmentForm.reset();
-                        selectedTherapy = '';
-                        selectedTimeSlot = null;
-                        selectedTherapyText.textContent = 'Select a therapy type...';
-                        document.querySelectorAll('.therapy-dropdown-option').forEach(opt => {
-                            opt.classList.remove('selected');
-                        });
-                        document.querySelectorAll('.time-slot-horizontal').forEach(slot => {
-                            slot.classList.remove('selected');
-                        });
-                        therapistSelect.disabled = true;
-                        therapistSelect.innerHTML = '<option value="">Please select a therapy type first</option>';
-                        doctorInfo.textContent = 'Choose a therapy type to see available doctors';
-                        
-                        // Redirect to dashboard after 3 seconds
-                        setTimeout(() => {
-                            window.location.href = '/dashboard';
-                        }, 3000);
-                    } else {
+                   if (data.message && data.appointment_id) {
+                      showAlert(data.message,'info');
+                   // Redirect to receipt page after successful booking
+                      setTimeout(() => {
+                         window.location.href = `/appointment-receipt/${data.appointment_id}`;
+                      }, 2000);
+            
+                }   else {
                         showAlert(data.error || 'Failed to book appointment', 'error');
                     }
                 })
