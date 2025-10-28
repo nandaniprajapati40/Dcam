@@ -1639,7 +1639,7 @@
         </div>
     </div>
 
-    <!-- OTP Verification Modal -->
+    OTP Verification Modal
     <div id="otpModal" class="modal-overlay hidden">
         <div class="modal-content modal-modern">
             <div class="modal-header">
@@ -1668,10 +1668,10 @@
                 </div>
             </form>
         </div>
-    </div>
+    </div> -->
 
     <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="modal-overlay hidden">
+    < <div id="forgotPasswordModal" class="modal-overlay hidden">
         <div class="modal-content modal-modern">
             <div class="modal-header">
                 <h2 class="modal-title">Reset Your Password</h2>
@@ -1699,7 +1699,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </div> 
 
     <!-- Reset Password Modal -->
     <div id="resetPasswordModal" class="modal-overlay hidden">
@@ -1818,7 +1818,7 @@
                 document.getElementById('therapy').scrollIntoView({ behavior: 'smooth' });
             });
 
-            // Forgot password link
+          //  Forgot password link
             document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
                 e.preventDefault();
                 hideModal(loginModal);
@@ -1854,12 +1854,12 @@
             // Form submissions
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('registerForm').addEventListener('submit', handleRegister);
-            document.getElementById('otpForm').addEventListener('submit', handleOtpVerification);
-            document.getElementById('forgotPasswordForm').addEventListener('submit', handleForgotPassword);
-            document.getElementById('resetPasswordForm').addEventListener('submit', handleResetPassword);
+           document.getElementById('otpForm').addEventListener('submit', handleOtpVerification);
+           document.getElementById('forgotPasswordForm').addEventListener('submit', handleForgotPassword);
+           document.getElementById('resetPasswordForm').addEventListener('submit', handleResetPassword);
 
-            // Resend OTP buttons
-            document.getElementById('resendOtp').addEventListener('click', handleResendOtp);
+           // Resend OTP buttons
+           document.getElementById('resendOtp').addEventListener('click', handleResendOtp);
             document.getElementById('resendResetOtp').addEventListener('click', handleResendResetOtp);
 
             // Modal switches
@@ -1890,7 +1890,7 @@
             window.addEventListener('click', (e) => {
                 if (e.target === loginModal) hideModal(loginModal);
                 if (e.target === registerModal) hideModal(registerModal);
-                if (e.target === otpModal) hideModal(otpModal);
+             //   if (e.target === otpModal) hideModal(otpModal);
                 if (e.target === forgotPasswordModal) hideModal(forgotPasswordModal);
                 if (e.target === resetPasswordModal) hideModal(resetPasswordModal);
             });
@@ -2412,7 +2412,7 @@
         }
 
         function showOtpModal() {
-            console.log('📱 Showing OTP modal');
+           console.log('📱 Showing OTP modal');
             hideAllModals();
             otpModal.classList.remove('hidden');
             document.getElementById('otpAlert').innerHTML = '';
