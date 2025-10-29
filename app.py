@@ -1253,11 +1253,11 @@ def register():
                 'address': data.get('address', ''),
                 'date_of_birth': data.get('date_of_birth', ''),
                 'gender': data.get('gender', ''),
-                'blood_group': data.get('blood_group', ''),
-                'allergies': data.get('allergies', ''),
-                'medical_conditions': data.get('medical_conditions', ''),
-                'current_medications': data.get('current_medications', ''),
-                'emergency_contact': data.get('emergency_contact', '')
+              #  'blood_group': data.get('blood_group', ''),
+               # 'allergies': data.get('allergies', ''),
+                #'medical_conditions': data.get('medical_conditions', ''),
+                #'current_medications': data.get('current_medications', ''),
+                #'emergency_contact': data.get('emergency_contact', '')
             })
 
         # Insert into database if connected
@@ -1580,7 +1580,7 @@ def get_doctor_appointments():
                     'reason': appt.get('reason', ''),
                     'status': appt.get('status', 'scheduled'),
                     'consultation_type': appt.get('consultation_type', 'initial'),
-                    'medical_history': appt.get('medical_history', 'No medical history recorded')
+                  # 'medical_history': appt.get('medical_history', 'No medical history recorded')
                 })
             
             # Calculate stats
@@ -1626,7 +1626,7 @@ def get_doctor_appointments():
                     'reason': 'Chronic back pain',
                     'status': 'scheduled',
                     'consultation_type': 'follow-up',
-                    'medical_history': 'Hypertension, occasional back pain'
+                   # 'medical_history': 'Hypertension, occasional back pain'
                 }
             ]
             
@@ -1981,22 +1981,34 @@ def create_appointment():
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow()
         }
-        
-        # Add optional fields if provided
-        optional_fields = [
-            'patient_dob', 'patient_gender', 'patient_phone', 'patient_address',
-            'patient_height', 'patient_weight', 'patient_blood_group', 'patient_allergies',
-            'medical_conditions', 'current_medications', 'previous_surgeries',
-            'family_medical_history', 'additional_notes', 'preferred_time_slot'
+        # Add simplified patient information
+        simplified_fields = [
+            'patient_age', 'patient_gender', 'patient_phone', 'patient_email', 
+            'patient_address'
         ]
         
-        for field in optional_fields:
+        for field in simplified_fields:
             if field in data:
                 appointment_data[field] = data[field]
         
         current_db = get_db_safe()
         if current_db is not None:
             result = current_db.appointments.insert_one(appointment_data)
+        # # Add optional fields if provided
+        # optional_fields = [
+        #     'patient_dob', 'patient_gender', 'patient_phone', 'patient_address',
+        #     'patient_height', 'patient_weight', 'patient_blood_group', 'patient_allergies',
+        #     'medical_conditions', 'current_medications', 'previous_surgeries',
+        #     'family_medical_history', 'additional_notes', 'preferred_time_slot'
+        # ]
+        
+        # for field in optional_fields:
+        #     if field in data:
+        #         appointment_data[field] = data[field]
+        
+        # current_db = get_db_safe()
+        # if current_db is not None:
+        #     result = current_db.appointments.insert_one(appointment_data)
             
             # Create notification for receptionist
             create_notification(
@@ -2063,11 +2075,11 @@ def patient_data():
                     'address': patient.get('address', ''),
                     'date_of_birth': patient.get('date_of_birth', ''),
                     'gender': patient.get('gender', ''),
-                    'blood_group': patient.get('blood_group', ''),
-                    'allergies': patient.get('allergies', ''),
-                    'medical_conditions': patient.get('medical_conditions', ''),
-                    'current_medications': patient.get('current_medications', ''),
-                    'emergency_contact': patient.get('emergency_contact', ''),
+                   # 'blood_group': patient.get('blood_group', ''),
+                    #'allergies': patient.get('allergies', ''),
+                    #'medical_conditions': patient.get('medical_conditions', ''),
+                    #'current_medications': patient.get('current_medications', ''),
+                    #'emergency_contact': patient.get('emergency_contact', ''),
                     'created_at': patient.get('created_at')
                 }
                 return jsonify(patient_data)
@@ -2082,11 +2094,11 @@ def patient_data():
             'address': '123 Demo Street, Haridwar, Uttarakhand',
             'date_of_birth': '1990-01-01',
             'gender': 'Prefer not to say',
-            'blood_group': 'O+',
-            'allergies': 'None',
-            'medical_conditions': 'None',
-            'current_medications': 'None',
-            'emergency_contact': '+91-9876543211',
+            #'blood_group': 'O+',
+            #'allergies': 'None',
+            #'medical_conditions': 'None',
+          #  'current_medications': 'None',
+           # 'emergency_contact': '+91-9876543211',
             'created_at': datetime.utcnow().isoformat()
         }
         return jsonify(demo_patient_data)
@@ -2110,7 +2122,7 @@ def get_therapists():
                     'user_id': therapist.get('user_id'),
                     'name': f"Dr. {therapist.get('first_name', '')} {therapist.get('last_name', '')}",
                     'specialization': therapist.get('specialization', 'Therapy Specialist'),
-                    'therapy_type': therapist.get('therapy_type', 'acupressure'),
+                   # 'therapy_type': therapist.get('therapy_type', 'acupressure'),
                     'email': therapist.get('email')
                 })
             return jsonify(therapist_list)
@@ -2121,21 +2133,21 @@ def get_therapists():
                 'user_id': 'DOC001',
                 'name': 'Dr. Rajesh Sharma',
                 'specialization': 'Acupressure Specialist',
-                'therapy_type': 'acupressure',
+             #   'therapy_type': 'acupressure',
                 'email': 'dr.sharma@dsvv.ac.in'
             },
             {
                 'user_id': 'DOC002',
                 'name': 'Dr. Priya Gupta',
                 'specialization': 'Ayurveda Expert',
-                'therapy_type': 'ayurveda',
+               # 'therapy_type': 'ayurveda',
                 'email': 'dr.gupta@dsvv.ac.in'
             },
             {
                 'user_id': 'DOC003',
                 'name': 'Dr. Amit Verma',
                 'specialization': 'Homeopathy Specialist',
-                'therapy_type': 'homeopathy',
+            #    'therapy_type': 'homeopathy',
                 'email': 'dr.verma@dsvv.ac.in'
             }
         ]
@@ -2245,49 +2257,66 @@ def get_receptionist_patients():
 @login_required
 @role_required(['receptionist', 'admin'])
 def get_receptionist_appointments():
-    """Get all appointments for receptionist view"""
+    """Get all appointments for receptionist view - SIMPLIFIED"""
     try:
         current_db = get_db_safe()
         
         # Get filter parameters
         status_filter = request.args.get('status', 'all')
-        therapy_filter = request.args.get('therapy', 'all')
         
-        # Build query - FIXED: Only show appointments from real users, not demo data
+        # Build query - SIMPLIFIED: removed therapy filter
         query = {}
         if status_filter != 'all':
             query['status'] = status_filter
-        if therapy_filter != 'all':
-            query['therapy_type'] = therapy_filter
         
-        # Remove demo appointments filter - show only real appointments
-        query['is_demo'] = {'$ne': True}  # Exclude demo appointments
+        # Remove demo appointments filter
+        query['is_demo'] = {'$ne': True}
         
         appointments = []
         if current_db is not None:
             appointment_cursor = current_db.appointments.find(query).sort('date', 1)
             appointments = list(appointment_cursor)
             
-            # Enhance appointment data with user information and convert ObjectId to string
+            # Enhance appointment data with user information
             for appointment in appointments:
-                # Convert ObjectId to string for JSON serialization
                 appointment['_id'] = str(appointment['_id'])
                 
-                # Get patient details
+                # Get patient details - SIMPLIFIED
                 patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
                 if patient:
                     appointment['patient_name'] = f"{patient.get('first_name', '')} {patient.get('last_name', '')}"
                     appointment['patient_email'] = patient.get('email')
                     appointment['patient_phone'] = patient.get('phone', 'N/A')
+                    # Removed extra patient fields
                 
                 # Get doctor details
-                doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+                try:
+                    doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+                except Exception as _e:
+                    logger.warning(f"Error fetching doctor for appointment {appointment.get('appointment_id')}: {_e}")
+                    doctor = None
+
                 if doctor:
                     appointment['doctor_name'] = f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}"
-                    appointment['therapy_name'] = doctor.get('specialization', appointment.get('therapy_type', 'Unknown').title())
                 else:
                     appointment['doctor_name'] = 'Doctor Not Found'
-                    appointment['therapy_name'] = appointment.get('therapy_type', 'Unknown').title()
+
+                # Determine a safe therapy name. Prefer explicit appointment therapy_type,
+                # otherwise fall back to doctor's specialization, then a general label.
+                try:
+                    therapy_type = appointment.get('therapy_type')
+                    therapy_name_source = None
+                    if therapy_type and isinstance(therapy_type, str) and therapy_type.strip():
+                        therapy_name_source = therapy_type
+                    elif doctor and doctor.get('specialization'):
+                        therapy_name_source = doctor.get('specialization')
+                    else:
+                        therapy_name_source = 'General Therapy'
+
+                    appointment['therapy_name'] = (therapy_name_source or 'General Therapy').title()
+                except Exception as e_inner:
+                    logger.warning(f"Error determining therapy name for appointment {appointment.get('appointment_id')}: {e_inner}")
+                    appointment['therapy_name'] = 'General Therapy'
         else:
             # When no database, return empty array instead of demo data
             appointments = []
