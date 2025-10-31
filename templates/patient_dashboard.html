@@ -507,13 +507,13 @@
                 </div>
 
                 <!-- Recent Appointments -->
-                <div class="card">
+                <!-- <div class="card">
                     <h2 class="section-header">
                         <i class="fas fa-history"></i>Recent Appointments
                     </h2>
                     <div id="recentAppointments">
-                        <!-- Appointments will be loaded here -->
-                        <div class="empty-state">
+                        Appointments will be loaded here -->
+                        <!-- <div class="empty-state">
                             <i class="fas fa-calendar-times"></i>
                             <p class="text-gray-500">No appointments scheduled yet</p>
                             <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
@@ -530,7 +530,27 @@
                             </a>
                         </div>
                     </div>
-                </div>
+                </div> -->
+                <!-- Recent Appointments Section को ये replace करें -->
+<div class="card">
+    <h2 class="section-header">
+        <i class="fas fa-history"></i>My Appointments History
+    </h2>
+    <div class="mb-4">
+        <div class="flex space-x-2">
+            <button onclick="filterAppointments('all')" class="px-3 py-1 bg-green-600 text-white rounded-lg text-sm">All</button>
+            <button onclick="filterAppointments('upcoming')" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">Upcoming</button>
+            <button onclick="filterAppointments('completed')" class="px-3 py-1 bg-gray-600 text-white rounded-lg text-sm">Completed</button>
+            <button onclick="filterAppointments('cancelled')" class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm">Cancelled</button>
+        </div>
+    </div>
+    <div id="recentAppointments">
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <p class="text-gray-500">Loading your appointments...</p>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </div>
@@ -557,83 +577,265 @@
         });
 
         // Load patient data
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPatientStats();
-            loadRecentAppointments();
-            loadNotifications();
+//         document.addEventListener('DOMContentLoaded', function() {
+//             loadPatientStats();
+// //loadRecentAppointments();
+//             loadAllAppoi
+         // Load patient data
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatientStats();
+    loadAllAppointments();  // Changed from loadRecentAppointments
+    loadNotifications();
+});
+
+function loadAllAppointments() {
+    fetch('/api/patient-appointments')
+        .then(response => response.json())
+        .then(appointments => {
+            const container = document.getElementById('recentAppointments');
+            
+            if (!appointments || appointments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p class="text-gray-500">No appointments scheduled yet</p>
+                        <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                            Book Your First Appointment
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            renderAppointments(appointments, 'all');
+        })
+        .catch(error => {
+            console.error('Error loading appointments:', error);
+            document.getElementById('recentAppointments').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p class="text-gray-500">Error loading appointments</p>
+                </div>
+            `;
         });
+}
 
-        function loadPatientStats() {
-            fetch('/api/patient-dashboard-stats')
-                .then(response => response.json())
-                .then(stats => {
-                    document.getElementById('upcomingAppointments').textContent = stats.upcoming_appointments || 0;
-                    document.getElementById('completedSessions').textContent = stats.completed_sessions || 0;
-                    document.getElementById('pendingAppointments').textContent = stats.pending_appointments || 0;
-                    document.getElementById('therapiesTried').textContent = stats.therapies_tried || 0;
-                })
-                .catch(error => {
-                    console.error('Error loading patient stats:', error);
-                    // Set demo data
-                    document.getElementById('upcomingAppointments').textContent = '2';
-                    document.getElementById('completedSessions').textContent = '5';
-                    document.getElementById('pendingAppointments').textContent = '1';
-                    document.getElementById('therapiesTried').textContent = '3';
+function renderAppointments(appointments, filter = 'all') {
+    const container = document.getElementById('recentAppointments');
+    
+    let filteredAppointments = appointments;
+    
+    if (filter === 'upcoming') {
+        filteredAppointments = appointments.filter(apt => 
+            ['pending', 'confirmed', 'scheduled'].includes(apt.status)
+        );
+    } else if (filter === 'completed') {
+        filteredAppointments = appointments.filter(apt => apt.status === 'completed');
+    } else if (filter === 'cancelled') {
+        filteredAppointments = appointments.filter(apt => apt.status === 'cancelled');
+    }
+    
+    if (filteredAppointments.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <p class="text-gray-500">No ${filter} appointments found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filteredAppointments.map(appt => {
+        const date = new Date(appt.date);
+        const dateString = date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+        const timeString = date.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
+        
+        const statusClass = {
+            'pending': 'status-pending',
+            'confirmed': 'status-confirmed',
+            'cancelled': 'status-cancelled',
+            'completed': 'status-completed',
+            'scheduled': 'status-confirmed'
+        }[appt.status] || 'status-pending';
+        
+        const statusText = {
+            'pending': 'Pending Approval',
+            'confirmed': 'Confirmed',
+            'cancelled': 'Cancelled',
+            'completed': 'Completed',
+            'scheduled': 'Scheduled'
+        }[appt.status] || appt.status;
+        
+        return `
+            <div class="appointment-card">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-semibold text-gray-800">${appt.therapy_name}</h4>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-1">
+                            <i class="fas fa-user-md mr-2"></i>
+                            <strong>Doctor:</strong> ${appt.doctor_name}
+                        </p>
+                        <p class="text-sm text-gray-600 mb-1">
+                            <i class="fas fa-calendar mr-2"></i>
+                            <strong>Date:</strong> ${dateString} at ${timeString}
+                        </p>
+                        <p class="text-sm text-gray-600 mb-1">
+                            <i class="fas fa-stethoscope mr-2"></i>
+                            <strong>Type:</strong> ${appt.consultation_type || 'General'} Consultation
+                        </p>
+                        <p class="text-sm text-gray-700 mt-2">
+                            <i class="fas fa-comment-medical mr-2"></i>
+                            <strong>Reason:</strong> ${appt.reason || 'General consultation'}
+                        </p>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Appointment ID: ${appt.appointment_id}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+function loadRecentAppointments() {
+    fetch('/api/patient-appointments')
+        .then(response => response.json())
+        .then(appointments => {
+            const container = document.getElementById('recentAppointments');
+            const noAppointments = document.getElementById('noAppointments');
+            
+            if (!appointments || appointments.length === 0) {
+                container.innerHTML = '';
+                noAppointments.classList.remove('hidden');
+                return;
+            }
+            
+            noAppointments.classList.add('hidden');
+            
+            let html = '<div class="space-y-4">';
+            appointments.forEach(appt => {
+                const date = new Date(appt.date);
+                const dateString = date.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short', 
+                    day: 'numeric',
+                    weekday: 'short'
                 });
-        }
-
-        function loadRecentAppointments() {
-            fetch('/api/patient-appointments')
-                .then(response => response.json())
-                .then(appointments => {
-                    const container = document.getElementById('recentAppointments');
-                    const noAppointments = document.getElementById('noAppointments');
-                    
-                    if (!appointments || appointments.length === 0) {
-                        container.innerHTML = '';
-                        noAppointments.classList.remove('hidden');
-                        return;
-                    }
-                    
-                    noAppointments.classList.add('hidden');
-                    
-                    container.innerHTML = appointments.map(appt => {
-                        const date = new Date(appt.date);
-                        const dateString = date.toLocaleDateString();
-                        const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                        
-                        const statusClass = {
-                            'pending': 'status-pending',
-                            'confirmed': 'status-confirmed',
-                            'cancelled': 'status-cancelled',
-                            'completed': 'status-completed'
-                        }[appt.status] || 'status-pending';
-                        
-                        return `
-                            <div class="appointment-card">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <h4 class="font-semibold text-gray-800">${appt.therapy_name || 'Therapy Session'}</h4>
-                                        <p class="text-sm text-gray-600">Appointment ID: ${appt.appointment_id}</p>
-                                        <p class="text-xs text-gray-500">${dateString} at ${timeString}</p>
-                                    </div>
-                                    <span class="status-badge ${statusClass}">${appt.status}</span>
-                                </div>
-                                <p class="text-sm text-gray-700 mt-2">${appt.reason || 'General consultation'}</p>
-                                <div class="flex items-center mt-2 text-sm text-gray-600">
-                                    <i class="fas fa-user-md mr-2"></i>
-                                    <span>${appt.doctor_name || 'Doctor'}</span>
-                                </div>
+                const timeString = date.toLocaleTimeString('en-IN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const statusClass = {
+                    'pending': 'status-pending',
+                    'confirmed': 'status-confirmed',
+                    'cancelled': 'status-cancelled',
+                    'completed': 'status-completed'
+                }[appt.status] || 'status-pending';
+                
+                html += `
+                    <div class="appointment-card">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 text-lg">${appt.therapy_name || 'Therapy Session'}</h4>
+                                <p class="text-sm text-gray-600 mt-1">Appointment ID: ${appt.appointment_id}</p>
                             </div>
-                        `;
-                    }).join('');
-                })
-                .catch(error => {
-                    console.error('Error loading appointments:', error);
-                    document.getElementById('noAppointments').classList.remove('hidden');
-                });
-        }
+                            <span class="status-badge ${statusClass}">${appt.status}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-calendar-day mr-2 text-blue-500"></i>
+                                <span><strong>Date:</strong> ${dateString}</span>
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-clock mr-2 text-green-500"></i>
+                                <span><strong>Time:</strong> ${timeString}</span>
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-user-md mr-2 text-purple-500"></i>
+                                <span><strong>Doctor:</strong> ${appt.doctor_name || 'Not Assigned'}</span>
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-stethoscope mr-2 text-orange-500"></i>
+                                <span><strong>Type:</strong> ${appt.consultation_type || 'General'}</span>
+                            </div>
+                        </div>
+                        
+                        ${appt.reason ? `
+                            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm text-gray-700">
+                                    <strong>Reason:</strong> ${appt.reason}
+                                </p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error loading appointments:', error);
+            const container = document.getElementById('recentAppointments');
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-2xl text-red-500 mb-4"></i>
+                    <p class="text-red-500 mb-4">Failed to load appointments</p>
+                    <button onclick="loadRecentAppointments()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        });
+}
 
+function loadPatientStats() {
+    fetch('/api/patient-dashboard-stats')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load stats');
+            }
+            return response.json();
+        })
+        .then(stats => {
+            updatePatientStats(stats);
+        })
+        .catch(error => {
+            console.error('Error loading patient stats:', error);
+            // Set default values if API fails
+            updatePatientStats({
+                upcoming_appointments: 0,
+                completed_sessions: 0,
+                pending_appointments: 0,
+                therapies_tried: 0
+            });
+        });
+}
+
+function updatePatientStats(stats) {
+    // Update the stats cards with real data
+    document.getElementById('upcomingAppointments').textContent = stats.upcoming_appointments || 0;
+    document.getElementById('completedSessions').textContent = stats.completed_sessions || 0;
+    document.getElementById('pendingAppointments').textContent = stats.pending_appointments || 0;
+    document.getElementById('therapiesTried').textContent = stats.therapies_tried || 0;
+}
+function filterAppointments(filterType) {
+    fetch('/api/patient-appointments')
+        .then(response => response.json())
+        .then(appointments => {
+            renderAppointments(appointments, filterType);
+        })
+        .catch(error => {
+            console.error('Error filtering appointments:', error);
+        });
+}
         // Load notifications for patient
         function loadNotifications() {
             fetch('/api/notifications')

@@ -1882,20 +1882,38 @@ def patient_appointments():
         if current_db is not None:
             appointments_cursor = current_db.appointments.find(
                 {'patient_id': patient_id}
-            ).sort('date', -1).limit(5)
+            ).sort('date', -1)
+            #.limit(5)
             
             for appt in appointments_cursor:
                 # Get doctor details
                 doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
                 doctor_name = f"{doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Unknown Doctor'
                 
+                # Safely get therapy name with improved error handling
+                try:
+                    therapy_type = appt.get('therapy_type')
+                    if therapy_type and isinstance(therapy_type, str) and therapy_type.strip():
+                        therapy_name = therapy_type.title()
+                    else:
+                        therapy_name = 'Therapy Session'
+                except (AttributeError, TypeError) as e:
+                    logger.warning(f"Error processing therapy_type for appointment {appt.get('appointment_id')}: {e}")
+                    therapy_name = 'Therapy Session'
+
+                # Add appointment to list with all required fields
                 appointments.append({
                     'appointment_id': appt.get('appointment_id'),
-                    'therapy_name': appt.get('therapy_type', '').title(),
+                    'therapy_name': therapy_name,
+                    'therapy_type': appt.get('therapy_type', ''),
                     'doctor_name': doctor_name,
+                    'doctor_id': appt.get('therapist_id'),
                     'date': appt.get('date').isoformat() if appt.get('date') else '',
                     'reason': appt.get('reason', ''),
-                    'status': appt.get('status', 'scheduled')
+                    'status': appt.get('status', 'scheduled'),
+                    'consultation_type': appt.get('consultation_type', 'general'),
+                    'created_at': appt.get('created_at', '').isoformat() if appt.get('created_at') else '',
+                    'updated_at': appt.get('updated_at', '').isoformat() if appt.get('updated_at') else ''
                 })
         
         return jsonify(appointments)
@@ -1903,6 +1921,50 @@ def patient_appointments():
     except Exception as e:
         logger.error(f"Error getting patient appointments: {e}")
         return jsonify([])
+
+@app.route('/api/receptionist/patient-appointments/<patient_id>')
+@login_required
+@role_required(['receptionist', 'admin'])
+def get_patient_appointments_history(patient_id):
+    """Get complete appointment history for a specific patient - FOR RECEPTIONIST"""
+    try:
+        current_db = get_db_safe()
+        
+        appointments = []
+        
+        if current_db is not None:
+            # Get all appointments for this patient
+            appointments_cursor = current_db.appointments.find(
+                {'patient_id': patient_id}
+            ).sort('date', -1)
+            
+            for appt in appointments_cursor:
+                # Get doctor details
+                doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
+                doctor_name = f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Unknown Doctor'
+                
+                # Get patient details
+                patient = current_db.users.find_one({'user_id': patient_id})
+                patient_name = f"{patient.get('first_name', '')} {patient.get('last_name', '')}" if patient else 'Unknown Patient'
+                
+                appointments.append({
+                    'appointment_id': appt.get('appointment_id'),
+                    'patient_id': patient_id,
+                    'patient_name': patient_name,
+                    'therapy_name': appt.get('therapy_type', '').title(),
+                    'doctor_name': doctor_name,
+                    'date': appt.get('date').isoformat() if appt.get('date') else '',
+                    'reason': appt.get('reason', ''),
+                    'status': appt.get('status', 'scheduled'),
+                    'consultation_type': appt.get('consultation_type', 'general'),
+                    'created_at': appt.get('created_at').isoformat() if appt.get('created_at') else ''
+                })
+        
+        return jsonify(appointments)
+        
+    except Exception as e:
+        logger.error(f"Error getting patient appointment history: {e}")
+        return jsonify([])        
 
 @app.route('/api/appointments', methods=['GET', 'POST'])
 @login_required
@@ -1994,21 +2056,6 @@ def create_appointment():
         current_db = get_db_safe()
         if current_db is not None:
             result = current_db.appointments.insert_one(appointment_data)
-        # # Add optional fields if provided
-        # optional_fields = [
-        #     'patient_dob', 'patient_gender', 'patient_phone', 'patient_address',
-        #     'patient_height', 'patient_weight', 'patient_blood_group', 'patient_allergies',
-        #     'medical_conditions', 'current_medications', 'previous_surgeries',
-        #     'family_medical_history', 'additional_notes', 'preferred_time_slot'
-        # ]
-        
-        # for field in optional_fields:
-        #     if field in data:
-        #         appointment_data[field] = data[field]
-        
-        # current_db = get_db_safe()
-        # if current_db is not None:
-        #     result = current_db.appointments.insert_one(appointment_data)
             
             # Create notification for receptionist
             create_notification(
@@ -2075,11 +2122,6 @@ def patient_data():
                     'address': patient.get('address', ''),
                     'date_of_birth': patient.get('date_of_birth', ''),
                     'gender': patient.get('gender', ''),
-                   # 'blood_group': patient.get('blood_group', ''),
-                    #'allergies': patient.get('allergies', ''),
-                    #'medical_conditions': patient.get('medical_conditions', ''),
-                    #'current_medications': patient.get('current_medications', ''),
-                    #'emergency_contact': patient.get('emergency_contact', ''),
                     'created_at': patient.get('created_at')
                 }
                 return jsonify(patient_data)
@@ -2094,11 +2136,6 @@ def patient_data():
             'address': '123 Demo Street, Haridwar, Uttarakhand',
             'date_of_birth': '1990-01-01',
             'gender': 'Prefer not to say',
-            #'blood_group': 'O+',
-            #'allergies': 'None',
-            #'medical_conditions': 'None',
-          #  'current_medications': 'None',
-           # 'emergency_contact': '+91-9876543211',
             'created_at': datetime.utcnow().isoformat()
         }
         return jsonify(demo_patient_data)
