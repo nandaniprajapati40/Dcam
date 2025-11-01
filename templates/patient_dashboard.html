@@ -146,6 +146,7 @@
         .status-confirmed { background: #d1fae5; color: #065f46; }
         .status-cancelled { background: #fee2e2; color: #dc2626; }
         .status-completed { background: #dbeafe; color: #1e40af; }
+        .status-payment-pending { background: #fef3c7; color: #d97706; }
         
         /* Stats Cards */
         .stats-grid {
@@ -343,6 +344,35 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
         }
+
+        /* Filter Buttons */
+        .filter-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Payment Modal */
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .payment-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -506,51 +536,41 @@
                     </div>
                 </div>
 
-                <!-- Recent Appointments -->
-                <!-- <div class="card">
+                <!-- Enhanced Appointments History Section -->
+                <div class="card">
                     <h2 class="section-header">
-                        <i class="fas fa-history"></i>Recent Appointments
+                        <i class="fas fa-history"></i>My Appointments History
                     </h2>
-                    <div id="recentAppointments">
-                        Appointments will be loaded here -->
-                        <!-- <div class="empty-state">
-                            <i class="fas fa-calendar-times"></i>
-                            <p class="text-gray-500">No appointments scheduled yet</p>
-                            <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                                Book Your First Appointment
-                            </a>
+                    
+                    <!-- Filter Buttons -->
+                    <div class="mb-4">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterAppointments('all')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition filter-btn active" data-filter="all">
+                                <i class="fas fa-list mr-1"></i>All
+                            </button>
+                            <button onclick="filterAppointments('upcoming')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition filter-btn" data-filter="upcoming">
+                                <i class="fas fa-clock mr-1"></i>Upcoming
+                            </button>
+                            <button onclick="filterAppointments('completed')" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 transition filter-btn" data-filter="completed">
+                                <i class="fas fa-check-circle mr-1"></i>Completed
+                            </button>
+                            <button onclick="filterAppointments('cancelled')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition filter-btn" data-filter="cancelled">
+                                <i class="fas fa-times-circle mr-1"></i>Cancelled
+                            </button>
+                            <button onclick="filterAppointments('payment_pending')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700 transition filter-btn" data-filter="payment_pending">
+                                <i class="fas fa-credit-card mr-1"></i>Payment Pending
+                            </button>
                         </div>
                     </div>
-                    <div id="noAppointments" class="hidden">
+                    
+                    <!-- Appointments List -->
+                    <div id="recentAppointments">
                         <div class="empty-state">
                             <i class="fas fa-calendar-times"></i>
-                            <p class="text-gray-500">No appointments scheduled yet</p>
-                            <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                                Book Your First Appointment
-                            </a>
+                            <p class="text-gray-500">Loading your appointments...</p>
                         </div>
                     </div>
-                </div> -->
-                <!-- Recent Appointments Section को ये replace करें -->
-<div class="card">
-    <h2 class="section-header">
-        <i class="fas fa-history"></i>My Appointments History
-    </h2>
-    <div class="mb-4">
-        <div class="flex space-x-2">
-            <button onclick="filterAppointments('all')" class="px-3 py-1 bg-green-600 text-white rounded-lg text-sm">All</button>
-            <button onclick="filterAppointments('upcoming')" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm">Upcoming</button>
-            <button onclick="filterAppointments('completed')" class="px-3 py-1 bg-gray-600 text-white rounded-lg text-sm">Completed</button>
-            <button onclick="filterAppointments('cancelled')" class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm">Cancelled</button>
-        </div>
-    </div>
-    <div id="recentAppointments">
-        <div class="empty-state">
-            <i class="fas fa-calendar-times"></i>
-            <p class="text-gray-500">Loading your appointments...</p>
-        </div>
-    </div>
-</div>
+                </div>
             </div>
         </div>
     </div>
@@ -560,7 +580,14 @@
         <i class="fas fa-chevron-up"></i>
     </div>
 
+    <!-- Razorpay Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
     <script>
+        // Global variables
+        let allAppointments = [];
+        let currentFilter = 'all';
+
         // Mobile menu toggle
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.querySelector('.sidebar');
@@ -577,265 +604,416 @@
         });
 
         // Load patient data
-//         document.addEventListener('DOMContentLoaded', function() {
-//             loadPatientStats();
-// //loadRecentAppointments();
-//             loadAllAppoi
-         // Load patient data
-document.addEventListener('DOMContentLoaded', function() {
-    loadPatientStats();
-    loadAllAppointments();  // Changed from loadRecentAppointments
-    loadNotifications();
-});
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPatientStats();
+            loadAllAppointments();
+            loadNotifications();
+            setupEventListeners();
+        });
 
-function loadAllAppointments() {
-    fetch('/api/patient-appointments')
-        .then(response => response.json())
-        .then(appointments => {
+        function setupEventListeners() {
+            // Add click handlers for filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        function loadAllAppointments() {
+            fetch('/api/patient-appointments')
+                .then(response => response.json())
+                .then(appointments => {
+                    allAppointments = appointments;
+                    renderAppointments(appointments, currentFilter);
+                })
+                .catch(error => {
+                    console.error('Error loading appointments:', error);
+                    document.getElementById('recentAppointments').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p class="text-gray-500">Error loading appointments</p>
+                            <button onclick="loadAllAppointments()" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+
+        function filterAppointments(filterType) {
+            currentFilter = filterType;
+            renderAppointments(allAppointments, filterType);
+        }
+
+        function renderAppointments(appointments, filter = 'all') {
             const container = document.getElementById('recentAppointments');
             
-            if (!appointments || appointments.length === 0) {
+            let filteredAppointments = appointments;
+            
+            if (filter === 'upcoming') {
+                filteredAppointments = appointments.filter(apt => 
+                    ['pending', 'confirmed', 'scheduled'].includes(apt.status)
+                );
+            } else if (filter === 'completed') {
+                filteredAppointments = appointments.filter(apt => apt.status === 'completed');
+            } else if (filter === 'cancelled') {
+                filteredAppointments = appointments.filter(apt => apt.status === 'cancelled');
+            } else if (filter === 'payment_pending') {
+                filteredAppointments = appointments.filter(apt => apt.status === 'payment_pending');
+            }
+            
+            if (filteredAppointments.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-calendar-times"></i>
-                        <p class="text-gray-500">No appointments scheduled yet</p>
-                        <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                            Book Your First Appointment
-                        </a>
+                        <p class="text-gray-500">No ${filter} appointments found</p>
+                        ${filter === 'all' ? `
+                            <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                Book Your First Appointment
+                            </a>
+                        ` : ''}
                     </div>
                 `;
                 return;
             }
             
-            renderAppointments(appointments, 'all');
-        })
-        .catch(error => {
-            console.error('Error loading appointments:', error);
-            document.getElementById('recentAppointments').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p class="text-gray-500">Error loading appointments</p>
-                </div>
-            `;
-        });
-}
-
-function renderAppointments(appointments, filter = 'all') {
-    const container = document.getElementById('recentAppointments');
-    
-    let filteredAppointments = appointments;
-    
-    if (filter === 'upcoming') {
-        filteredAppointments = appointments.filter(apt => 
-            ['pending', 'confirmed', 'scheduled'].includes(apt.status)
-        );
-    } else if (filter === 'completed') {
-        filteredAppointments = appointments.filter(apt => apt.status === 'completed');
-    } else if (filter === 'cancelled') {
-        filteredAppointments = appointments.filter(apt => apt.status === 'cancelled');
-    }
-    
-    if (filteredAppointments.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-calendar-times"></i>
-                <p class="text-gray-500">No ${filter} appointments found</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = filteredAppointments.map(appt => {
-        const date = new Date(appt.date);
-        const dateString = date.toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        });
-        const timeString = date.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
-        
-        const statusClass = {
-            'pending': 'status-pending',
-            'confirmed': 'status-confirmed',
-            'cancelled': 'status-cancelled',
-            'completed': 'status-completed',
-            'scheduled': 'status-confirmed'
-        }[appt.status] || 'status-pending';
-        
-        const statusText = {
-            'pending': 'Pending Approval',
-            'confirmed': 'Confirmed',
-            'cancelled': 'Cancelled',
-            'completed': 'Completed',
-            'scheduled': 'Scheduled'
-        }[appt.status] || appt.status;
-        
-        return `
-            <div class="appointment-card">
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="font-semibold text-gray-800">${appt.therapy_name}</h4>
-                            <span class="status-badge ${statusClass}">${statusText}</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-1">
-                            <i class="fas fa-user-md mr-2"></i>
-                            <strong>Doctor:</strong> ${appt.doctor_name}
-                        </p>
-                        <p class="text-sm text-gray-600 mb-1">
-                            <i class="fas fa-calendar mr-2"></i>
-                            <strong>Date:</strong> ${dateString} at ${timeString}
-                        </p>
-                        <p class="text-sm text-gray-600 mb-1">
-                            <i class="fas fa-stethoscope mr-2"></i>
-                            <strong>Type:</strong> ${appt.consultation_type || 'General'} Consultation
-                        </p>
-                        <p class="text-sm text-gray-700 mt-2">
-                            <i class="fas fa-comment-medical mr-2"></i>
-                            <strong>Reason:</strong> ${appt.reason || 'General consultation'}
-                        </p>
-                        <p class="text-xs text-gray-500 mt-2">
-                            Appointment ID: ${appt.appointment_id}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-function loadRecentAppointments() {
-    fetch('/api/patient-appointments')
-        .then(response => response.json())
-        .then(appointments => {
-            const container = document.getElementById('recentAppointments');
-            const noAppointments = document.getElementById('noAppointments');
-            
-            if (!appointments || appointments.length === 0) {
-                container.innerHTML = '';
-                noAppointments.classList.remove('hidden');
-                return;
-            }
-            
-            noAppointments.classList.add('hidden');
-            
-            let html = '<div class="space-y-4">';
-            appointments.forEach(appt => {
+            container.innerHTML = filteredAppointments.map(appt => {
                 const date = new Date(appt.date);
                 const dateString = date.toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: 'short', 
-                    day: 'numeric',
-                    weekday: 'short'
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
                 });
-                const timeString = date.toLocaleTimeString('en-IN', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+                const timeString = date.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
                 
                 const statusClass = {
                     'pending': 'status-pending',
                     'confirmed': 'status-confirmed',
                     'cancelled': 'status-cancelled',
-                    'completed': 'status-completed'
+                    'completed': 'status-completed',
+                    'scheduled': 'status-confirmed',
+                    'payment_pending': 'status-payment-pending'
                 }[appt.status] || 'status-pending';
                 
-                html += `
+                const statusText = {
+                    'pending': 'Pending Approval',
+                    'confirmed': 'Confirmed',
+                    'cancelled': 'Cancelled',
+                    'completed': 'Completed',
+                    'scheduled': 'Scheduled',
+                    'payment_pending': 'Payment Pending'
+                }[appt.status] || appt.status;
+                
+                // Action buttons based on status
+                let actionButtons = '';
+                
+                if (appt.status === 'payment_pending') {
+                    actionButtons = `
+                        <div class="mt-3 flex gap-2 flex-wrap">
+                            <button onclick="completePayment('${appt.appointment_id}', '${appt.therapy_type}')" 
+                                    class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition flex items-center">
+                                <i class="fas fa-credit-card mr-1"></i>Complete Payment
+                            </button>
+                            <button onclick="cancelAppointment('${appt.appointment_id}')" 
+                                    class="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition flex items-center">
+                                <i class="fas fa-times mr-1"></i>Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (['pending', 'confirmed', 'scheduled'].includes(appt.status)) {
+                    actionButtons = `
+                        <div class="mt-3">
+                            <button onclick="cancelAppointment('${appt.appointment_id}')" 
+                                    class="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition flex items-center">
+                                <i class="fas fa-times mr-1"></i>Cancel Appointment
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                // Add receipt button for completed/confirmed appointments
+                if (['completed', 'confirmed'].includes(appt.status)) {
+                    actionButtons += `
+                        <div class="mt-2">
+                            <button onclick="viewReceipt('${appt.appointment_id}')" 
+                                    class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center">
+                                <i class="fas fa-receipt mr-1"></i>View Receipt
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                return `
                     <div class="appointment-card">
-                        <div class="flex justify-between items-start mb-3">
+                        <div class="flex justify-between items-start">
                             <div class="flex-1">
-                                <h4 class="font-semibold text-gray-800 text-lg">${appt.therapy_name || 'Therapy Session'}</h4>
-                                <p class="text-sm text-gray-600 mt-1">Appointment ID: ${appt.appointment_id}</p>
-                            </div>
-                            <span class="status-badge ${statusClass}">${appt.status}</span>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-calendar-day mr-2 text-blue-500"></i>
-                                <span><strong>Date:</strong> ${dateString}</span>
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-clock mr-2 text-green-500"></i>
-                                <span><strong>Time:</strong> ${timeString}</span>
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-user-md mr-2 text-purple-500"></i>
-                                <span><strong>Doctor:</strong> ${appt.doctor_name || 'Not Assigned'}</span>
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-stethoscope mr-2 text-orange-500"></i>
-                                <span><strong>Type:</strong> ${appt.consultation_type || 'General'}</span>
-                            </div>
-                        </div>
-                        
-                        ${appt.reason ? `
-                            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
-                                <p class="text-sm text-gray-700">
-                                    <strong>Reason:</strong> ${appt.reason}
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-semibold text-gray-800">${appt.therapy_name}</h4>
+                                    <span class="status-badge ${statusClass}">${statusText}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-1">
+                                    <i class="fas fa-user-md mr-2"></i>
+                                    <strong>Doctor:</strong> ${appt.doctor_name}
                                 </p>
+                                <p class="text-sm text-gray-600 mb-1">
+                                    <i class="fas fa-calendar mr-2"></i>
+                                    <strong>Date:</strong> ${dateString} at ${timeString}
+                                </p>
+                                <p class="text-sm text-gray-600 mb-1">
+                                    <i class="fas fa-stethoscope mr-2"></i>
+                                    <strong>Type:</strong> ${appt.consultation_type || 'General'} Consultation
+                                </p>
+                                <p class="text-sm text-gray-700 mt-2">
+                                    <i class="fas fa-comment-medical mr-2"></i>
+                                    <strong>Reason:</strong> ${appt.reason || 'General consultation'}
+                                </p>
+                                <p class="text-xs text-gray-500 mt-2">
+                                    Appointment ID: ${appt.appointment_id}
+                                </p>
+                                ${actionButtons}
                             </div>
-                        ` : ''}
+                        </div>
                     </div>
                 `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-        })
-        .catch(error => {
-            console.error('Error loading appointments:', error);
-            const container = document.getElementById('recentAppointments');
-            container.innerHTML = `
-                <div class="text-center py-8">
-                    <i class="fas fa-exclamation-triangle text-2xl text-red-500 mb-4"></i>
-                    <p class="text-red-500 mb-4">Failed to load appointments</p>
-                    <button onclick="loadRecentAppointments()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                        Try Again
-                    </button>
+            }).join('');
+        }
+
+        // Appointment Actions
+        function completePayment(appointmentId, therapyType) {
+            // Show payment modal
+            showPaymentModal(appointmentId, therapyType);
+        }
+
+        function cancelAppointment(appointmentId) {
+            if (confirm('Are you sure you want to cancel this appointment? This action cannot be undone.')) {
+                fetch(`/api/appointments/${appointmentId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Appointment cancelled successfully!');
+                        loadAllAppointments(); // Refresh the list
+                        loadPatientStats(); // Refresh stats
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cancelling appointment:', error);
+                    alert('Failed to cancel appointment. Please try again.');
+                });
+            }
+        }
+
+        function viewReceipt(appointmentId) {
+            window.open(`/appointment-receipt/${appointmentId}`, '_blank');
+        }
+
+        // Payment Modal Functions
+        function showPaymentModal(appointmentId, therapyType) {
+            // Create and show payment modal
+            const modalHtml = `
+                <div id="paymentModal" class="payment-modal">
+                    <div class="payment-modal-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Complete Payment</h3>
+                            <button onclick="closePaymentModal()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-600">Therapy: <span id="paymentTherapy" class="font-semibold">${therapyType.charAt(0).toUpperCase() + therapyType.slice(1)}</span></p>
+                            <p class="text-gray-600">Amount: <span class="font-semibold text-green-600">₹100</span></p>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button onclick="initiateRazorpayPayment('${appointmentId}', '${therapyType}')" 
+                                    class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+                                <i class="fas fa-credit-card mr-2"></i>Pay Now
+                            </button>
+                            <button onclick="closePaymentModal()" 
+                                    class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition">
+                                Cancel
+                            </button>
+                        </div>
+                        
+                        <div id="paymentStatus" class="mt-4 hidden">
+                            <div id="paymentSuccess" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded hidden">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span>Payment successful! Redirecting to receipt...</span>
+                            </div>
+                            <div id="paymentError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded hidden">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <span>Payment failed. Please try again.</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
-        });
-}
-
-function loadPatientStats() {
-    fetch('/api/patient-dashboard-stats')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to load stats');
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('paymentModal');
+            if (existingModal) {
+                existingModal.remove();
             }
-            return response.json();
-        })
-        .then(stats => {
-            updatePatientStats(stats);
-        })
-        .catch(error => {
-            console.error('Error loading patient stats:', error);
-            // Set default values if API fails
-            updatePatientStats({
-                upcoming_appointments: 0,
-                completed_sessions: 0,
-                pending_appointments: 0,
-                therapies_tried: 0
-            });
-        });
-}
+            
+            // Add new modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
 
-function updatePatientStats(stats) {
-    // Update the stats cards with real data
-    document.getElementById('upcomingAppointments').textContent = stats.upcoming_appointments || 0;
-    document.getElementById('completedSessions').textContent = stats.completed_sessions || 0;
-    document.getElementById('pendingAppointments').textContent = stats.pending_appointments || 0;
-    document.getElementById('therapiesTried').textContent = stats.therapies_tried || 0;
-}
-function filterAppointments(filterType) {
-    fetch('/api/patient-appointments')
-        .then(response => response.json())
-        .then(appointments => {
-            renderAppointments(appointments, filterType);
-        })
-        .catch(error => {
-            console.error('Error filtering appointments:', error);
-        });
-}
+        function closePaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function initiateRazorpayPayment(appointmentId, therapyType) {
+            try {
+                const payButton = document.querySelector('#paymentModal button[onclick*="initiateRazorpayPayment"]');
+                const originalText = payButton.innerHTML;
+                payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                payButton.disabled = true;
+
+                const response = await fetch('/api/create-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appointment_id: appointmentId,
+                        therapy_type: therapyType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Razorpay options
+                const options = {
+                    key: data.key_id,
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: 'DCAM Therapy Center',
+                    description: `Payment for ${therapyType} therapy`,
+                    order_id: data.order_id,
+                    handler: async function(response) {
+                        // Verify payment
+                        const verifyResponse = await fetch('/api/verify-payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        const verifyData = await verifyResponse.json();
+
+                        if (verifyData.error) {
+                            showPaymentError();
+                        } else {
+                            showPaymentSuccess();
+                            // Close modal and refresh appointments after 2 seconds
+                            setTimeout(() => {
+                                closePaymentModal();
+                                loadAllAppointments();
+                                loadPatientStats();
+                                // Redirect to receipt page
+                                window.open(`/appointment-receipt/${appointmentId}`, '_blank');
+                            }, 2000);
+                        }
+                    },
+                    prefill: {
+                        name: "{{ session.first_name }} {{ session.last_name }}",
+                        email: "{{ session.email }}",
+                        contact: document.getElementById('patientPhone')?.value || ''
+                    },
+                    theme: {
+                        color: '#10b981'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            closePaymentModal();
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                showPaymentError();
+                // Re-enable button on error
+                const payButton = document.querySelector('#paymentModal button[onclick*="initiateRazorpayPayment"]');
+                if (payButton) {
+                    payButton.disabled = false;
+                    payButton.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay Now';
+                }
+            }
+        }
+
+        function showPaymentSuccess() {
+            const paymentStatus = document.getElementById('paymentStatus');
+            const paymentSuccess = document.getElementById('paymentSuccess');
+            if (paymentStatus && paymentSuccess) {
+                paymentSuccess.classList.remove('hidden');
+                paymentStatus.classList.remove('hidden');
+            }
+        }
+
+        function showPaymentError() {
+            const paymentStatus = document.getElementById('paymentStatus');
+            const paymentError = document.getElementById('paymentError');
+            if (paymentStatus && paymentError) {
+                paymentError.classList.remove('hidden');
+                paymentStatus.classList.remove('hidden');
+            }
+        }
+
+        function loadPatientStats() {
+            fetch('/api/patient-dashboard-stats')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load stats');
+                    }
+                    return response.json();
+                })
+                .then(stats => {
+                    updatePatientStats(stats);
+                })
+                .catch(error => {
+                    console.error('Error loading patient stats:', error);
+                    updatePatientStats({
+                        upcoming_appointments: 0,
+                        completed_sessions: 0,
+                        pending_appointments: 0,
+                        therapies_tried: 0
+                    });
+                });
+        }
+
+        function updatePatientStats(stats) {
+            document.getElementById('upcomingAppointments').textContent = stats.upcoming_appointments || 0;
+            document.getElementById('completedSessions').textContent = stats.completed_sessions || 0;
+            document.getElementById('pendingAppointments').textContent = stats.pending_appointments || 0;
+            document.getElementById('therapiesTried').textContent = stats.therapies_tried || 0;
+        }
+
         // Load notifications for patient
         function loadNotifications() {
             fetch('/api/notifications')
@@ -866,7 +1044,7 @@ function filterAppointments(filterType) {
         // Show notification as toast
         function showNotificationToast(notification) {
             const toast = document.createElement('div');
-            toast.className = 'fixed top-4 right-4 bg-white border-l-4 border-green-500 shadow-lg rounded-lg p-4 max-w-sm z-50 animate-slide-in';
+            toast.className = 'fixed top-4 right-4 bg-white border-l-4 border-green-500 shadow-lg rounded-lg p-4 max-w-sm z-50';
             toast.innerHTML = `
                 <div class="flex items-start">
                     <i class="fas fa-bell text-green-500 mt-1 mr-3"></i>

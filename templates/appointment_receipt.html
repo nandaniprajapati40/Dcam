@@ -3,294 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Receipt - DCAM Therapy</title>
+    <title>Appointment Receipt - DCAM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @media print {
-            body { margin: 0; padding: 0; }
             .no-print { display: none !important; }
-            .receipt-card { box-shadow: none; border: 1px solid #ddd; }
-            .print-message { display: block !important; }
+            body { -webkit-print-color-adjust: exact; }
         }
-        .print-message { display: none; color: #666; font-size: 0.9rem; margin-bottom: 10px; }
     </style>
 </head>
-<body class="bg-gray-100 p-4 lg:p-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="receipt-card p-6 lg:p-8 bg-white rounded-lg shadow-lg">
-            <!-- Print Message -->
-            <div class="print-message no-print">
-                <i class="fas fa-info-circle mr-2"></i>
-                This receipt is optimized for printing. Use browser's print function.
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 max-w-4xl">
+        <!-- Print Button -->
+        <div class="no-print mb-4 text-right">
+            <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <i class="fas fa-print mr-2"></i>Print Receipt
+            </button>
+            <button onclick="window.close()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 ml-2">
+                <i class="fas fa-times mr-2"></i>Close
+            </button>
+        </div>
+
+        <!-- Receipt Card -->
+        <div id="receiptContent" class="bg-white rounded-lg shadow-lg p-6">
+            <!-- Loading -->
+            <div id="loading" class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-blue-500 mb-4"></i>
+                <p>Loading receipt...</p>
             </div>
-            
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                        <i class="fas fa-hands"></i>
-                    </div>
+
+            <!-- Receipt Data -->
+            <div id="receiptData" class="hidden">
+                <!-- Header -->
+                <div class="text-center border-b-2 border-green-500 pb-4 mb-6">
+                    <h1 class="text-3xl font-bold text-green-600">DCAM Therapy Center</h1>
+                    <p class="text-gray-600">Dev Sanskriti Vishwavidyalaya, Haridwar</p>
+                    <p class="text-gray-600">Appointment Receipt</p>
+                </div>
+
+                <!-- Appointment Details -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-800">DCAM Therapy Center</h1>
-                        <p class="text-gray-600">Dev Sanskriti Vishwavidyalaya, Haridwar</p>
+                        <h3 class="text-lg font-semibold mb-3">Appointment Information</h3>
+                        <div class="space-y-2">
+                            <p><strong>Appointment ID:</strong> <span id="receiptAppointmentId" class="font-mono"></span></p>
+                            <p><strong>Therapy Type:</strong> <span id="receiptTherapy"></span></p>
+                            <p><strong>Consultation:</strong> <span id="receiptConsultation"></span></p>
+                            <p><strong>Date:</strong> <span id="receiptDate"></span></p>
+                            <p><strong>Time:</strong> <span id="receiptTime"></span></p>
+                            <p><strong>Status:</strong> <span id="receiptStatus" class="font-semibold"></span></p>
+                        </div>
                     </div>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-gray-500">Receipt No.</p>
-                    <p class="font-semibold" id="receiptNumber">Loading...</p>
-                    <p class="text-sm text-gray-500 mt-1" id="receiptDate"></p>
-                </div>
-            </div>
-            
-            <!-- Status Banner -->
-            <div id="statusBanner" class="mb-6 p-4 rounded-lg hidden">
-                <!-- Filled by JS -->
-            </div>
-            
-            <!-- Receipt Content -->
-            <div id="receiptBody" class="space-y-6 mb-6">
-                <div class="text-center py-8">
-                    <i class="fas fa-spinner fa-spin text-2xl text-blue-600 mb-4"></i>
-                    <p class="text-gray-600">Loading appointment details...</p>
-                </div>
-            </div>
-            
-            <!-- Footer -->
-            <div class="border-t border-gray-200 pt-6 mt-8">
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                    
                     <div>
-                        <p class="text-gray-600 text-sm">Confirmation Status:</p>
-                        <p class="font-semibold" id="confirmationStatus">Loading...</p>
+                        <h3 class="text-lg font-semibold mb-3">Patient Information</h3>
+                        <div class="space-y-2">
+                            <p><strong>Name:</strong> <span id="receiptPatientName"></span></p>
+                            <p><strong>Email:</strong> <span id="receiptPatientEmail"></span></p>
+                            <p><strong>Phone:</strong> <span id="receiptPatientPhone"></span></p>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Doctor & Payment Info -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
                     <div>
-                        <p class="text-gray-600 text-sm">Confirmed By:</p>
-                        <p class="font-semibold" id="confirmedBy">Loading...</p>
+                        <h3 class="text-lg font-semibold mb-3">Doctor Information</h3>
+                        <div class="space-y-2">
+                            <p><strong>Doctor:</strong> <span id="receiptDoctor"></span></p>
+                            <p><strong>Reason:</strong> <span id="receiptReason"></span></p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Payment Information</h3>
+                        <div class="space-y-2">
+                            <p><strong>Amount:</strong> ₹<span id="receiptAmount">100</span></p>
+                            <p><strong>Payment Status:</strong> <span id="receiptPaymentStatus" class="font-semibold"></span></p>
+                            <p><strong>Payment Date:</strong> <span id="receiptPaymentDate"></span></p>
+                            <p><strong>Payment ID:</strong> <span id="receiptPaymentId" class="font-mono text-sm"></span></p>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="bg-green-50 p-4 rounded-lg mt-4">
-                    <p class="text-sm text-green-700 flex items-center">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        Please arrive 10 minutes before your scheduled appointment time. Bring this receipt with you.
-                    </p>
+
+                <!-- Notes -->
+                <div class="border-t pt-4">
+                    <h3 class="text-lg font-semibold mb-2">Important Notes</h3>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Please arrive 10 minutes before your scheduled appointment time</li>
+                        <li>Bring this receipt and any relevant medical reports</li>
+                        <li>Cancellations must be made at least 24 hours in advance</li>
+                        <li>For any queries, contact reception at reception@dsvv.ac.in</li>
+                    </ul>
                 </div>
-                
-                <div class="mt-6 text-center text-gray-500 text-sm">
+
+                <!-- Footer -->
+                <div class="border-t mt-6 pt-4 text-center text-gray-500 text-sm">
+                    <p>Generated on: <span id="receiptGeneratedDate"></span></p>
                     <p>Thank you for choosing DCAM Therapy Center</p>
-                    <p>Contact: +91-9876543210 | Email: therapy@dsvv.ac.in</p>
                 </div>
             </div>
-            
-            <!-- Action Buttons -->
-            <div class="mt-8 flex flex-col sm:flex-row justify-between gap-4 no-print">
-                <a href="/dashboard" class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition text-center">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-                </a>
-                <div class="flex gap-2">
-                    <button onclick="downloadPDF()" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center">
-                        <i class="fas fa-download mr-2"></i>Download PDF
-                    </button>
-                    <button onclick="window.print()" class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center justify-center">
-                        <i class="fas fa-print mr-2"></i>Print Receipt
-                    </button>
-                </div>
+
+            <!-- Error State -->
+            <div id="receiptError" class="hidden text-center py-8">
+                <i class="fas fa-exclamation-triangle text-2xl text-red-500 mb-4"></i>
+                <p class="text-red-500">Failed to load receipt data</p>
+                <button onclick="loadReceiptData()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    Try Again
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Get appointment ID from URL
-        function getAppointmentId() {
-            const parts = window.location.pathname.split('/');
-            return parts[parts.length - 1];
-        }
-
-        // Load appointment details
-        async function loadAppointmentDetails() {
-            const appointmentId = getAppointmentId();
+        async function loadReceiptData() {
+            const appointmentId = window.location.pathname.split('/').pop();
             
             try {
-                const response = await fetch('/api/appointments');
-                const appointments = await response.json();
+                const response = await fetch(`/api/appointment-receipt/${appointmentId}`);
+                const data = await response.json();
                 
-                // Find current appointment
-                const appointment = Array.isArray(appointments) 
-                    ? appointments.find(a => a.appointment_id === appointmentId)
-                    : null;
-                
-                if (!appointment) {
-                    showError('Appointment not found');
-                    return;
+                if (data.error) {
+                    throw new Error(data.error);
                 }
                 
-                displayAppointmentDetails(appointment);
+                // Populate receipt data
+                document.getElementById('receiptAppointmentId').textContent = data.appointment_id;
+                document.getElementById('receiptTherapy').textContent = data.therapy_type;
+                document.getElementById('receiptConsultation').textContent = data.consultation_type;
+                document.getElementById('receiptDate').textContent = data.appointment_date;
+                document.getElementById('receiptTime').textContent = data.appointment_time;
+                document.getElementById('receiptStatus').textContent = data.status;
+                document.getElementById('receiptPatientName').textContent = data.patient_name;
+                document.getElementById('receiptPatientEmail').textContent = data.patient_email;
+                document.getElementById('receiptPatientPhone').textContent = data.patient_phone;
+                document.getElementById('receiptDoctor').textContent = data.doctor_name;
+                document.getElementById('receiptReason').textContent = data.reason;
+                document.getElementById('receiptAmount').textContent = data.amount;
+                document.getElementById('receiptPaymentStatus').textContent = data.payment_status;
+                document.getElementById('receiptPaymentDate').textContent = data.payment_date;
+                document.getElementById('receiptPaymentId').textContent = data.payment_id;
+                document.getElementById('receiptGeneratedDate').textContent = data.receipt_date;
+                
+                // Style status badges
+                const statusElement = document.getElementById('receiptStatus');
+                statusElement.className = 'font-semibold ' + (
+                    data.status === 'completed' ? 'text-green-600' :
+                    data.status === 'confirmed' ? 'text-blue-600' :
+                    data.status === 'pending' ? 'text-yellow-600' :
+                    'text-gray-600'
+                );
+                
+                const paymentStatusElement = document.getElementById('receiptPaymentStatus');
+                paymentStatusElement.className = 'font-semibold ' + (
+                    data.payment_status === 'paid' ? 'text-green-600' :
+                    'text-red-600'
+                );
+                
+                // Show receipt data
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('receiptData').classList.remove('hidden');
                 
             } catch (error) {
-                console.error('Error loading appointment:', error);
-                showError('Failed to load appointment details');
+                console.error('Error loading receipt:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('receiptError').classList.remove('hidden');
             }
         }
 
-        // Display appointment details
-        function displayAppointmentDetails(appointment) {
-            const date = new Date(appointment.date);
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            
-            // Update status banner
-            const statusBanner = document.getElementById('statusBanner');
-            statusBanner.className = `mb-6 p-4 rounded-lg ${
-                appointment.status === 'confirmed' ? 'bg-green-100 border border-green-200' :
-                appointment.status === 'pending' ? 'bg-yellow-100 border border-yellow-200' :
-                'bg-gray-100 border border-gray-200'
-            }`;
-            
-            statusBanner.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas ${
-                        appointment.status === 'confirmed' ? 'fa-check-circle text-green-600' :
-                        appointment.status === 'pending' ? 'fa-clock text-yellow-600' :
-                        'fa-info-circle text-gray-600'
-                    } mr-3 text-xl"></i>
-                    <div>
-                        <h3 class="font-semibold ${
-                            appointment.status === 'confirmed' ? 'text-green-800' :
-                            appointment.status === 'pending' ? 'text-yellow-800' :
-                            'text-gray-800'
-                        }">
-                            ${appointment.status === 'confirmed' ? 'Appointment Confirmed!' :
-                              appointment.status === 'pending' ? 'Waiting for Confirmation' :
-                              'Appointment ' + appointment.status}
-                        </h3>
-                        <p class="text-sm ${
-                            appointment.status === 'confirmed' ? 'text-green-700' :
-                            appointment.status === 'pending' ? 'text-yellow-700' :
-                            'text-gray-700'
-                        }">
-                            ${appointment.status === 'confirmed' ? 
-                              'Your appointment has been confirmed by our receptionist team.' :
-                              appointment.status === 'pending' ?
-                              'Your appointment is pending confirmation from our receptionist.' :
-                              `Appointment is ${appointment.status}.`}
-                        </p>
-                    </div>
-                </div>
-            `;
-            statusBanner.classList.remove('hidden');
-            
-            // Update receipt body
-            document.getElementById('receiptBody').innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Appointment Details</h3>
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Appointment ID:</span>
-                                    <span class="font-semibold">${appointment.appointment_id}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Date & Time:</span>
-                                    <span class="font-semibold">${date.toLocaleDateString('en-IN', options)}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Therapy Type:</span>
-                                    <span class="font-semibold">${appointment.therapy_type?.toUpperCase() || 'N/A'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Consultation:</span>
-                                    <span class="font-semibold">${appointment.consultation_type || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Doctor Details</h3>
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Doctor ID:</span>
-                                    <span class="font-semibold">${appointment.therapist_id || 'N/A'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Specialization:</span>
-                                    <span class="font-semibold">${appointment.therapy_type ? appointment.therapy_type.charAt(0).toUpperCase() + appointment.therapy_type.slice(1) : 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Patient Details</h3>
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Patient ID:</span>
-                                    <span class="font-semibold">${appointment.patient_id}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Name:</span>
-                                    <span class="font-semibold">${appointment.patient_name}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Phone:</span>
-                                    <span class="font-semibold">${appointment.patient_phone || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Medical Information</h3>
-                            <div class="space-y-2">
-                                <div>
-                                    <span class="text-gray-600 block mb-1">Reason for Visit:</span>
-                                    <p class="font-semibold text-sm">${appointment.reason || 'General Consultation'}</p>
-                                </div>
-                                ${appointment.additional_notes ? `
-                                <div>
-                                    <span class="text-gray-600 block mb-1">Additional Notes:</span>
-                                    <p class="font-semibold text-sm">${appointment.additional_notes}</p>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Update footer information
-            document.getElementById('receiptNumber').textContent = appointment.appointment_id;
-            document.getElementById('receiptDate').textContent = new Date().toLocaleDateString();
-            document.getElementById('confirmationStatus').textContent = appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1);
-            document.getElementById('confirmedBy').textContent = appointment.confirmed_by || 'Pending';
-        }
-
-        // Download as PDF
-        function downloadPDF() {
-            window.print();
-        }
-
-        // Show error message
-        function showError(message) {
-            document.getElementById('receiptBody').innerHTML = `
-                <div class="text-center py-8">
-                    <i class="fas fa-exclamation-triangle text-2xl text-red-600 mb-4"></i>
-                    <p class="text-red-600 font-semibold">${message}</p>
-                    <button onclick="loadAppointmentDetails()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                        Try Again
-                    </button>
-                </div>
-            `;
-        }
-
-        // Load appointment details when page loads
-        document.addEventListener('DOMContentLoaded', loadAppointmentDetails);
+        // Load receipt data when page loads
+        document.addEventListener('DOMContentLoaded', loadReceiptData);
     </script>
 </body>
 </html>
