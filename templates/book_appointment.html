@@ -535,67 +535,132 @@
 
             // Initial setup
             loadTherapists();
+             
+             
+
+
+            // Enhanced form submission with payment flow
+appointmentForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!therapistSelect.value) {
+        showAlert('Please select a doctor', 'error');
+        return;
+    }
+
+    const formData = {
+        patient_name: document.getElementById('patientName').value,
+        patient_age: document.getElementById('patientAge').value,
+        patient_gender: document.getElementById('patientGender').value,
+        patient_phone: document.getElementById('patientPhone').value,
+        patient_email: document.getElementById('patientEmail').value,
+        patient_address: document.getElementById('patientAddress').value,
+        therapist_id: therapistSelect.value,
+        therapy_type: document.getElementById('therapyType').value,
+        date: appointmentDate.value,
+        reason: document.getElementById('reason').value,
+        consultation_type: document.getElementById('consultationType').value
+    };
+
+    // Show loading state
+    const submitBtn = appointmentForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Appointment...';
+    submitBtn.disabled = true;
+
+    fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showAlert(data.error, 'error');
+        } else {
+            if (data.requires_payment) {
+                showAlert('Appointment created! Please complete the payment.', 'info');
+                showPaymentModal(data.appointment_id, formData.therapy_type);
+            } else {
+                showAlert(data.message, 'success');
+                setTimeout(() => {
+                    window.location.href = `/appointment-receipt/${data.appointment_id}`;
+                }, 2000);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error booking appointment:', error);
+        showAlert('Failed to book appointment. Please try again.', 'error');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
 
             // Handle form submission
-            appointmentForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+            // appointmentForm.addEventListener('submit', function(e) {
+            //     e.preventDefault();
                 
-                if (!therapistSelect.value) {
-                    showAlert('Please select a doctor', 'error');
-                    return;
-                }
+            //     if (!therapistSelect.value) {
+            //         showAlert('Please select a doctor', 'error');
+            //         return;
+            //     }
 
-                const formData = {
+            //     const formData = {
                     // Patient Information
-                    patient_name: document.getElementById('patientName').value,
-                    patient_age: document.getElementById('patientAge').value,
-                    patient_gender: document.getElementById('patientGender').value,
-                    patient_phone: document.getElementById('patientPhone').value,
-                    patient_email: document.getElementById('patientEmail').value,
-                    patient_address: document.getElementById('patientAddress').value,
+                //     patient_name: document.getElementById('patientName').value,
+                //     patient_age: document.getElementById('patientAge').value,
+                //     patient_gender: document.getElementById('patientGender').value,
+                //     patient_phone: document.getElementById('patientPhone').value,
+                //     patient_email: document.getElementById('patientEmail').value,
+                //     patient_address: document.getElementById('patientAddress').value,
                     
-                    // Appointment Details
-                    therapist_id: therapistSelect.value,
-                    date: appointmentDate.value,
-                    reason: document.getElementById('reason').value
-                };
+                //     // Appointment Details
+                //     therapist_id: therapistSelect.value,
+                //     date: appointmentDate.value,
+                //     reason: document.getElementById('reason').value
+                // };
 
                 // Show loading state
-                const submitBtn = appointmentForm.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Requesting Appointment...';
-                submitBtn.disabled = true;
+                // const submitBtn = appointmentForm.querySelector('button[type="submit"]');
+                // const originalText = submitBtn.innerHTML;
+                // submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Requesting Appointment...';
+                // submitBtn.disabled = true;
 
-                fetch('/api/appointments', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                   if (data.message && data.appointment_id) {
-                      showAlert(data.message,'info');
+                // fetch('/api/appointments', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json'
+                //     },
+                //     body: JSON.stringify(formData)
+                // })
+                // .then(response => response.json())
+                // .then(data => {
+                //    if (data.message && data.appointment_id) {
+                //       showAlert(data.message,'info');
                    // Redirect to receipt page after successful booking
-                      setTimeout(() => {
-                         window.location.href = `/appointment-receipt/${data.appointment_id}`;
-                      }, 2000);
+                    //   setTimeout(() => {
+                    //      window.location.href = `/appointment-receipt/${data.appointment_id}`;
+                    //   }, 2000);
             
-                }   else {
-                        showAlert(data.error || 'Failed to book appointment', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error booking appointment:', error);
-                    showAlert('Failed to book appointment. Please try again.', 'error');
-                })
-                .finally(() => {
+                // }   else {
+                //         showAlert(data.error || 'Failed to book appointment', 'error');
+                //     }
+                // })
+                // .catch(error => {
+                //     console.error('Error booking appointment:', error);
+                //     showAlert('Failed to book appointment. Please try again.', 'error');
+                // })
+                // .finally(() => {
                     // Restore button state
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                });
-            });
+            //         submitBtn.innerHTML = originalText;
+            //         submitBtn.disabled = false;
+            //     });
+            // });
 
             // Navigation
             document.querySelectorAll('.nav-item').forEach(item => {

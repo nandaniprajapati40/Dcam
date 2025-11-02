@@ -976,211 +976,7 @@ PAYMENT_CONFIG = {
     }
 }
 
-# Add to imports section
 
-
-# Add after PAYMENT_CONFIG section
-RAZORPAY_CONFIG = {
-    'key_id': os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_...'),
-    'key_secret': os.environ.get('RAZORPAY_KEY_SECRET', '...'),
-    'therapy_prices': {
-        'acupressure': 10000,  # 100 INR in paise
-        'ayurveda': 10000,
-        'homeopathy': 10000,
-        'naturopathy': 10000,
-        'yoga': 10000,
-        'unani': 10000,
-        'chiropractic': 10000,
-        'physiotherapy': 10000,
-        'diet': 10000,
-        'herbal': 10000,
-        'sound': 10000
-    }
-}
-
-# Initialize Razorpay client
-razorpay_client = razorpay.Client(auth=(RAZORPAY_CONFIG['key_id'], RAZORPAY_CONFIG['key_secret']))
-
-# Add new routes for payment
-@app.route('/api/create-payment', methods=['POST'])
-@login_required
-def create_payment():
-    """Create Razorpay payment order"""
-    try:
-        data = request.get_json()
-        appointment_id = data.get('appointment_id')
-        therapy_type = data.get('therapy_type')
-        
-        if not appointment_id or not therapy_type:
-            return jsonify({'error': 'Appointment ID and therapy type are required'}), 400
-        
-        # Get therapy price
-        amount = RAZORPAY_CONFIG['therapy_prices'].get(therapy_type, 10000)  # Default 100 INR
-        
-        # Create Razorpay order
-        order_data = {
-            'amount': amount,  # amount in paise
-            'currency': 'INR',
-            'receipt': f'receipt_{appointment_id}',
-            'notes': {
-                'appointment_id': appointment_id,
-                'therapy_type': therapy_type,
-                'patient_id': session['user_id']
-            }
-        }
-        
-        order = razorpay_client.order.create(data=order_data)
-        
-        # Store payment record in database
-        current_db = get_db_safe()
-        if current_db is not None:
-            payment_doc = {
-                'payment_id': order['id'],
-                'appointment_id': appointment_id,
-                'patient_id': session['user_id'],
-                'amount': amount / 100,  # Convert to INR
-                'currency': 'INR',
-                'status': 'created',
-                'therapy_type': therapy_type,
-                'created_at': datetime.utcnow(),
-                'updated_at': datetime.utcnow()
-            }
-            current_db.payments.insert_one(payment_doc)
-        
-        return jsonify({
-            'order_id': order['id'],
-            'amount': order['amount'],
-            'currency': order['currency'],
-            'key_id': RAZORPAY_CONFIG['key_id']
-        })
-        
-    except Exception as e:
-        logger.error(f"Error creating payment: {e}")
-        return jsonify({'error': 'Failed to create payment'}), 500
-
-@app.route('/api/verify-payment', methods=['POST'])
-@login_required
-def verify_payment():
-    """Verify Razorpay payment signature"""
-    try:
-        data = request.get_json()
-        payment_id = data.get('razorpay_payment_id')
-        order_id = data.get('razorpay_order_id')
-        signature = data.get('razorpay_signature')
-        
-        # Verify payment signature
-        params_dict = {
-            'razorpay_order_id': order_id,
-            'razorpay_payment_id': payment_id,
-            'razorpay_signature': signature
-        }
-        
-        try:
-            razorpay_client.utility.verify_payment_signature(params_dict)
-        except razorpay.errors.SignatureVerificationError:
-            return jsonify({'error': 'Payment verification failed'}), 400
-        
-        # Update payment status in database
-        current_db = get_db_safe()
-        if current_db is not None:
-            # Update payment record
-            current_db.payments.update_one(
-                {'payment_id': order_id},
-                {'$set': {
-                    'razorpay_payment_id': payment_id,
-                    'status': 'paid',
-                    'paid_at': datetime.utcnow(),
-                    'updated_at': datetime.utcnow()
-                }}
-            )
-            
-            # Get appointment details from payment
-            payment = current_db.payments.find_one({'payment_id': order_id})
-            if payment:
-                # Update appointment status to pending (waiting for receptionist confirmation)
-                current_db.appointments.update_one(
-                    {'appointment_id': payment['appointment_id']},
-                    {'$set': {
-                        'status': 'pending',
-                        'payment_status': 'paid',
-                        'payment_id': order_id,
-                        'updated_at': datetime.utcnow()
-                    }}
-                )
-                
-                # Create notification for receptionist
-                create_notification(
-                    'REC001',
-                    'New Paid Appointment Request',
-                    f'New appointment request with payment received. Appointment ID: {payment["appointment_id"]}',
-                    'success'
-                )
-                
-                # Create notification for patient
-                create_notification(
-                    session['user_id'],
-                    'Payment Successful',
-                    f'Payment received for appointment {payment["appointment_id"]}. Waiting for receptionist confirmation.',
-                    'success'
-                )
-        
-        return jsonify({
-            'message': 'Payment verified successfully',
-            'appointment_id': payment['appointment_id'] if payment else None
-        })
-        
-    except Exception as e:
-        logger.error(f"Error verifying payment: {e}")
-        return jsonify({'error': 'Payment verification failed'}), 500
-
-# @app.route('/api/appointment-receipt/<appointment_id>')
-# @login_required
-# def get_appointment_receipt(appointment_id):
-#     """Get appointment receipt data"""
-#     try:
-#         current_db = get_db_safe()
-        
-#         if current_db is None:
-#             return jsonify({'error': 'Database not available'}), 500
-        
-#         # Get appointment details
-#         appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
-#         if not appointment:
-#             return jsonify({'error': 'Appointment not found'}), 404
-        
-#         # Get patient details
-#         patient = current_db.users.find_one({'user_id': appointment['patient_id']})
-        
-#         # Get doctor details
-#         doctor = current_db.users.find_one({'user_id': appointment['therapist_id']})
-        
-#         # Get payment details
-#         payment = current_db.payments.find_one({'appointment_id': appointment_id})
-        
-#         receipt_data = {
-#             'appointment_id': appointment_id,
-#             'patient_name': f"{patient.get('first_name', '')} {patient.get('last_name', '')}" if patient else 'Unknown',
-#             'patient_email': patient.get('email', ''),
-#             'patient_phone': patient.get('phone', 'N/A'),
-#             'therapy_type': appointment.get('therapy_type', '').title(),
-#             'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Not Assigned',
-#             'appointment_date': appointment.get('date').strftime('%d %b %Y') if appointment.get('date') else 'Not Scheduled',
-#             'appointment_time': appointment.get('date').strftime('%I:%M %p') if appointment.get('date') else 'Not Scheduled',
-#             'status': appointment.get('status', 'pending'),
-#             'consultation_type': appointment.get('consultation_type', 'general'),
-#             'reason': appointment.get('reason', ''),
-#             'payment_status': payment.get('status', 'unpaid') if payment else 'unpaid',
-#             'amount': payment.get('amount', 100) if payment else 100,
-#             'payment_date': payment.get('paid_at').strftime('%d %b %Y %I:%M %p') if payment and payment.get('paid_at') else 'N/A',
-#             'payment_id': payment.get('payment_id', 'N/A') if payment else 'N/A',
-#             'receipt_date': datetime.utcnow().strftime('%d %b %Y %I:%M %p')
-#         }
-        
-#         return jsonify(receipt_data)
-        
-#     except Exception as e:
-#         logger.error(f"Error generating receipt: {e}")
-#         return jsonify({'error': 'Failed to generate receipt'}), 500
 
 @app.route('/api/appointment-receipt/<appointment_id>')
 @login_required
@@ -1855,6 +1651,303 @@ def get_role_redirect_url(role):
 
 # ========== PATIENT-SPECIFIC ROUTES ==========
 
+@app.route('/api/patient-dashboard-stats')
+@login_required
+@role_required(['patient'])
+def patient_dashboard_stats():
+    """Get patient dashboard statistics"""
+    try:
+        stats = get_dashboard_stats('patient', session['user_id'])
+        return jsonify(stats)
+    except Exception as e:
+        logger.error(f"Error getting patient stats: {e}")
+        return jsonify({'error': 'Failed to load stats'}), 500
+
+# @app.route('/api/patient-appointments')
+# @login_required
+# @role_required(['patient'])
+# def get_patient_appointments():
+#     """Get patient's appointments"""
+#     try:
+#         current_db = get_db_safe()
+#         patient_id = session['user_id']
+
+#         if current_db is not None:
+#             appointments = list(current_db.appointments.find({
+#                 'patient_id': patient_id
+#             }).sort('date', -1))
+
+#             # Enhance appointment data
+#             enhanced_appointments = []
+#             for appt in appointments:
+#                 doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
+#                 enhanced_appt = {
+#                     'appointment_id': appt.get('appointment_id'),
+#                     'therapy_type': appt.get('therapy_type'),
+#                     'therapy_name': appt.get('therapy_type', '').title(),
+#                     'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Not assigned',
+#                     'date': appt.get('date'),
+#                     'status': appt.get('status'),
+#                     'payment_status': appt.get('payment_status', 'unpaid'),
+#                     'reason': appt.get('reason', ''),
+#                     'consultation_type': appt.get('consultation_type', 'General')
+#                 }
+#                 enhanced_appointments.append(enhanced_appt)
+
+#             return jsonify(enhanced_appointments)
+#         else:
+#             # Return demo data
+#             return jsonify([{
+#                 'appointment_id': 'APT001',
+#                 'therapy_type': 'acupressure',
+#                 'therapy_name': 'Acupressure',
+#                 'doctor_name': 'Dr. Rajesh Sharma',
+#                 'date': datetime.now(timezone.utc).isoformat(),
+#                 'status': 'pending',
+#                 'payment_status': 'unpaid',
+#                 'reason': 'Back pain',
+#                 'consultation_type': 'General'
+#             }])
+
+#     except Exception as e:
+#         logger.error(f"Error getting patient appointments: {e}")
+#         return jsonify({'error': 'Failed to load appointments'}), 500
+
+
+@app.route('/api/patient-appointments')
+@login_required
+@role_required(['patient'])
+def get_patient_appointments():
+    """Get patient's appointments with enhanced error handling and consistent response format"""
+    try:
+        current_db = get_db_safe()
+        patient_id = session['user_id']
+        
+        appointments = []
+        
+        if current_db is not None:
+            pipeline = [
+                # Match appointments for this patient
+                {'$match': {'patient_id': patient_id}},
+                
+                # Sort by date descending
+                {'$sort': {'date': -1}},
+                
+                # Join with users collection to get doctor details
+                {'$lookup': {
+                    'from': 'users',
+                    'localField': 'therapist_id',
+                    'foreignField': 'user_id',
+                    'as': 'doctor'
+                }},
+                
+                # Unwind doctor array (convert to object)
+                {'$unwind': {'path': '$doctor', 'preserveNullAndEmptyArrays': True}}
+            ]
+            
+            appointments_cursor = current_db.appointments.aggregate(pipeline)
+            
+            for appt in appointments_cursor:
+                try:
+                    # Safely get therapy name
+                    therapy_type = appt.get('therapy_type', '')
+                    therapy_name = therapy_type.title() if therapy_type and isinstance(therapy_type, str) else 'Therapy Session'
+                    
+                    # Safely get doctor name
+                    doctor = appt.get('doctor', {})
+                    doctor_name = f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Not assigned'
+                    
+                    # Safely handle date
+                    appointment_date = appt.get('date')
+                    date_iso = appointment_date.isoformat() if isinstance(appointment_date, datetime) else datetime.utcnow().isoformat()
+                    
+                    enhanced_appt = {
+                        'appointment_id': appt.get('appointment_id', f"APT{random.randint(1000, 9999)}"),
+                        'therapy_type': therapy_type,
+                        'therapy_name': therapy_name,
+                        'doctor_name': doctor_name,
+                        'doctor_id': appt.get('therapist_id'),
+                        'date': date_iso,
+                        'status': appt.get('status', 'pending'),
+                        'payment_status': appt.get('payment_status', 'unpaid'),
+                        'reason': appt.get('reason', ''),
+                        'consultation_type': appt.get('consultation_type', 'General'),
+                        'checked_in': appt.get('checked_in', False),
+                        'checked_out': appt.get('checked_out', False)
+                    }
+                    appointments.append(enhanced_appt)
+                    
+                except Exception as appt_error:
+                    logger.error(f"Error processing appointment: {appt_error}")
+                    continue
+        
+        # Sort appointments by date, with pending first
+        appointments.sort(key=lambda x: (
+            0 if x['status'] == 'pending' else 1,
+            x['date']
+        ))
+        
+        return jsonify({
+            'success': True,
+            'appointments': appointments,
+            'total': len(appointments)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting patient appointments: {e}")
+        return jsonify({
+            'success': False,
+            'appointments': [],
+            'total': 0,
+            'error': 'Failed to load appointments'
+        })
+
+# @app.route('/api/patient-payments')
+# @login_required
+# @role_required(['patient'])
+# def get_patient_payments():
+#     """Get patient's payment history"""
+#     try:
+#         current_db = get_db_safe()
+#         patient_id = session['user_id']
+
+#         if current_db is not None:
+#             payments = list(current_db.payments.find({
+#                 'patient_id': patient_id
+#             }).sort('created_at', -1))
+
+#             # Enhance payment data
+#             enhanced_payments = []
+#             for payment in payments:
+#                 appointment = current_db.appointments.find_one({
+#                     'appointment_id': payment.get('appointment_id')
+#                 })
+
+#                 payment_data = {
+#                     'payment_id': payment.get('payment_id'),
+#                     'appointment_id': payment.get('appointment_id'),
+#                     'amount': payment.get('amount'),
+#                     'status': payment.get('status'),
+#                     'therapy_type': appointment.get('therapy_type', '').title() if appointment else 'Unknown',
+#                     'created_at': payment.get('created_at').isoformat() if payment.get('created_at') else None
+#                 }
+#                 enhanced_payments.append(payment_data)
+
+#             return jsonify(enhanced_payments)
+#         else:
+#             # Return demo data
+#             return jsonify([{
+#                 'payment_id': 'PAY001',
+#                 'appointment_id': 'APT001',
+#                 'amount': 100,
+#                 'status': 'paid',
+#                 'therapy_type': 'Acupressure',
+#                 'created_at': datetime.now(timezone.utc).isoformat()
+#             }])
+
+#     except Exception as e:
+#         logger.error(f"Error getting patient payments: {e}")
+#         return jsonify({'error': 'Failed to load payment history'}), 500
+
+@app.route('/api/patient-payments')
+@login_required
+@role_required(['patient'])
+def get_patient_payments():
+    """Get patient's payment history with enhanced error handling and complete payment details"""
+    try:
+        current_db = get_db_safe()
+        patient_id = session['user_id']
+
+        payments = []
+
+        if current_db is not None:
+            # Use aggregation to get payment details with appointment and doctor info
+            pipeline = [
+                # Match payments for this patient
+                {'$match': {'patient_id': patient_id}},
+                
+                # Sort by created date
+                {'$sort': {'created_at': -1}},
+                
+                # Join with appointments collection
+                {'$lookup': {
+                    'from': 'appointments',
+                    'localField': 'appointment_id',
+                    'foreignField': 'appointment_id',
+                    'as': 'appointment'
+                }},
+                
+                # Unwind appointment array
+                {'$unwind': {'path': '$appointment', 'preserveNullAndEmptyArrays': True}},
+                
+                # Join with users collection for doctor details
+                {'$lookup': {
+                    'from': 'users',
+                    'localField': 'appointment.therapist_id',
+                    'foreignField': 'user_id',
+                    'as': 'doctor'
+                }},
+                
+                # Unwind doctor array
+                {'$unwind': {'path': '$doctor', 'preserveNullAndEmptyArrays': True}}
+            ]
+            
+            payment_cursor = current_db.payments.aggregate(pipeline)
+            
+            for payment in payment_cursor:
+                try:
+                    # Get basic payment info with safe defaults
+                    payment_data = {
+                        'payment_id': payment.get('payment_id', f"PAY{random.randint(1000, 9999)}"),
+                        'razorpay_payment_id': payment.get('razorpay_payment_id', ''),
+                        'appointment_id': payment.get('appointment_id', 'N/A'),
+                        'amount': payment.get('amount', 0),
+                        'currency': payment.get('currency', 'INR'),
+                        'status': payment.get('status', 'unknown'),
+                        'created_at': payment.get('created_at', datetime.utcnow()).isoformat(),
+                        'paid_at': payment.get('paid_at', '').isoformat() if payment.get('paid_at') else None
+                    }
+                    
+                    # Add appointment details if available
+                    appointment = payment.get('appointment', {})
+                    if appointment:
+                        therapy_type = appointment.get('therapy_type', '')
+                        payment_data.update({
+                            'therapy_type': therapy_type.title() if therapy_type else 'Unknown Therapy',
+                            'appointment_date': appointment.get('date', '').isoformat() if appointment.get('date') else None,
+                            'appointment_status': appointment.get('status', 'unknown')
+                        })
+                    
+                    # Add doctor details if available
+                    doctor = payment.get('doctor', {})
+                    if doctor:
+                        payment_data['doctor_name'] = f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}".strip()
+                    else:
+                        payment_data['doctor_name'] = 'Doctor Not Found'
+                    
+                    payments.append(payment_data)
+                    
+                except Exception as payment_error:
+                    logger.error(f"Error processing payment record: {payment_error}")
+                    continue
+
+        return jsonify({
+            'success': True,
+            'payments': payments,
+            'total': len(payments),
+            'currency': 'INR'
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting patient payments: {e}")
+        return jsonify({
+            'success': False,
+            'payments': [],
+            'total': 0,
+            'currency': 'INR',
+            'error': 'Failed to load payment history'
+        })
+
 @app.route('/patient-dashboard')
 @login_required
 @role_required(['patient'])
@@ -2183,6 +2276,235 @@ def get_receptionist_notifications():
         return jsonify([])
 
 
+
+
+# Enhanced Payment Configuration
+RAZORPAY_CONFIG = {
+    'key_id': os.environ.get('RAZORPAY_KEY_ID'),
+    'key_secret': os.environ.get('RAZORPAY_KEY_SECRET'),
+    'therapy_prices': {
+        'acupressure': 10000,  # 100 INR in paise
+        'ayurveda': 10000,
+        'homeopathy': 10000,
+        'naturopathy': 10000,
+        'yoga': 10000,
+        'unani': 10000,
+        'chiropractic': 10000,
+        'physiotherapy': 10000,
+        'diet': 10000,
+        'herbal': 10000,
+        'sound': 10000
+    }
+}
+
+# Initialize Razorpay client
+razorpay_client = razorpay.Client(auth=(RAZORPAY_CONFIG['key_id'], RAZORPAY_CONFIG['key_secret']))
+
+# Enhanced Payment Routes
+@app.route('/api/create-payment', methods=['POST'])
+@login_required
+def create_payment():
+    """Create Razorpay payment order"""
+    try:
+        data = request.get_json()
+        appointment_id = data.get('appointment_id')
+        therapy_type = data.get('therapy_type')
+        
+        if not appointment_id or not therapy_type:
+            return jsonify({'error': 'Appointment ID and therapy type are required'}), 400
+        
+        # Get therapy price
+        amount = RAZORPAY_CONFIG['therapy_prices'].get(therapy_type, 10000)
+        
+        # Create Razorpay order
+        order_data = {
+            'amount': amount,
+            'currency': 'INR',
+            'receipt': f'receipt_{appointment_id}',
+            'notes': {
+                'appointment_id': appointment_id,
+                'therapy_type': therapy_type,
+                'patient_id': session['user_id']
+            }
+        }
+        
+        order = razorpay_client.order.create(data=order_data)
+        
+        # Store payment record in database
+        current_db = get_db_safe()
+        if current_db is not None:
+            payment_doc = {
+                'payment_id': order['id'],
+                'appointment_id': appointment_id,
+                'patient_id': session['user_id'],
+                'amount': amount / 100,  # Convert to INR
+                'currency': 'INR',
+                'status': 'created',
+                'therapy_type': therapy_type,
+                'created_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }
+            current_db.payments.insert_one(payment_doc)
+        
+        return jsonify({
+            'order_id': order['id'],
+            'amount': order['amount'],
+            'currency': order['currency'],
+            'key_id': RAZORPAY_CONFIG['key_id']
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating payment: {e}")
+        return jsonify({'error': 'Failed to create payment'}), 500
+
+@app.route('/api/verify-payment', methods=['POST'])
+@login_required
+def verify_payment():
+    """Verify Razorpay payment signature"""
+    try:
+        data = request.get_json()
+        payment_id = data.get('razorpay_payment_id')
+        order_id = data.get('razorpay_order_id')
+        signature = data.get('razorpay_signature')
+        
+        # Verify payment signature
+        params_dict = {
+            'razorpay_order_id': order_id,
+            'razorpay_payment_id': payment_id,
+            'razorpay_signature': signature
+        }
+        
+        try:
+            razorpay_client.utility.verify_payment_signature(params_dict)
+        except razorpay.errors.SignatureVerificationError:
+            return jsonify({'error': 'Payment verification failed'}), 400
+        
+        # Update payment status in database
+        current_db = get_db_safe()
+        if current_db is not None:
+            # Update payment record
+            current_db.payments.update_one(
+                {'payment_id': order_id},
+                {'$set': {
+                    'razorpay_payment_id': payment_id,
+                    'status': 'paid',
+                    'paid_at': datetime.utcnow(),
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            
+            # Get appointment details from payment
+            payment = current_db.payments.find_one({'payment_id': order_id})
+            if payment:
+                # Update appointment status to pending (waiting for receptionist confirmation)
+                current_db.appointments.update_one(
+                    {'appointment_id': payment['appointment_id']},
+                    {'$set': {
+                        'status': 'pending',
+                        'payment_status': 'paid',
+                        'payment_id': order_id,
+                        'updated_at': datetime.utcnow()
+                    }}
+                )
+                
+                # Create notification for receptionist
+                create_notification(
+                    'REC001',
+                    'New Paid Appointment Request',
+                    f'New appointment request with payment received. Appointment ID: {payment["appointment_id"]}',
+                    'success'
+                )
+                
+                # Create notification for patient
+                create_notification(
+                    session['user_id'],
+                    'Payment Successful',
+                    f'Payment received for appointment {payment["appointment_id"]}. Waiting for receptionist confirmation.',
+                    'success'
+                )
+        
+        return jsonify({
+            'message': 'Payment verified successfully',
+            'appointment_id': payment['appointment_id'] if payment else None
+        })
+        
+    except Exception as e:
+        logger.error(f"Error verifying payment: {e}")
+        return jsonify({'error': 'Payment verification failed'}), 500
+
+# Enhanced appointment creation with payment requirement
+@app.route('/api/appointments', methods=['POST'])
+@login_required
+def create_appointment():
+    """Create new appointment - now requires payment"""
+    try:
+        data = request.get_json()
+        
+        # Generate appointment ID
+        appointment_id = f"APT{random.randint(1000, 9999)}"
+        
+        # Parse appointment date
+        appointment_date = datetime.fromisoformat(data.get('date').replace('Z', '+00:00'))
+        
+        appointment_data = {
+            'appointment_id': appointment_id,
+            'patient_id': session['user_id'],
+            'patient_name': f"{session.get('first_name', '')} {session.get('last_name', '')}",
+            'therapy_type': data.get('therapy_type'),
+            'therapist_id': data.get('therapist_id'),
+            'date': appointment_date,
+            'reason': data.get('reason'),
+            'consultation_type': data.get('consultation_type'),
+            'status': 'payment_pending',
+            'payment_status': 'unpaid',
+            'is_demo': False,
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+        
+        # Add patient information
+        simplified_fields = [
+            'patient_age', 'patient_gender', 'patient_phone', 'patient_email', 
+            'patient_address'
+        ]
+        
+        for field in simplified_fields:
+            if field in data:
+                appointment_data[field] = data[field]
+        
+        current_db = get_db_safe()
+        if current_db is not None:
+            result = current_db.appointments.insert_one(appointment_data)
+            
+            # Create notification for patient about payment
+            create_notification(
+                session['user_id'],
+                'Appointment Created - Payment Required',
+                f'Your {data.get("therapy_type")} appointment has been created. Please complete the payment to confirm your booking.',
+                'info'
+            )
+            
+            logger.info(f"✅ Appointment {appointment_id} created - payment required")
+            
+            return jsonify({
+                'message': 'Appointment created! Please complete the payment to confirm your booking.',
+                'appointment_id': appointment_id,
+                'status': 'payment_pending',
+                'requires_payment': True
+            }), 201
+        else:
+            return jsonify({
+                'message': 'Appointment created (demo mode)',
+                'appointment_id': appointment_id,
+                'status': 'payment_pending',
+                'requires_payment': True
+            }), 201
+            
+    except Exception as e:
+        logger.error(f"Error creating appointment: {e}")
+        return jsonify({'error': 'Failed to book appointment'}), 500
+
+# Enhanced receptionist appointment confirmation
 @app.route('/api/receptionist/appointments/<appointment_id>/confirm', methods=['POST'])
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -2196,6 +2518,15 @@ def confirm_appointment_api(appointment_id):
         
         if current_db is None:
             return jsonify({'message': 'Appointment confirmed (demo mode)'})
+        
+        # Get appointment details first
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if not appointment:
+            return jsonify({'error': 'Appointment not found'}), 404
+        
+        # Check if payment is completed
+        if appointment.get('payment_status') != 'paid':
+            return jsonify({'error': 'Cannot confirm appointment. Payment not completed.'}), 400
         
         # Update appointment status
         update_data = {
@@ -2216,45 +2547,130 @@ def confirm_appointment_api(appointment_id):
         if result.modified_count == 0:
             return jsonify({'error': 'Appointment not found'}), 404
         
-        # Get appointment details for notifications
+        # Get updated appointment details
         appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
-        if appointment:
-            patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
-            doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+        patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+        doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+        
+        # Send confirmation emails
+        if patient:
+            send_appointment_confirmation_email(
+                patient['email'],
+                f"{patient.get('first_name', '')} {patient.get('last_name', '')}",
+                appointment.get('date').strftime('%d %b %Y at %I:%M %p'),
+                appointment.get('therapy_type', '').title(),
+                f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Doctor'
+            )
             
             # Create notification for patient
-            if patient:
-                create_notification(
-                    patient['user_id'],
-                    'Appointment Confirmed! 🎉',
-                    f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed. Date: {appointment.get("date").strftime("%d %b %Y")}.',
-                    'success'
-                )
+            create_notification(
+                patient['user_id'],
+                'Appointment Confirmed! 🎉',
+                f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed for {appointment.get("date").strftime("%d %b %Y at %I:%M %p")}.',
+                'success'
+            )
+        
+        # Notify doctor
+        if doctor:
+            send_doctor_notification_email(
+                doctor['email'],
+                f"{doctor.get('first_name', '')} {doctor.get('last_name', '')}",
+                f"{patient.get('first_name', '')} {patient.get('last_name', '')}" if patient else 'Patient',
+                appointment.get('date').strftime('%d %b %Y at %I:%M %p'),
+                appointment.get('therapy_type', '').title()
+            )
             
-            # Create notification for doctor
-            if doctor:
-                create_notification(
-                    doctor['user_id'],
-                    'New Confirmed Appointment',
-                    f'New appointment confirmed with {patient.get("first_name", "Patient") if patient else "Patient"} for {appointment.get("therapy_type")}.',
-                    'info'
-                )
-            
-            logger.info(f"✅ Appointment {appointment_id} confirmed by {session['user_id']}")
-            
-            return jsonify({
-                'message': 'Appointment confirmed successfully',
-                'appointment_id': appointment_id,
-                'patient_notified': True,
-                'doctor_notified': True if doctor else False
-            })
-        else:
-            return jsonify({'error': 'Appointment not found after update'}), 404
+            create_notification(
+                doctor['user_id'],
+                'New Confirmed Appointment',
+                f'New appointment confirmed with {patient.get("first_name", "Patient") if patient else "Patient"} for {appointment.get("therapy_type")} on {appointment.get("date").strftime("%d %b %Y at %I:%M %p")}.',
+                'info'
+            )
+        
+        logger.info(f"✅ Appointment {appointment_id} confirmed by {session['user_id']}")
+        
+        return jsonify({
+            'message': 'Appointment confirmed successfully',
+            'appointment_id': appointment_id,
+            'patient_notified': True,
+            'doctor_notified': True if doctor else False
+        })
         
     except Exception as e:
         logger.error(f"Error confirming appointment: {e}")
         return jsonify({'error': 'Failed to confirm appointment'}), 500
-# ========== API ROUTES ==========
+
+# Refund API for cancellations within 2 days
+@app.route('/api/appointments/<appointment_id>/request-refund', methods=['POST'])
+@login_required
+def request_refund(appointment_id):
+    """Request refund for appointment cancellation within 2 days"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'message': 'Refund request recorded (demo mode)'})
+        
+        # Get appointment details
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if not appointment:
+            return jsonify({'error': 'Appointment not found'}), 404
+        
+        # Check if user owns this appointment
+        if appointment.get('patient_id') != session['user_id']:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Check if appointment is within 2 days
+        appointment_date = appointment.get('date')
+        now = datetime.utcnow()
+        time_diff = appointment_date - now
+        
+        if time_diff.days > 2:
+            return jsonify({'error': 'Refund only available for cancellations within 2 days of appointment'}), 400
+        
+        # Check if payment was made
+        payment = current_db.payments.find_one({'appointment_id': appointment_id})
+        if not payment or payment.get('status') != 'paid':
+            return jsonify({'error': 'No payment found or payment not completed'}), 400
+        
+        # Update appointment status to refund requested
+        current_db.appointments.update_one(
+            {'appointment_id': appointment_id},
+            {'$set': {
+                'status': 'refund_requested',
+                'refund_requested_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+        
+        # Create notification for receptionist
+        create_notification(
+            'REC001',
+            'Refund Requested',
+            f'Patient {session.get("first_name")} {session.get("last_name")} requested refund for appointment {appointment_id}.',
+            'warning'
+        )
+        
+        # Create notification for patient
+        create_notification(
+            session['user_id'],
+            'Refund Request Submitted',
+            'Your refund request has been submitted. It will be processed within 3-5 business days.',
+            'info'
+        )
+        
+        logger.info(f"✅ Refund requested for appointment: {appointment_id}")
+        
+        return jsonify({
+            'message': 'Refund request submitted successfully. It will be processed within 3-5 business days.',
+            'appointment_id': appointment_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error requesting refund: {e}")
+        return jsonify({'error': 'Failed to request refund'}), 500
+
+
 
 @app.route('/api/patient-dashboard-stats')
 @login_required
@@ -2301,60 +2717,6 @@ def patient_dashboard_stats_api():
     except Exception as e:
         logger.error(f"Error getting patient stats: {e}")
         return jsonify({'error': 'Failed to load statistics'}), 500
-
-@app.route('/api/patient-appointments')
-@login_required
-@role_required(['patient'])
-def patient_appointments():
-    """Get patient's appointments"""
-    try:
-        current_db = get_db_safe()
-        patient_id = session['user_id']
-        
-        appointments = []
-        
-        if current_db is not None:
-            appointments_cursor = current_db.appointments.find(
-                {'patient_id': patient_id}
-            ).sort('date', -1)
-            #.limit(5)
-            
-            for appt in appointments_cursor:
-                # Get doctor details
-                doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
-                doctor_name = f"{doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Unknown Doctor'
-                
-                # Safely get therapy name with improved error handling
-                try:
-                    therapy_type = appt.get('therapy_type')
-                    if therapy_type and isinstance(therapy_type, str) and therapy_type.strip():
-                        therapy_name = therapy_type.title()
-                    else:
-                        therapy_name = 'Therapy Session'
-                except (AttributeError, TypeError) as e:
-                    logger.warning(f"Error processing therapy_type for appointment {appt.get('appointment_id')}: {e}")
-                    therapy_name = 'Therapy Session'
-
-                # Add appointment to list with all required fields
-                appointments.append({
-                    'appointment_id': appt.get('appointment_id'),
-                    'therapy_name': therapy_name,
-                    'therapy_type': appt.get('therapy_type', ''),
-                    'doctor_name': doctor_name,
-                    'doctor_id': appt.get('therapist_id'),
-                    'date': appt.get('date').isoformat() if appt.get('date') else '',
-                    'reason': appt.get('reason', ''),
-                    'status': appt.get('status', 'scheduled'),
-                    'consultation_type': appt.get('consultation_type', 'general'),
-                    'created_at': appt.get('created_at', '').isoformat() if appt.get('created_at') else '',
-                    'updated_at': appt.get('updated_at', '').isoformat() if appt.get('updated_at') else ''
-                })
-        
-        return jsonify(appointments)
-        
-    except Exception as e:
-        logger.error(f"Error getting patient appointments: {e}")
-        return jsonify([])
 
 @app.route('/api/receptionist/patient-appointments/<patient_id>')
 @login_required
@@ -3047,6 +3409,211 @@ def check_in_appointment(appointment_id):
         return jsonify({'error': 'Failed to check in patient'}), 500
 
 
+@app.route('/api/receptionist/appointments/<appointment_id>', methods=['GET'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def get_appointment_details(appointment_id):
+    """Get detailed appointment information for receptionist"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({
+                'success': False,
+                'error': 'Database not available'
+            }), 500
+        
+        # Get appointment with patient and doctor details using aggregation
+        pipeline = [
+            {'$match': {'appointment_id': appointment_id}},
+            {'$lookup': {
+                'from': 'users',
+                'localField': 'patient_id',
+                'foreignField': 'user_id',
+                'as': 'patient'
+            }},
+            {'$lookup': {
+                'from': 'users',
+                'localField': 'therapist_id',
+                'foreignField': 'user_id',
+                'as': 'doctor'
+            }},
+            {'$lookup': {
+                'from': 'payments',
+                'localField': 'appointment_id',
+                'foreignField': 'appointment_id',
+                'as': 'payment'
+            }},
+            {'$unwind': {'path': '$patient', 'preserveNullAndEmptyArrays': True}},
+            {'$unwind': {'path': '$doctor', 'preserveNullAndEmptyArrays': True}},
+            {'$unwind': {'path': '$payment', 'preserveNullAndEmptyArrays': True}}
+        ]
+        
+        appointment = next(current_db.appointments.aggregate(pipeline), None)
+        
+        if not appointment:
+            return jsonify({
+                'success': False,
+                'error': 'Appointment not found'
+            }), 404
+            
+        # Format the response
+        formatted_appointment = {
+            'appointment_id': appointment.get('appointment_id'),
+            'date': appointment.get('date').isoformat() if appointment.get('date') else None,
+            'status': appointment.get('status', 'pending'),
+            'therapy_type': appointment.get('therapy_type', ''),
+            'therapy_name': appointment.get('therapy_type', '').title(),
+            'reason': appointment.get('reason', ''),
+            'consultation_type': appointment.get('consultation_type', 'General'),
+            'payment_status': appointment.get('payment_status', 'unpaid'),
+            'checked_in': appointment.get('checked_in', False),
+            'checked_out': appointment.get('checked_out', False),
+            'patient': {
+                'id': appointment.get('patient', {}).get('user_id'),
+                'name': f"{appointment.get('patient', {}).get('first_name', '')} {appointment.get('patient', {}).get('last_name', '')}",
+                'email': appointment.get('patient', {}).get('email'),
+                'phone': appointment.get('patient', {}).get('phone', 'N/A')
+            },
+            'doctor': {
+                'id': appointment.get('doctor', {}).get('user_id'),
+                'name': f"Dr. {appointment.get('doctor', {}).get('first_name', '')} {appointment.get('doctor', {}).get('last_name', '')}",
+                'specialization': appointment.get('doctor', {}).get('specialization', 'General')
+            },
+            'payment': {
+                'id': appointment.get('payment', {}).get('payment_id'),
+                'amount': appointment.get('payment', {}).get('amount'),
+                'status': appointment.get('payment', {}).get('status', 'unpaid'),
+                'paid_at': appointment.get('payment', {}).get('paid_at', '').isoformat() if appointment.get('payment', {}).get('paid_at') else None
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'appointment': formatted_appointment
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting appointment details: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load appointment details'
+        }), 500
+
+@app.route('/api/receptionist/notifications/read-all', methods=['POST'])
+@login_required
+@role_required(['receptionist'])
+def mark_receptionist_notifications_read():
+    """Mark all receptionist notifications as read"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is not None:
+            result = current_db.notifications.update_many(
+                {
+                    'user_id': session['user_id'],
+                    'is_read': False
+                },
+                {'$set': {'is_read': True}}
+            )
+            
+            return jsonify({
+                'success': True,
+                'message': f'Marked {result.modified_count} notifications as read'
+            })
+        
+        return jsonify({
+            'success': True,
+            'message': 'Marked all notifications as read (demo mode)'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error marking notifications as read: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to mark notifications as read'
+        }), 500
+
+@app.route('/api/receptionist/appointments/<appointment_id>/confirm-payment', methods=['POST'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def confirm_appointment_payment(appointment_id):
+    """Confirm payment for an appointment"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({
+                'success': False,
+                'error': 'Database not available'
+            }), 500
+            
+        # Get appointment
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if not appointment:
+            return jsonify({
+                'success': False,
+                'error': 'Appointment not found'
+            }), 404
+            
+        # Update appointment payment status
+        result = current_db.appointments.update_one(
+            {'appointment_id': appointment_id},
+            {'$set': {
+                'payment_status': 'paid',
+                'payment_confirmed_by': session['user_id'],
+                'payment_confirmed_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count > 0:
+            # Update payment record if exists
+            payment = current_db.payments.find_one({'appointment_id': appointment_id})
+            if payment:
+                current_db.payments.update_one(
+                    {'appointment_id': appointment_id},
+                    {'$set': {
+                        'status': 'paid',
+                        'confirmed_by': session['user_id'],
+                        'confirmed_at': datetime.utcnow(),
+                        'updated_at': datetime.utcnow()
+                    }}
+                )
+            
+            # Create notifications
+            create_notification(
+                appointment['patient_id'],
+                'Payment Confirmed',
+                f'Your payment for appointment {appointment_id} has been confirmed.',
+                'success'
+            )
+            
+            if appointment.get('therapist_id'):
+                create_notification(
+                    appointment['therapist_id'],
+                    'Payment Confirmed',
+                    f'Payment confirmed for appointment {appointment_id}.',
+                    'info'
+                )
+            
+            return jsonify({
+                'success': True,
+                'message': 'Payment confirmed successfully'
+            })
+        
+        return jsonify({
+            'success': False,
+            'error': 'Failed to confirm payment'
+        }), 400
+        
+    except Exception as e:
+        logger.error(f"Error confirming payment: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to confirm payment'
+        }), 500
+
 @app.route('/api/receptionist/appointments/<appointment_id>/check-out', methods=['POST'])
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -3110,52 +3677,134 @@ def check_out_appointment(appointment_id):
 @login_required
 @role_required(['doctor'])
 def doctor_dashboard_stats():
-    """Get doctor dashboard statistics"""
+    """Get doctor dashboard statistics with enhanced error handling and data formatting"""
     try:
         current_db = get_db_safe()
         doctor_id = session['user_id']
         
         stats = {
-            'today_appointments': 0,
-            'total_patients': 0,
-            'completed_sessions': 0,
-            'pending_followups': 0
+            'today': {
+                'total': 0,
+                'scheduled': 0,
+                'completed': 0,
+                'cancelled': 0
+            },
+            'overall': {
+                'total_patients': 0,
+                'total_sessions': 0,
+                'completed_sessions': 0,
+                'pending_followups': 0
+            },
+            'recent': {
+                'appointments': [],
+                'patients': []
+            }
         }
         
         if current_db is not None:
-            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-            today_end = today_start + timedelta(days=1)
-            
-            # Today's appointments
-            stats['today_appointments'] = current_db.appointments.count_documents({
-                'therapist_id': doctor_id,
-                'date': {'$gte': today_start, '$lt': today_end},
-                'status': {'$in': ['pending', 'confirmed', 'in-progress']}
-            })
-            
-            # Total patients
-            stats['total_patients'] = len(current_db.appointments.distinct('patient_id', {
-                'therapist_id': doctor_id
-            }))
-            
-            # Completed sessions
-            stats['completed_sessions'] = current_db.appointments.count_documents({
-                'therapist_id': doctor_id,
-                'status': 'completed'
-            })
-            
-            # Pending follow-ups (future appointments)
-            stats['pending_followups'] = current_db.appointments.count_documents({
-                'therapist_id': doctor_id,
-                'status': 'pending',
-                'date': {'$gt': datetime.now(timezone.utc)}
-            })
+            try:
+                # Today's date range
+                today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+                today_end = today_start + timedelta(days=1)
+                
+                # Today's appointments breakdown
+                today_pipeline = [
+                    {'$match': {
+                        'therapist_id': doctor_id,
+                        'date': {'$gte': today_start, '$lt': today_end}
+                    }},
+                    {'$group': {
+                        '_id': '$status',
+                        'count': {'$sum': 1}
+                    }}
+                ]
+                
+                today_results = list(current_db.appointments.aggregate(today_pipeline))
+                
+                for result in today_results:
+                    status = result['_id']
+                    count = result['count']
+                    stats['today']['total'] += count
+                    if status in ['scheduled', 'completed', 'cancelled']:
+                        stats['today'][status] = count
+                
+                # Overall statistics
+                stats['overall']['total_patients'] = len(
+                    current_db.appointments.distinct('patient_id', {'therapist_id': doctor_id})
+                )
+                
+                stats['overall']['total_sessions'] = current_db.appointments.count_documents({
+                    'therapist_id': doctor_id
+                })
+                
+                stats['overall']['completed_sessions'] = current_db.appointments.count_documents({
+                    'therapist_id': doctor_id,
+                    'status': 'completed'
+                })
+                
+                stats['overall']['pending_followups'] = current_db.appointments.count_documents({
+                    'therapist_id': doctor_id,
+                    'status': 'pending',
+                    'date': {'$gt': datetime.now(timezone.utc)}
+                })
+                
+                # Recent appointments (last 5)
+                recent_appointments = list(current_db.appointments.find(
+                    {'therapist_id': doctor_id}
+                ).sort('date', -1).limit(5))
+                
+                for appt in recent_appointments:
+                    patient = current_db.users.find_one({'user_id': appt['patient_id']})
+                    if patient:
+                        stats['recent']['appointments'].append({
+                            'id': appt['appointment_id'],
+                            'patient_name': f"{patient['first_name']} {patient['last_name']}",
+                            'date': appt['date'].isoformat(),
+                            'status': appt['status'],
+                            'therapy': appt.get('therapy_type', '').title()
+                        })
+                
+                # Recent patients (last 5 unique)
+                recent_patients = list(current_db.appointments.aggregate([
+                    {'$match': {'therapist_id': doctor_id}},
+                    {'$sort': {'date': -1}},
+                    {'$group': {
+                        '_id': '$patient_id',
+                        'last_visit': {'$first': '$date'},
+                        'visit_count': {'$sum': 1}
+                    }},
+                    {'$limit': 5}
+                ]))
+                
+                for patient_stat in recent_patients:
+                    patient = current_db.users.find_one({'user_id': patient_stat['_id']})
+                    if patient:
+                        stats['recent']['patients'].append({
+                            'id': patient['user_id'],
+                            'name': f"{patient['first_name']} {patient['last_name']}",
+                            'last_visit': patient_stat['last_visit'].isoformat(),
+                            'visit_count': patient_stat['visit_count']
+                        })
+                
+            except Exception as inner_error:
+                logger.error(f"Error processing dashboard stats: {inner_error}")
         
-        return jsonify(stats)
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
         
     except Exception as e:
         logger.error(f"Error loading doctor dashboard stats: {e}")
-        return jsonify({'error': 'Failed to load dashboard statistics'}), 500
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load dashboard statistics',
+            'stats': {
+                'today': {'total': 0, 'scheduled': 0, 'completed': 0, 'cancelled': 0},
+                'overall': {'total_patients': 0, 'total_sessions': 0, 'completed_sessions': 0, 'pending_followups': 0},
+                'recent': {'appointments': [], 'patients': []}
+            }
+        })
 
 @app.route('/api/doctor/today-schedule')
 @login_required
@@ -3824,7 +4473,25 @@ def mark_all_doctor_notifications_read():
     except Exception as e:
         logger.error(f"Error marking notifications as read: {e}")
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
+# Add to app.py for real-time features
+from flask_socketio import SocketIO, emit
 
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+@socketio.on('connect')
+def handle_connect():
+    if 'user_id' in session:
+        join_room(session['user_id'])
+        emit('connected', {'message': 'Connected to real-time updates'})
+
+@socketio.on('join_room')
+def handle_join_room(data):
+    room = data.get('room')
+    if room:
+        join_room(room)
+
+def send_real_time_notification(user_id, notification_data):
+    socketio.emit('new_notification', notification_data, room=user_id)
 
 @app.route('/logout')
 def logout():

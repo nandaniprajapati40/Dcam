@@ -599,8 +599,847 @@
             </div>
         </div>
     </div>
+       <!-- Patient Management Tab -->
+                            <div class="tab-pane fade" id="patients" role="tabpanel">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="search-box">
+                                            <i class="fas fa-search"></i>
+                                            <input type="text" class="form-control" id="patientSearch" placeholder="Search patients...">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <button class="btn btn-primary btn-sm" onclick="loadPatients()">
+                                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient ID</th>
+                                                <th>Name</th>
+                                                <th>Phone</th>
+                                                <th>Email</th>
+                                                <th>Last Visit</th>
+                                                <th>Total Visits</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="patientsList">
+                                            <tr>
+                                                <td colspan="7" class="text-center">
+                                                    <div class="spinner-border" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <p class="mt-2">Loading patients...</p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Doctor Management Tab -->
+                            <div class="tab-pane fade" id="doctors" role="tabpanel">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <h5 class="mb-0">Doctor Management</h5>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <button class="btn btn-primary btn-sm" onclick="loadDoctors()">
+                                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="row" id="doctorsList">
+                                    <div class="col-12 text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Loading doctors...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Appointment Detail Modal -->
+    <div class="modal fade" id="appointmentDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Appointment Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="appointmentDetailContent">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+  <!-- Refund Processing Modal -->
+    <div class="modal fade" id="refundModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Process Refund</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to process refund for this appointment?</p>
+                    <div id="refundDetails"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmRefundBtn">Process Refund</button>
+                </div>
+            </div>
+        </div>
+    </div>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let allAppointments = [];
+        let allPayments = [];
+        let currentAppointmentId = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardStats();
+            loadAppointments();
+            loadPayments();
+            loadPatients();
+            loadDoctors();
+            loadNotifications();
+            setupEventListeners();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadDashboardStats();
+                loadAppointments();
+                loadNotifications();
+            }, 30000);
+        });
+
+        function setupEventListeners() {
+            // Appointment search
+            document.getElementById('appointmentSearch').addEventListener('input', filterAppointments);
+            
+            // Appointment filter buttons
+            document.querySelectorAll('[data-filter]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    filterAppointmentsByType(this.dataset.filter);
+                });
+            });
+
+            // Patient search
+            document.getElementById('patientSearch').addEventListener('input', filterPatients);
+        }
+
+        function loadDashboardStats() {
+            fetch('/api/dashboard-stats')
+                .then(response => response.json())
+                .then(stats => {
+                    document.getElementById('todaysAppointments').textContent = stats.todays_appointments || 0;
+                    document.getElementById('pendingPayments').textContent = stats.pending_appointments || 0;
+                    document.getElementById('totalPatients').textContent = stats.total_patients || 0;
+                    document.getElementById('totalDoctors').textContent = stats.total_doctors || 0;
+                })
+                .catch(error => {
+                    console.error('Error loading dashboard stats:', error);
+                });
+        }
+
+        function loadAppointments() {
+            fetch('/api/receptionist/appointments')
+                .then(response => response.json())
+                .then(data => {
+                    allAppointments = data.appointments || [];
+                    renderAppointments(allAppointments);
+                })
+                .catch(error => {
+                    console.error('Error loading appointments:', error);
+                    renderAppointments([]);
+                });
+        }
+
+        function renderAppointments(appointments) {
+            const container = document.getElementById('appointmentsList');
+            
+            if (appointments.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <p>No appointments found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = appointments.map(appt => {
+                const date = new Date(appt.date);
+                const isToday = new Date().toDateString() === date.toDateString();
+                const isUrgent = appt.status === 'payment_pending' && new Date(appt.date) < new Date(Date.now() + 24 * 60 * 60 * 1000);
+                
+                const rowClass = isToday ? 'today-highlight' : isUrgent ? 'urgent-highlight' : '';
+                
+                const statusBadge = getStatusBadge(appt.status);
+                const paymentBadge = getPaymentBadge(appt.payment_status);
+                
+                const actions = getAppointmentActions(appt);
+                
+                return `
+                    <tr class="${rowClass}" data-appointment-id="${appt.appointment_id}">
+                        <td>
+                            <div>${date.toLocaleDateString()}</div>
+                            <small class="text-muted">${date.toLocaleTimeString()}</small>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">${appt.patient_name}</div>
+                            <small class="text-muted patient-id">${appt.patient_id}</small>
+                        </td>
+                        <td>${appt.doctor_name || 'Not assigned'}</td>
+                        <td>${appt.therapy_name}</td>
+                        <td>${statusBadge}</td>
+                        <td>${paymentBadge}</td>
+                        <td>
+                            <div class="appointment-actions">
+                                ${actions}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getStatusBadge(status) {
+            const statusConfig = {
+                'pending': { class: 'bg-warning', text: 'Pending' },
+                'confirmed': { class: 'bg-success', text: 'Confirmed' },
+                'completed': { class: 'bg-info', text: 'Completed' },
+                'cancelled': { class: 'bg-danger', text: 'Cancelled' },
+                'payment_pending': { class: 'bg-warning', text: 'Payment Due' },
+                'refund_requested': { class: 'bg-secondary', text: 'Refund Requested' }
+            };
+            
+            const config = statusConfig[status] || { class: 'bg-secondary', text: status };
+            return `<span class="badge ${config.class}">${config.text}</span>`;
+        }
+
+        function getPaymentBadge(paymentStatus) {
+            const paymentConfig = {
+                'paid': { class: 'payment-status-paid', text: 'Paid' },
+                'unpaid': { class: 'payment-status-pending', text: 'Unpaid' },
+                'refunded': { class: 'payment-status-refunded', text: 'Refunded' },
+                'refund_requested': { class: 'bg-secondary', text: 'Refund Requested' }
+            };
+            
+            const config = paymentConfig[paymentStatus] || { class: 'bg-secondary', text: paymentStatus || 'Unpaid' };
+            return `<span class="badge ${config.class}">${config.text}</span>`;
+        }
+
+        function getAppointmentActions(appt) {
+            let actions = '';
+            
+            // View details button
+            actions += `<button class="btn btn-sm btn-outline-primary" onclick="viewAppointmentDetails('${appt.appointment_id}')" title="View Details">
+                <i class="fas fa-eye"></i>
+            </button>`;
+            
+            // Status-specific actions
+            if (appt.status === 'pending' && appt.payment_status === 'paid') {
+                actions += `<button class="btn btn-sm btn-success" onclick="confirmAppointment('${appt.appointment_id}')" title="Confirm Appointment">
+                    <i class="fas fa-check"></i>
+                </button>`;
+            }
+            
+            if (appt.status === 'confirmed') {
+                if (!appt.checked_in) {
+                    actions += `<button class="btn btn-sm btn-info" onclick="checkInPatient('${appt.appointment_id}')" title="Check In">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </button>`;
+                } else if (!appt.checked_out) {
+                    actions += `<button class="btn btn-sm btn-primary" onclick="checkOutPatient('${appt.appointment_id}')" title="Check Out">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>`;
+                }
+            }
+            
+            if (appt.status === 'refund_requested') {
+                actions += `<button class="btn btn-sm btn-warning" onclick="processRefund('${appt.appointment_id}')" title="Process Refund">
+                    <i class="fas fa-undo"></i>
+                </button>`;
+            }
+            
+            if (['pending', 'confirmed'].includes(appt.status)) {
+                actions += `<button class="btn btn-sm btn-outline-warning" onclick="rescheduleAppointment('${appt.appointment_id}')" title="Reschedule">
+                    <i class="fas fa-clock"></i>
+                </button>`;
+            }
+            
+            if (['pending', 'confirmed', 'payment_pending'].includes(appt.status)) {
+                actions += `<button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment('${appt.appointment_id}')" title="Cancel">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            }
+            
+            return actions;
+        }
+
+        function filterAppointments() {
+            const query = document.getElementById('appointmentSearch').value.toLowerCase();
+            const filtered = allAppointments.filter(appt => 
+                appt.patient_name.toLowerCase().includes(query) ||
+                appt.doctor_name.toLowerCase().includes(query) ||
+                appt.therapy_name.toLowerCase().includes(query) ||
+                appt.appointment_id.toLowerCase().includes(query)
+            );
+            renderAppointments(filtered);
+        }
+
+        function filterAppointmentsByType(type) {
+            let filtered = allAppointments;
+            
+            switch(type) {
+                case 'today':
+                    const today = new Date().toDateString();
+                    filtered = allAppointments.filter(appt => 
+                        new Date(appt.date).toDateString() === today
+                    );
+                    break;
+                case 'pending':
+                    filtered = allAppointments.filter(appt => 
+                        appt.status === 'pending' || appt.status === 'payment_pending'
+                    );
+                    break;
+                case 'payment':
+                    filtered = allAppointments.filter(appt => 
+                        appt.payment_status === 'unpaid' || appt.status === 'payment_pending'
+                    );
+                    break;
+            }
+            
+            renderAppointments(filtered);
+        }
+
+        // Appointment Actions
+        function viewAppointmentDetails(appointmentId) {
+            fetch(`/api/receptionist/appointments/${appointmentId}`)
+                .then(response => response.json())
+                .then(appointment => {
+                    const modalContent = document.getElementById('appointmentDetailContent');
+                    modalContent.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Appointment Information</h6>
+                                <p><strong>ID:</strong> ${appointment.appointment_id}</p>
+                                <p><strong>Patient:</strong> ${appointment.patient_name}</p>
+                                <p><strong>Therapy:</strong> ${appointment.therapy_name}</p>
+                                <p><strong>Doctor:</strong> ${appointment.doctor_name}</p>
+                                <p><strong>Date:</strong> ${new Date(appointment.date).toLocaleString()}</p>
+                                <p><strong>Status:</strong> ${getStatusBadge(appointment.status)}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Payment Information</h6>
+                                <p><strong>Payment Status:</strong> ${getPaymentBadge(appointment.payment_status)}</p>
+                                <p><strong>Amount:</strong> ₹${appointment.amount || '100'}</p>
+                                <p><strong>Consultation:</strong> ${appointment.consultation_type}</p>
+                                ${appointment.payment_id ? `<p><strong>Payment ID:</strong> ${appointment.payment_id}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Reason for Visit</h6>
+                                <p>${appointment.reason || 'No reason provided'}</p>
+                            </div>
+                        </div>
+                        ${appointment.checked_in ? `
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Check-in Information</h6>
+                                <p><strong>Checked in at:</strong> ${new Date(appointment.checked_in_at).toLocaleString()}</p>
+                                ${appointment.checked_out ? `<p><strong>Checked out at:</strong> ${new Date(appointment.check_out_time).toLocaleString()}</p>` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+                    `;
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error loading appointment details:', error);
+                    alert('Failed to load appointment details');
+                });
+        }
+
+        function confirmAppointment(appointmentId) {
+            if (confirm('Are you sure you want to confirm this appointment?')) {
+                fetch(`/api/receptionist/appointments/${appointmentId}/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Appointment confirmed successfully!');
+                        loadAppointments();
+                        loadDashboardStats();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error confirming appointment:', error);
+                    alert('Failed to confirm appointment');
+                });
+            }
+        }
+
+        function checkInPatient(appointmentId) {
+            fetch(`/api/receptionist/appointments/${appointmentId}/check-in`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('Patient checked in successfully!');
+                    loadAppointments();
+                }
+            })
+            .catch(error => {
+                console.error('Error checking in patient:', error);
+                alert('Failed to check in patient');
+            });
+        }
+
+        function checkOutPatient(appointmentId) {
+            fetch(`/api/receptionist/appointments/${appointmentId}/check-out`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('Patient checked out successfully! Appointment marked as completed.');
+                    loadAppointments();
+                    loadDashboardStats();
+                }
+            })
+            .catch(error => {
+                console.error('Error checking out patient:', error);
+                alert('Failed to check out patient');
+            });
+        }
+
+        function processRefund(appointmentId) {
+            currentAppointmentId = appointmentId;
+            
+            fetch(`/api/receptionist/appointments/${appointmentId}`)
+                .then(response => response.json())
+                .then(appointment => {
+                    document.getElementById('refundDetails').innerHTML = `
+                        <div class="alert alert-info">
+                            <p><strong>Appointment:</strong> ${appointment.appointment_id}</p>
+                            <p><strong>Patient:</strong> ${appointment.patient_name}</p>
+                            <p><strong>Amount to refund:</strong> ₹${appointment.amount || '100'}</p>
+                        </div>
+                    `;
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('refundModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error loading refund details:', error);
+                    alert('Failed to load refund details');
+                });
+        }
+
+        // Setup refund confirmation
+        document.getElementById('confirmRefundBtn').addEventListener('click', function() {
+            fetch(`/api/receptionist/appointments/${currentAppointmentId}/process-refund`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('Refund processed successfully!');
+                    bootstrap.Modal.getInstance(document.getElementById('refundModal')).hide();
+                    loadAppointments();
+                    loadPayments();
+                    loadDashboardStats();
+                }
+            })
+            .catch(error => {
+                console.error('Error processing refund:', error);
+                alert('Failed to process refund');
+            });
+        });
+
+        function rescheduleAppointment(appointmentId) {
+            const newDate = prompt('Enter new date and time (YYYY-MM-DDTHH:MM):', new Date().toISOString().slice(0, 16));
+            
+            if (newDate) {
+                fetch(`/api/receptionist/appointments/${appointmentId}/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        scheduled_time: newDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Appointment rescheduled successfully!');
+                        loadAppointments();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error rescheduling appointment:', error);
+                    alert('Failed to reschedule appointment');
+                });
+            }
+        }
+
+        function cancelAppointment(appointmentId) {
+            if (confirm('Are you sure you want to cancel this appointment?')) {
+                fetch(`/api/receptionist/appointments/${appointmentId}/cancel`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Appointment cancelled successfully!');
+                        loadAppointments();
+                        loadDashboardStats();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cancelling appointment:', error);
+                    alert('Failed to cancel appointment');
+                });
+            }
+        }
+
+        function loadPayments() {
+            fetch('/api/receptionist/payments')
+                .then(response => response.json())
+                .then(payments => {
+                    allPayments = payments;
+                    renderPayments(payments);
+                })
+                .catch(error => {
+                    console.error('Error loading payments:', error);
+                    renderPayments([]);
+                });
+        }
+
+        function renderPayments(payments) {
+            const container = document.getElementById('paymentsList');
+            
+            if (payments.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="fas fa-receipt"></i>
+                                <p>No payments found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = payments.map(payment => {
+                const date = new Date(payment.created_at);
+                
+                return `
+                    <tr>
+                        <td><span class="patient-id">${payment.appointment_id}</span></td>
+                        <td>${payment.patient_name}</td>
+                        <td>${payment.therapy_name}</td>
+                        <td>₹${payment.amount}</td>
+                        <td>${getPaymentBadge(payment.status)}</td>
+                        <td>${date.toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewPaymentDetails('${payment.payment_id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${payment.status === 'refund_requested' ? `
+                            <button class="btn btn-sm btn-warning" onclick="processRefund('${payment.appointment_id}')">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function viewPaymentDetails(paymentId) {
+            alert('View payment details: ' + paymentId);
+            // Implement payment details view
+        }
+
+        function loadPatients() {
+            fetch('/api/receptionist/patients')
+                .then(response => response.json())
+                .then(patients => {
+                    renderPatients(patients);
+                })
+                .catch(error => {
+                    console.error('Error loading patients:', error);
+                    renderPatients([]);
+                });
+        }
+
+        function renderPatients(patients) {
+            const container = document.getElementById('patientsList');
+            
+            if (patients.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <p>No patients found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = patients.map(patient => {
+                const lastVisit = patient.last_login ? new Date(patient.last_login).toLocaleDateString() : 'Never';
+                
+                return `
+                    <tr>
+                        <td><span class="patient-id">${patient.user_id}</span></td>
+                        <td>${patient.first_name} ${patient.last_name}</td>
+                        <td>${patient.phone || 'N/A'}</td>
+                        <td>${patient.email}</td>
+                        <td>${lastVisit}</td>
+                        <td>
+                            <span class="badge bg-primary">${Math.floor(Math.random() * 10)}</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewPatientHistory('${patient.user_id}')">
+                                <i class="fas fa-history"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="createAppointmentForPatient('${patient.user_id}')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterPatients() {
+            const query = document.getElementById('patientSearch').value.toLowerCase();
+            // Implement patient filtering
+        }
+
+        function viewPatientHistory(patientId) {
+            fetch(`/api/receptionist/patients/${patientId}/history`)
+                .then(response => response.json())
+                .then(history => {
+                    alert(`Patient History for ${history.patient_name}\nTotal Appointments: ${history.total_appointments}`);
+                })
+                .catch(error => {
+                    console.error('Error loading patient history:', error);
+                    alert('Failed to load patient history');
+                });
+        }
+
+        function createAppointmentForPatient(patientId) {
+            alert('Create appointment for patient: ' + patientId);
+            // Implement appointment creation for specific patient
+        }
+
+        function loadDoctors() {
+            fetch('/api/therapists')
+                .then(response => response.json())
+                .then(doctors => {
+                    renderDoctors(doctors);
+                })
+                .catch(error => {
+                    console.error('Error loading doctors:', error);
+                    renderDoctors([]);
+                });
+        }
+
+        function renderDoctors(doctors) {
+            const container = document.getElementById('doctorsList');
+            
+            if (doctors.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="fas fa-user-md"></i>
+                            <p>No doctors found</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = doctors.map(doctor => {
+                return `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${doctor.name}</h5>
+                                <p class="card-text text-muted">${doctor.specialization}</p>
+                                <div class="mb-2">
+                                    <span class="badge bg-success">Available</span>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">Email: ${doctor.email}</small>
+                                </div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDoctorSchedule('${doctor.user_id}')">
+                                        View Schedule
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewDoctorSchedule(doctorId) {
+            alert('View schedule for doctor: ' + doctorId);
+            // Implement doctor schedule view
+        }
+
+        function loadNotifications() {
+            fetch('/api/receptionist/notifications')
+                .then(response => response.json())
+                .then(notifications => {
+                    renderNotifications(notifications);
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
+        }
+
+        function renderNotifications(notifications) {
+            const container = document.getElementById('notificationList');
+            const countElement = document.getElementById('notificationCount');
+            
+            const unreadCount = notifications.filter(n => !n.is_read).length;
+            countElement.textContent = unreadCount;
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="p-3 text-center text-muted">
+                        <i class="fas fa-bell-slash mb-2"></i>
+                        <p class="mb-0">No notifications</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = notifications.map(notification => {
+                const timeAgo = getTimeAgo(notification.created_at);
+                const readClass = notification.is_read ? '' : 'bg-light';
+                
+                return `
+                    <div class="dropdown-item p-3 border-bottom ${readClass}">
+                        <div class="d-flex">
+                            <div class="flex-grow-1">
+                                <p class="mb-1">${notification.message}</p>
+                                <small class="text-muted">${timeAgo}</small>
+                            </div>
+                            ${!notification.is_read ? 
+                                `<button class="btn btn-sm btn-outline-primary" onclick="markNotificationRead('${notification.id}')">
+                                    <i class="fas fa-check"></i>
+                                </button>` : ''
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hr ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            
+            return date.toLocaleDateString();
+        }
+
+        function markNotificationRead(notificationId) {
+            fetch(`/api/receptionist/notifications/${notificationId}/mark-read`, {
+                method: 'POST'
+            })
+            .then(() => {
+                loadNotifications();
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        function markAllNotificationsRead() {
+            fetch('/api/receptionist/notifications/read-all', {
+                method: 'POST'
+            })
+            .then(() => {
+                loadNotifications();
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+            });
+        }
+    </script>
+</body>
+</html>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Global variables
         let currentAppointmentId = null;
@@ -1790,4 +2629,4 @@ function viewAppointmentDetails(appointmentId) {
 }
     </script>
 </body>
-</html>
+</html> -->
