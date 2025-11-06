@@ -640,51 +640,6 @@ def generate_receptionist_id():
         logger.error(f"Error generating receptionist ID: {e}")
         return f"REC{random.randint(100, 999)}"
 
-# def init_database():
-#     """Initialize MongoDB collections and indexes"""
-#     current_db = get_db_safe()
-#     if current_db is None:
-#         logger.error("❌ MongoDB not connected - cannot initialize database")
-#         return False
-    
-#     try:
-#         # Create collections if they don't exist
-#         collections = current_db.list_collection_names()
-#         logger.info(f"📊 Existing collections: {collections}")
-        
-#         # Define required collections and their indexes - FIXED STRUCTURE
-#         required_collections = {
-#             'users': [
-#                 {'keys': [('user_id', 1)], 'options': {'unique': True}},
-#                 {'keys': [('email', 1)], 'options': {'unique': True}},
-#                 {'keys': [('role', 1)], 'options': {}}
-#             ],
-#             'appointments': [
-#                 {'keys': [('appointment_id', 1)], 'options': {'unique': True}},
-#                 {'keys': [('patient_id', 1)], 'options': {}},
-#                 {'keys': [('therapist_id', 1)], 'options': {}},
-#                 {'keys': [('date', 1)], 'options': {}}
-#             ],
-#             'therapy_sessions': [
-#                 {'keys': [('session_id', 1)], 'options': {'unique': True}},
-#                 {'keys': [('patient_id', 1)], 'options': {}},
-#                 {'keys': [('therapist_id', 1)], 'options': {}}
-#             ],
-#             'otp_verification': [
-#                 {'keys': [('email', 1)], 'options': {}},
-#                 {'keys': [('created_at', 1)], 'options': {'expireAfterSeconds': 600}}
-#             ],
-#             'notifications': [
-#                 {'keys': [('user_id', 1)], 'options': {}},
-#                 {'keys': [('created_at', -1)], 'options': {}}
-#             ],
-#             'payments': [
-#                 {'keys': [('payment_id', 1)], 'options': {'unique': True}},
-#                 {'keys': [('appointment_id', 1)], 'options': {}},
-#                 {'keys': [('patient_id', 1)], 'options': {}}
-#             ]
-#         }
-
 def init_database():
     """Initialize MongoDB collections and indexes"""
     current_db = get_db_safe()
@@ -1802,52 +1757,6 @@ def get_patient_appointments():
             'error': 'Failed to load appointments'
         })
 
-# @app.route('/api/patient-payments')
-# @login_required
-# @role_required(['patient'])
-# def get_patient_payments():
-#     """Get patient's payment history"""
-#     try:
-#         current_db = get_db_safe()
-#         patient_id = session['user_id']
-
-#         if current_db is not None:
-#             payments = list(current_db.payments.find({
-#                 'patient_id': patient_id
-#             }).sort('created_at', -1))
-
-#             # Enhance payment data
-#             enhanced_payments = []
-#             for payment in payments:
-#                 appointment = current_db.appointments.find_one({
-#                     'appointment_id': payment.get('appointment_id')
-#                 })
-
-#                 payment_data = {
-#                     'payment_id': payment.get('payment_id'),
-#                     'appointment_id': payment.get('appointment_id'),
-#                     'amount': payment.get('amount'),
-#                     'status': payment.get('status'),
-#                     'therapy_type': appointment.get('therapy_type', '').title() if appointment else 'Unknown',
-#                     'created_at': payment.get('created_at').isoformat() if payment.get('created_at') else None
-#                 }
-#                 enhanced_payments.append(payment_data)
-
-#             return jsonify(enhanced_payments)
-#         else:
-#             # Return demo data
-#             return jsonify([{
-#                 'payment_id': 'PAY001',
-#                 'appointment_id': 'APT001',
-#                 'amount': 100,
-#                 'status': 'paid',
-#                 'therapy_type': 'Acupressure',
-#                 'created_at': datetime.now(timezone.utc).isoformat()
-#             }])
-
-#     except Exception as e:
-#         logger.error(f"Error getting patient payments: {e}")
-#         return jsonify({'error': 'Failed to load payment history'}), 500
 
 @app.route('/api/patient-payments')
 @login_required
@@ -2337,7 +2246,7 @@ def create_payment():
                 'payment_id': order['id'],
                 'appointment_id': appointment_id,
                 'patient_id': session['user_id'],
-                'amount': amount / 100,  # Convert to INR
+                'amount': amount / 1,  # Convert to INR
                 'currency': 'INR',
                 'status': 'created',
                 'therapy_type': therapy_type,

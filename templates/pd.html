@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #FAFCFB; color: #2c3e50; }
+        body { background-color: #f5f7fb; color: #2c3e50; }
         
         /* Fixed Sidebar Layout */
         .sidebar-container {
@@ -18,7 +18,7 @@
         }
         
         .sidebar { 
-            background: linear-gradient(180deg, #168E9A 0%, #12606C 100%); 
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%); 
             color: white; 
             width: 280px;
             min-height: 100vh;
@@ -82,7 +82,7 @@
             width: 40px; 
             height: 40px; 
             border-radius: 50%; 
-            background-color: #168E9A; 
+            background-color: #10b981; 
             color: white; 
             display: flex; 
             align-items: center; 
@@ -126,7 +126,7 @@
         }
         
         .appointment-card { 
-            border-left: 4px solid #168E9A; 
+            border-left: 4px solid #10b981; 
             transition: all 0.3s; 
             padding: 1rem;
             margin-bottom: 1rem;
@@ -180,9 +180,9 @@
             font-size: 1.25rem;
         }
         
-        .stat-icon.blue { background: rgba(70, 180, 191, 0.1); color: #46B4BF; }
-        .stat-icon.green { background: rgba(22, 142, 154, 0.1); color: #168E9A; }
-        .stat-icon.yellow { background: rgba(236, 147, 43, 0.1); color: #EC932B; }
+        .stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+        .stat-icon.green { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+        .stat-icon.yellow { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
         .stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
         
         .stat-value { 
@@ -221,7 +221,7 @@
         .action-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-            border-color: #168E9A;
+            border-color: #10b981;
         }
         
         .action-icon {
@@ -235,8 +235,8 @@
             font-size: 1.25rem;
         }
         
-        .action-icon.blue { background: rgba(70, 180, 191, 0.1); color: #46B4BF; }
-        .action-icon.green { background: rgba(22, 142, 154, 0.1); color: #168E9A; }
+        .action-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+        .action-icon.green { background: rgba(16, 185, 129, 0.1); color: #10B981; }
         .action-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
         
         .action-title {
@@ -252,7 +252,7 @@
         
         /* Welcome Banner */
         .welcome-banner {
-            background: linear-gradient(135deg, #168E9A 0%, #12606C 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
             padding: 2rem;
             border-radius: 12px;
@@ -299,7 +299,7 @@
         
         .section-header i {
             margin-right: 0.5rem;
-            color: #168E9A;
+            color: #10b981;
         }
         
         /* Empty State */
@@ -312,14 +312,14 @@
         .empty-state i {
             font-size: 3rem;
             margin-bottom: 1rem;
-            color: #BBCBCC;
+            color: #d1d5db;
         }
         
         .scroll-indicator {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #168E9A;
+            background: #10b981;
             color: white;
             width: 40px;
             height: 40px;
@@ -373,25 +373,13 @@
             width: 90%;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
-
-        /* CTA Buttons */
-        .cta-button {
-            background-color: #EC932B;
-            color: white;
-            transition: all 0.3s ease;
-        }
-        
-        .cta-button:hover {
-            background-color: #d98220;
-            transform: translateY(-2px);
-        }
     </style>
 </head>
 <body>
     <div class="sidebar-container">
         <!-- Mobile Menu Button -->
         <div class="mobile-menu-btn fixed top-4 left-4 z-50 lg:hidden">
-            <button id="menuToggle" class="p-2 bg-teal-600 text-white rounded-lg shadow-lg">
+            <button id="menuToggle" class="p-2 bg-green-600 text-white rounded-lg shadow-lg">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
@@ -403,7 +391,7 @@
         <div class="sidebar">
             <div class="sidebar-content">
                 <div class="flex items-center mb-8">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-teal-600 font-bold mr-3">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-green-600 font-bold mr-3">
                         <i class="fas fa-user-injured"></i>
                     </div>
                     <span class="text-xl font-bold">DCAM Patient</span>
@@ -557,7 +545,7 @@
                     <!-- Filter Buttons -->
                     <div class="mb-4">
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="filterAppointments('all')" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition filter-btn active" data-filter="all">
+                            <button onclick="filterAppointments('all')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition filter-btn active" data-filter="all">
                                 <i class="fas fa-list mr-1"></i>All
                             </button>
                             <button onclick="filterAppointments('upcoming')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition filter-btn" data-filter="upcoming">
@@ -684,7 +672,7 @@
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p class="text-gray-500">Error loading appointments</p>
-                        <button onclick="loadAllAppointments()" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                        <button onclick="loadAllAppointments()" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
                             Try Again
                         </button>
                     </div>
@@ -731,7 +719,7 @@
                     <i class="fas fa-calendar-times"></i>
                     <p class="text-gray-500">No ${filter === 'all' ? '' : filter + ' '}appointments found</p>
                     ${filter === 'all' ? `
-                        <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                        <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
                             Book Your First Appointment
                         </a>
                     ` : ''}
@@ -782,7 +770,7 @@
                     actionButtons = `
                         <div class="mt-3 flex gap-2 flex-wrap">
                             <button onclick="completePayment('${appointmentId}', '${therapyType}')" 
-                                    class="px-3 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition flex items-center">
+                                    class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition flex items-center">
                                 <i class="fas fa-credit-card mr-1"></i>Complete Payment
                             </button>
                             <button onclick="cancelAppointment('${appointmentId}')" 
@@ -958,250 +946,443 @@
     }
 
     function updatePatientStats(stats) {
-        // Safely update stats with fallbacks
-        document.getElementById('upcomingAppointmentsCount').textContent = stats.upcoming_appointments || 0;
-        document.getElementById('completedSessionsCount').textContent = stats.completed_sessions || 0;
-        document.getElementById('pendingPaymentsCount').textContent = stats.pending_payments || stats.pending_appointments || 0;
-        document.getElementById('therapiesTriedCount').textContent = stats.therapies_tried || 0;
+        // Safely update stats with null checks
+        const upcomingEl = document.getElementById('upcomingAppointmentsCount');
+        const completedEl = document.getElementById('completedSessionsCount');
+        const pendingEl = document.getElementById('pendingPaymentsCount');
+        const therapiesEl = document.getElementById('therapiesTriedCount');
+        
+        if (upcomingEl) upcomingEl.textContent = stats.upcoming_appointments || 0;
+        if (completedEl) completedEl.textContent = stats.completed_sessions || 0;
+        if (pendingEl) pendingEl.textContent = stats.pending_appointments || 0;
+        if (therapiesEl) therapiesEl.textContent = stats.therapies_tried || 0;
     }
 
     function updateStatsFromAppointments(appointments) {
-        // Safely calculate stats from appointments
         const safeAppointments = safeArray(appointments);
         
-        const upcoming = safeAppointments.filter(apt => 
-            apt && ['pending', 'confirmed', 'scheduled'].includes(apt.status)
-        ).length;
-        
-        const completed = safeAppointments.filter(apt => apt && apt.status === 'completed').length;
-        const paymentPending = safeAppointments.filter(apt => 
+        const pendingPayments = safeAppointments.filter(apt => 
             apt && (apt.status === 'payment_pending' || apt.payment_status === 'unpaid')
         ).length;
         
-        // Count unique therapy types
-        const therapyTypes = new Set();
-        safeAppointments.forEach(apt => {
-            if (apt && apt.therapy_type) {
-                therapyTypes.add(apt.therapy_type);
-            }
-        });
+        const upcomingAppointments = safeAppointments.filter(apt => 
+            apt && ['pending', 'confirmed', 'scheduled'].includes(apt.status)
+        ).length;
         
-        // Update stats
-        document.getElementById('upcomingAppointmentsCount').textContent = upcoming;
-        document.getElementById('completedSessionsCount').textContent = completed;
-        document.getElementById('pendingPaymentsCount').textContent = paymentPending;
-        document.getElementById('therapiesTriedCount').textContent = therapyTypes.size;
+        const completedSessions = safeAppointments.filter(apt => 
+            apt && apt.status === 'completed'
+        ).length;
+        
+        const uniqueTherapies = [...new Set(safeAppointments.map(apt => apt.therapy_type).filter(Boolean))].length;
+        
+        document.getElementById('pendingPaymentsCount').textContent = pendingPayments;
+        document.getElementById('upcomingAppointmentsCount').textContent = upcomingAppointments;
+        document.getElementById('completedSessionsCount').textContent = completedSessions;
+        document.getElementById('therapiesTriedCount').textContent = uniqueTherapies;
+    }
+
+    // Payment Functions
+    function completePayment(appointmentId, therapyType) {
+        showPaymentModal(appointmentId, therapyType);
+    }
+
+    function showPaymentModal(appointmentId, therapyType) {
+        currentAppointmentId = appointmentId;
+        currentTherapyType = therapyType;
+        
+        const modalHtml = `
+            <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Complete Payment</h3>
+                        <button onclick="closePaymentModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-gray-600">Therapy: <span id="paymentTherapy" class="font-semibold">${therapyType.charAt(0).toUpperCase() + therapyType.slice(1)}</span></p>
+                        <p class="text-gray-600">Amount: <span class="font-semibold text-green-600">₹100</span></p>
+                        <p class="text-sm text-gray-500 mt-2">🔒 Secure payment powered by Razorpay</p>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button id="payNowBtn" class="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition flex items-center justify-center font-semibold">
+                            <i class="fas fa-credit-card mr-2"></i>Pay Now
+                        </button>
+                        <button onclick="closePaymentModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400 transition font-semibold">
+                            Cancel
+                        </button>
+                    </div>
+                    
+                    <div id="paymentStatus" class="mt-4 hidden">
+                        <div id="paymentSuccess" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded hidden">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span>Payment successful! Redirecting...</span>
+                        </div>
+                        <div id="paymentError" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded hidden">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span>Payment failed. Please try again.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-xs text-gray-500">
+                        <p>💡 You can cancel within 2 days for full refund</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('paymentModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Add event listener to pay button
+        document.getElementById('payNowBtn').addEventListener('click', initiateRazorpayPayment);
+    }
+
+    function closePaymentModal() {
+        const modal = document.getElementById('paymentModal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    async function initiateRazorpayPayment() {
+        try {
+            const payButton = document.getElementById('payNowBtn');
+            const originalText = payButton.innerHTML;
+            payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+            payButton.disabled = true;
+
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    appointment_id: currentAppointmentId,
+                    therapy_type: currentTherapyType
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // Razorpay options
+            const options = {
+                key: data.key_id,
+                amount: data.amount,
+                currency: data.currency,
+                name: 'DCAM Therapy Center',
+                description: `Payment for ${currentTherapyType} therapy`,
+                order_id: data.order_id,
+                handler: async function(response) {
+                    // Verify payment
+                    const verifyResponse = await fetch('/api/verify-payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    });
+
+                    const verifyData = await verifyResponse.json();
+
+                    if (verifyData.error) {
+                        showPaymentError();
+                        payButton.disabled = false;
+                        payButton.innerHTML = originalText;
+                    } else {
+                        showPaymentSuccess();
+                        // Close modal and refresh appointments after 2 seconds
+                        setTimeout(() => {
+                            closePaymentModal();
+                            loadAllAppointments();
+                            loadPatientStats();
+                            loadPaymentHistory();
+                            showAlert('Payment successful! Waiting for receptionist confirmation.', 'success');
+                        }, 2000);
+                    }
+                },
+                prefill: {
+                    name: "{{ session.first_name }} {{ session.last_name }}",
+                    email: "{{ session.email }}",
+                    contact: document.getElementById('patientPhone')?.value || ''
+                },
+                theme: {
+                    color: '#10b981'
+                },
+                modal: {
+                    ondismiss: function() {
+                        payButton.disabled = false;
+                        payButton.innerHTML = originalText;
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+
+        } catch (error) {
+            console.error('Payment error:', error);
+            showPaymentError();
+            const payButton = document.getElementById('payNowBtn');
+            if (payButton) {
+                payButton.disabled = false;
+                payButton.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay Now';
+            }
+        }
+    }
+
+    function showPaymentSuccess() {
+        const paymentStatus = document.getElementById('paymentStatus');
+        const paymentSuccess = document.getElementById('paymentSuccess');
+        if (paymentStatus && paymentSuccess) {
+            paymentStatus.classList.remove('hidden');
+            paymentSuccess.classList.remove('hidden');
+        }
+    }
+
+    function showPaymentError() {
+        const paymentStatus = document.getElementById('paymentStatus');
+        const paymentError = document.getElementById('paymentError');
+        if (paymentStatus && paymentError) {
+            paymentError.classList.remove('hidden');
+            paymentStatus.classList.remove('hidden');
+        }
+    }
+
+    // Appointment Actions
+    function cancelAppointment(appointmentId) {
+        if (confirm('Are you sure you want to cancel this appointment? This action cannot be undone.')) {
+            fetch(`/api/appointments/${appointmentId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showAlert('Error: ' + data.error, 'error');
+                } else {
+                    showAlert('Appointment cancelled successfully!', 'success');
+                    loadAllAppointments();
+                    loadPatientStats();
+                    loadPaymentHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Error cancelling appointment:', error);
+                showAlert('Failed to cancel appointment. Please try again.', 'error');
+            });
+        }
+    }
+
+    function requestRefund(appointmentId) {
+        if (confirm('Are you sure you want to request a refund? This will cancel your appointment and the refund will be processed within 3-5 business days.')) {
+            fetch(`/api/appointments/${appointmentId}/request-refund`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showAlert('Error: ' + data.error, 'error');
+                } else {
+                    showAlert(data.message, 'success');
+                    loadAllAppointments();
+                    loadPatientStats();
+                    loadPaymentHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Error requesting refund:', error);
+                showAlert('Failed to request refund. Please try again.', 'error');
+            });
+        }
+    }
+
+    function viewReceipt(appointmentId) {
+        window.open(`/appointment-receipt/${appointmentId}`, '_blank');
     }
 
     function loadNotifications() {
-        fetch('/api/patient-notifications')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load notifications');
-                }
-                return response.json();
-            })
+        // Check if notification elements exist first
+        if (!document.getElementById('notificationList') && 
+            !document.getElementById('notificationCount')) {
+            return; // Exit if required elements don't exist
+        }
+        
+        fetch('/api/notifications')
+            .then(response => response.json())
             .then(notifications => {
                 renderNotifications(notifications);
             })
             .catch(error => {
                 console.error('Error loading notifications:', error);
-                renderNotifications([]);
             });
     }
 
     function renderNotifications(notifications) {
-        const container = document.getElementById('notifications');
-        if (!container) {
-            console.warn('Notifications container not found');
-            return;
-        }
+        const container = document.getElementById('notificationList');
+        const countElement = document.getElementById('notificationCount');
         
-        // Ensure notifications is always an array
+        if (!container) return; // Exit if container doesn't exist
+        
         const safeNotifications = safeArray(notifications);
+        const unreadNotifications = safeNotifications.filter(n => !n.is_read);
+        const unreadCount = unreadNotifications.length;
+        
+        // Update notification badge if element exists
+        if (countElement) {
+            if (unreadCount > 0) {
+                countElement.textContent = unreadCount;
+                countElement.classList.remove('hidden');
+            } else {
+                countElement.classList.add('hidden');
+            }
+        }
         
         if (safeNotifications.length === 0) {
             container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-bell-slash"></i>
-                    <p class="text-gray-500">No notifications</p>
+                <div class="p-3 text-center text-gray-500">
+                    <i class="fas fa-bell-slash mb-2"></i>
+                    <p class="text-sm">No notifications</p>
                 </div>
             `;
             return;
         }
         
         container.innerHTML = safeNotifications.map(notification => {
-            if (!notification) return '';
+            const timeAgo = getTimeAgo(notification.created_at);
+            const readClass = notification.is_read ? '' : 'bg-green-50 border-l-4 border-green-500';
             
-            try {
-                const date = new Date(notification.created_at || new Date());
-                const timeAgo = getTimeAgo(date);
-                
-                return `
-                    <div class="p-3 border-b">
-                        <p class="text-sm">${notification.message || 'Notification'}</p>
-                        <p class="text-xs text-gray-500 mt-1">${timeAgo}</p>
+            return `
+                <div class="p-3 border-b ${readClass} notification-item" data-id="${notification._id}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm text-gray-800">${notification.title}</p>
+                            <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                            <p class="text-xs text-gray-400 mt-1">${timeAgo}</p>
+                        </div>
+                        ${!notification.is_read ? `
+                            <button onclick="markNotificationRead('${notification._id}')" class="ml-2 text-green-600 hover:text-green-800">
+                                <i class="fas fa-check text-xs"></i>
+                            </button>
+                        ` : ''}
                     </div>
-                `;
-            } catch (error) {
-                console.error('Error rendering notification:', error);
-                return '';
-            }
+                </div>
+            `;
         }).join('');
     }
 
-    function getTimeAgo(date) {
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins} min ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    }
-
-    // Scroll to top functionality
-    window.addEventListener('scroll', function() {
-        const scrollBtn = document.getElementById('scrollToTop');
-        if (window.scrollY > 300) {
-            scrollBtn.classList.add('active');
-        } else {
-            scrollBtn.classList.remove('active');
-        }
-    });
-
-    document.getElementById('scrollToTop').addEventListener('click', function() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // Payment functionality
-    function completePayment(appointmentId, therapyType) {
-        currentAppointmentId = appointmentId;
-        currentTherapyType = therapyType;
-        
-        // Show payment modal
-        showPaymentModal(appointmentId, therapyType);
-    }
-
-    function showPaymentModal(appointmentId, therapyType) {
-        const modal = document.createElement('div');
-        modal.className = 'payment-modal';
-        modal.innerHTML = `
-            <div class="payment-modal-content">
-                <h3 class="text-xl font-bold mb-4">Complete Payment</h3>
-                <p class="mb-4">You are about to pay for your ${therapyType} therapy appointment.</p>
-                <p class="mb-4 font-semibold">Amount: ₹500</p>
-                <div class="flex justify-between mt-6">
-                    <button onclick="closePaymentModal()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
-                        Cancel
-                    </button>
-                    <button onclick="initiateRazorpayPayment()" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
-                        Pay Now
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    }
-
-    function closePaymentModal() {
-        const modal = document.querySelector('.payment-modal');
-        if (modal) {
-            modal.remove();
-        }
-    }
-
-    function initiateRazorpayPayment() {
-        const options = {
-            key: 'YOUR_RAZORPAY_KEY',
-            amount: 50000, // Amount in paise (₹500)
-            currency: 'INR',
-            name: 'DCAM Therapy Center',
-            description: 'Therapy Appointment Payment',
-            handler: function(response) {
-                handlePaymentSuccess(response);
-            },
-            prefill: {
-                name: '{{ session.first_name }} {{ session.last_name }}',
-                email: '{{ session.email }}',
-                contact: '{{ session.phone }}'
-            },
-            theme: {
-                color: '#168E9A'
-            }
-        };
-        
-        const rzp = new Razorpay(options);
-        rzp.open();
-    }
-
-    function handlePaymentSuccess(response) {
-        // Send payment success to server
-        fetch('/api/confirm-payment', {
+    function markNotificationRead(notificationId) {
+        fetch('/api/notifications/read', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                appointment_id: currentAppointmentId,
-                payment_id: response.razorpay_payment_id,
-                amount: 500
-            })
+            body: JSON.stringify({ notification_id: notificationId })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Payment successful! Your appointment is confirmed.');
-                closePaymentModal();
-                // Refresh appointments
-                loadAllAppointments();
-                loadPatientStats();
-            } else {
-                alert('Payment verification failed. Please contact support.');
-            }
+        .then(() => {
+            loadNotifications();
         })
         .catch(error => {
-            console.error('Error confirming payment:', error);
-            alert('Error confirming payment. Please contact support.');
+            console.error('Error marking notification as read:', error);
         });
     }
 
-    function cancelAppointment(appointmentId) {
-        if (confirm('Are you sure you want to cancel this appointment?')) {
-            fetch('/api/cancel-appointment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    appointment_id: appointmentId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Appointment cancelled successfully.');
-                    // Refresh appointments
-                    loadAllAppointments();
-                    loadPatientStats();
-                } else {
-                    alert('Failed to cancel appointment: ' + (data.message || 'Unknown error'));
-                }
-            })
-            .catch(error => {
-                console.error('Error cancelling appointment:', error);
-                alert('Error cancelling appointment. Please try again.');
-            });
-        }
+    function getTimeAgo(dateString) {
+        if (!dateString) return 'Recently';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffHours < 24) return `${diffHours} hr ago`;
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        
+        return date.toLocaleDateString();
     }
 
-    function viewReceipt(appointmentId) {
-        // Open receipt in new tab
-        window.open(`/patient-receipt/${appointmentId}`, '_blank');
+    function showAlert(message, type = 'info') {
+        // Create alert element
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+            type === 'error' ? 'bg-red-100 border-red-400 text-red-700' : 
+            type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 
+            'bg-blue-100 border-blue-400 text-blue-700'
+        } border-l-4`;
+        
+        alertDiv.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${type === 'error' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} mr-3"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 5000);
     }
-</script>
+
+    // Scroll to top functionality
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    
+    if (scrollToTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopBtn.classList.add('active');
+            } else {
+                scrollToTopBtn.classList.remove('active');
+            }
+        });
+        
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // Sidebar navigation
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Close mobile menu if open
+            if (window.innerWidth < 768) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        });
+    });
+</script>     
 </body>
 </html>
+
+ 
