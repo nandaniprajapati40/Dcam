@@ -706,21 +706,6 @@ def init_database():
                 except Exception as e:
                     logger.warning(f"⚠️ Could not create index for {collection_name}: {e}")
 
-        # for collection_name, indexes in required_collections.items():
-        #     if collection_name not in collections:
-        #         current_db.create_collection(collection_name)
-        #         logger.info(f"✅ Created collection: {collection_name}")
-            
-        #     # Create indexes with corrected structure
-        #     for index_config in indexes:
-        #         try:
-        #             keys = index_config['keys']
-        #             options = index_config['options']
-        #             current_db[collection_name].create_index(keys, **options)
-        #             logger.info(f"✅ Created index for {collection_name}: {keys}")
-        #         except Exception as e:
-        #             logger.warning(f"⚠️ Could not create index for {collection_name}: {e}")
-        
         # Insert predefined users
         users_created = 0
         for user_key, user_data in PREDEFINED_USERS.items():
@@ -1437,11 +1422,7 @@ def register():
                 'address': data.get('address', ''),
                 'date_of_birth': data.get('date_of_birth', ''),
                 'gender': data.get('gender', ''),
-              #  'blood_group': data.get('blood_group', ''),
-               # 'allergies': data.get('allergies', ''),
-                #'medical_conditions': data.get('medical_conditions', ''),
-                #'current_medications': data.get('current_medications', ''),
-                #'emergency_contact': data.get('emergency_contact', '')
+            
             })
 
         # Insert into database if connected
@@ -1617,56 +1598,190 @@ def patient_dashboard_stats():
     except Exception as e:
         logger.error(f"Error getting patient stats: {e}")
         return jsonify({'error': 'Failed to load stats'}), 500
+    
 
-# @app.route('/api/patient-appointments')
-# @login_required
-# @role_required(['patient'])
-# def get_patient_appointments():
-#     """Get patient's appointments"""
-#     try:
-#         current_db = get_db_safe()
-#         patient_id = session['user_id']
 
-#         if current_db is not None:
-#             appointments = list(current_db.appointments.find({
-#                 'patient_id': patient_id
-#             }).sort('date', -1))
 
-#             # Enhance appointment data
-#             enhanced_appointments = []
-#             for appt in appointments:
-#                 doctor = current_db.users.find_one({'user_id': appt.get('therapist_id')})
-#                 enhanced_appt = {
-#                     'appointment_id': appt.get('appointment_id'),
-#                     'therapy_type': appt.get('therapy_type'),
-#                     'therapy_name': appt.get('therapy_type', '').title(),
-#                     'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Not assigned',
-#                     'date': appt.get('date'),
-#                     'status': appt.get('status'),
-#                     'payment_status': appt.get('payment_status', 'unpaid'),
-#                     'reason': appt.get('reason', ''),
-#                     'consultation_type': appt.get('consultation_type', 'General')
-#                 }
-#                 enhanced_appointments.append(enhanced_appt)
 
-#             return jsonify(enhanced_appointments)
-#         else:
-#             # Return demo data
-#             return jsonify([{
-#                 'appointment_id': 'APT001',
-#                 'therapy_type': 'acupressure',
-#                 'therapy_name': 'Acupressure',
-#                 'doctor_name': 'Dr. Rajesh Sharma',
-#                 'date': datetime.now(timezone.utc).isoformat(),
-#                 'status': 'pending',
-#                 'payment_status': 'unpaid',
-#                 'reason': 'Back pain',
-#                 'consultation_type': 'General'
-#             }])
 
-#     except Exception as e:
-#         logger.error(f"Error getting patient appointments: {e}")
-#         return jsonify({'error': 'Failed to load appointments'}), 500
+
+
+@app.route('/api/confirm-payment', methods=['POST'])
+@login_required
+def confirm_payment():
+    """Confirm payment for demo mode"""
+    try:
+        data = request.get_json()
+        appointment_id = data.get('appointment_id')
+        payment_id = data.get('payment_id')
+        amount = data.get('amount')
+        
+        if not appointment_id:
+            return jsonify({'success': False, 'error': 'Appointment ID is required'}), 400
+        
+        current_db = get_db_safe()
+        
+        if current_db is not None:
+            # Update appointment payment status
+            result = current_db.appointments.update_one(
+                {'appointment_id': appointment_id},
+                {'$set': {
+                    'payment_status': 'paid',
+                    'status': 'pending',  # Waiting for receptionist confirmation
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            
+            if result.modified_count == 0:
+                return jsonify({'success': False, 'error': 'Appointment not found'}), 404
+            
+            # Create or update payment record
+            payment_data = {
+                'payment_id': payment_id or f"PAY{random.randint(1000, 9999)}",
+                'appointment_id': appointment_id,
+                'patient_id': session['user_id'],
+                'amount': amount or 50,
+                'currency': 'INR',
+                'status': 'paid',
+                'paid_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }
+            
+            existing_payment = current_db.payments.find_one({'appointment_id': appointment_id})
+            if existing_payment:
+                current_db.payments.update_one(
+                    {'appointment_id': appointment_id},
+                    {'$set': payment_data}
+                )
+            else:
+                payment_data['created_at'] = datetime.utcnow()
+                current_db.payments.insert_one(payment_data)
+            
+            # Create notifications
+            create_notification(
+                session['user_id'],
+                'Payment Successful! 🎉',
+                f'Your payment of ₹{amount or 50} for appointment {appointment_id} has been received. Waiting for receptionist confirmation.',
+                'success'
+            )
+            
+            create_notification(
+                'REC001',
+                'New Payment Received',
+                f'Payment received for appointment {appointment_id}. Please confirm the appointment.',
+                'info'
+            )
+        
+        logger.info(f"✅ Payment confirmed for appointment: {appointment_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Payment confirmed successfully! ₹50 payment received. Your appointment is pending receptionist confirmation.',
+            'appointment_id': appointment_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error confirming payment: {e}")
+        return jsonify({'success': False, 'error': 'Failed to confirm payment'}), 500
+
+
+@app.route('/api/cancel-appointment', methods=['POST'])
+@login_required
+def cancel_appointment_api():
+    """Cancel appointment API endpoint - matches the JavaScript call"""
+    try:
+        data = request.get_json()
+        appointment_id = data.get('appointment_id')
+        
+        if not appointment_id:
+            return jsonify({'success': False, 'error': 'Appointment ID is required'}), 400
+        
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'success': True, 'message': 'Appointment cancelled (demo mode)'})
+        
+        # Get appointment details
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if not appointment:
+            return jsonify({'success': False, 'error': 'Appointment not found'}), 404
+        
+        # Check if user owns this appointment or has permission
+        if session['role'] == 'patient' and appointment.get('patient_id') != session['user_id']:
+            return jsonify({'success': False, 'error': 'Unauthorized to cancel this appointment'}), 403
+        
+        # Update appointment status
+        result = current_db.appointments.update_one(
+            {'appointment_id': appointment_id},
+            {'$set': {
+                'status': 'cancelled',
+                'cancelled_by': session['user_id'],
+                'cancelled_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            return jsonify({'success': False, 'error': 'Failed to cancel appointment'}), 400
+        
+        # Create notifications
+        create_notification(
+            session['user_id'],
+            'Appointment Cancelled',
+            f'Your {appointment.get("therapy_type", "therapy")} appointment has been cancelled.',
+            'warning'
+        )
+        
+        # Notify receptionist if applicable
+        if session['role'] == 'patient':
+            create_notification(
+                'REC001',
+                'Appointment Cancelled by Patient',
+                f'Appointment {appointment_id} for {appointment.get("therapy_type")} has been cancelled by patient.',
+                'warning'
+            )
+        
+        logger.info(f"✅ Appointment {appointment_id} cancelled by {session['user_id']}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Appointment cancelled successfully',
+            'appointment_id': appointment_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error cancelling appointment: {e}")
+        return jsonify({'success': False, 'error': 'Failed to cancel appointment'}), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @app.route('/api/patient-appointments')
@@ -2184,59 +2299,238 @@ def get_receptionist_notifications():
         logger.error(f"Error getting receptionist notifications: {e}")
         return jsonify([])
 
-
-
-
-# Enhanced Payment Configuration
+# Razorpay Configuration - REAL PAYMENT
 RAZORPAY_CONFIG = {
     'key_id': os.environ.get('RAZORPAY_KEY_ID'),
     'key_secret': os.environ.get('RAZORPAY_KEY_SECRET'),
     'therapy_prices': {
-        'acupressure': 10000,  # 100 INR in paise
-        'ayurveda': 10000,
-        'homeopathy': 10000,
-        'naturopathy': 10000,
-        'yoga': 10000,
-        'unani': 10000,
-        'chiropractic': 10000,
-        'physiotherapy': 10000,
-        'diet': 10000,
-        'herbal': 10000,
-        'sound': 10000
+        'acupressure': 5000,  # 50 INR in paise (50 * 100)
+        'ayurveda': 5000,
+        'homeopathy': 5000,
+        'naturopathy': 5000,
+        'yoga': 5000,
+        'unani': 5000,
+        'chiropractic': 5000,
+        'physiotherapy': 5000,
+        'diet': 5000,
+        'herbal': 5000,
+        'sound': 5000
     }
 }
 
 # Initialize Razorpay client
-razorpay_client = razorpay.Client(auth=(RAZORPAY_CONFIG['key_id'], RAZORPAY_CONFIG['key_secret']))
+try:
+    if RAZORPAY_CONFIG['key_id'] and RAZORPAY_CONFIG['key_secret']:
+        razorpay_client = razorpay.Client(auth=(RAZORPAY_CONFIG['key_id'], RAZORPAY_CONFIG['key_secret']))
+        logger.info("✅ Razorpay client initialized successfully")
+    else:
+        razorpay_client = None
+        logger.warning("⚠️ Razorpay keys not found - payment system disabled")
+except Exception as e:
+    logger.error(f"❌ Razorpay initialization failed: {e}")
+    razorpay_client = None
 
-# Enhanced Payment Routes
+
+# Razorpay Configuration - REAL PAYMENT
+# RAZORPAY_CONFIG = {
+#     'key_id': os.environ.get('RAZORPAY_KEY_ID'),
+#     'key_secret': os.environ.get('RAZORPAY_KEY_SECRET'),
+#     'therapy_prices': {
+#         'acupressure': 5000,  # 50 INR in paise (50 * 100)
+#         'ayurveda': 5000,
+#         'homeopathy': 5000,
+#         'naturopathy': 5000,
+#         'yoga': 5000,
+#         'unani': 5000,
+#         'chiropractic': 5000,
+#         'physiotherapy': 5000,
+#         'diet': 5000,
+#         'herbal': 5000,
+#         'sound': 5000
+#     }
+# }
+
+# # Initialize Razorpay client for REAL PAYMENTS
+# try:
+#     if RAZORPAY_CONFIG['key_id'] and RAZORPAY_CONFIG['key_secret']:
+#         razorpay_client = razorpay.Client(auth=(RAZORPAY_CONFIG['key_id'], RAZORPAY_CONFIG['key_secret']))
+        
+#         # Test the connection
+#         razorpay_client.order.create({
+#             'amount': 100,  # 1 rupee test
+#             'currency': 'INR',
+#             'receipt': 'test_connection',
+#             'payment_capture': 1
+#         })
+        
+#         logger.info("✅ Razorpay LIVE client initialized successfully")
+#         logger.info(f"💰 Payment System: LIVE MODE (Key: {RAZORPAY_CONFIG['key_id'][:8]}...)")
+#     else:
+#         raise Exception("Razorpay keys not found in environment variables")
+# except Exception as e:
+#     logger.error(f"❌ Razorpay LIVE initialization failed: {e}")
+#     logger.error("💡 Check: 1) Live Keys in .env 2) Razorpay Account Active 3) Internet Connection")
+#     razorpay_client = None
+
+
+
+
+
+
+@app.route('/api/verify-payment', methods=['POST'])
+@login_required
+def verify_payment():
+    """Verify REAL Razorpay payment and update records"""
+    try:
+        if razorpay_client is None:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system temporarily unavailable'
+            }), 503
+            
+        data = request.get_json()
+        razorpay_payment_id = data.get('razorpay_payment_id')
+        razorpay_order_id = data.get('razorpay_order_id')
+        razorpay_signature = data.get('razorpay_signature')
+        
+        if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
+            return jsonify({
+                'success': False,
+                'error': 'Missing payment verification data'
+            }), 400
+        
+        logger.info(f"🔍 Verifying REAL payment: {razorpay_payment_id}")
+        
+        # Verify payment signature - CRITICAL STEP
+        params_dict = {
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        }
+        
+        try:
+            razorpay_client.utility.verify_payment_signature(params_dict)
+            logger.info(f"✅ Payment signature verified: {razorpay_payment_id}")
+        except razorpay.errors.SignatureVerificationError as e:
+            logger.error(f"❌ Payment signature verification FAILED: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Payment verification failed. Please contact support.'
+            }), 400
+        
+        # Update payment status in database
+        current_db = get_db_safe()
+        if current_db is not None:
+            # Update payment record
+            update_result = current_db.payments.update_one(
+                {'payment_id': razorpay_order_id},
+                {'$set': {
+                    'razorpay_payment_id': razorpay_payment_id,
+                    'status': 'paid',
+                    'paid_at': datetime.utcnow(),
+                    'updated_at': datetime.utcnow(),
+                    'signature_verified': True
+                }}
+            )
+            
+            if update_result.modified_count == 0:
+                logger.error(f"Payment record not found for order: {razorpay_order_id}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Payment record not found'
+                }), 404
+            
+            # Get payment details to update appointment
+            payment = current_db.payments.find_one({'payment_id': razorpay_order_id})
+            if payment:
+                # Update appointment status to confirmed
+                appointment_update = current_db.appointments.update_one(
+                    {'appointment_id': payment['appointment_id']},
+                    {'$set': {
+                        'status': 'confirmed',
+                        'payment_status': 'paid',
+                        'payment_id': razorpay_order_id,
+                        'razorpay_payment_id': razorpay_payment_id,
+                        'updated_at': datetime.utcnow()
+                    }}
+                )
+                
+                if appointment_update.modified_count > 0:
+                    # Get appointment details for notification
+                    appointment = current_db.appointments.find_one({'appointment_id': payment['appointment_id']})
+                    
+                    # Create success notifications
+                    create_notification(
+                        session['user_id'],
+                        'Payment Successful! 🎉',
+                        f'Payment of ₹{payment["amount"]} received for your {payment["therapy_type"]} appointment. Your appointment is now confirmed.',
+                        'success'
+                    )
+                    
+                    create_notification(
+                        'REC001',
+                        'New Paid Appointment - Confirmed',
+                        f'Payment received for appointment {payment["appointment_id"]}. Patient: {session.get("first_name")} {session.get("last_name")}',
+                        'info'
+                    )
+                    
+                    logger.info(f"✅ REAL Payment completed: {razorpay_payment_id}, Appointment: {payment['appointment_id']}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Payment verified successfully! Your appointment is now confirmed.',
+            'appointment_id': payment['appointment_id'] if payment else None,
+            'payment_id': razorpay_payment_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error verifying REAL payment: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Payment verification failed. Please contact support with your payment ID.'
+        }), 500
+
 @app.route('/api/create-payment', methods=['POST'])
 @login_required
 def create_payment():
-    """Create Razorpay payment order"""
+    """Create REAL Razorpay payment order"""
     try:
+        # Check if Razorpay is properly configured
+        if razorpay_client is None:
+            return jsonify({
+                'success': False,
+                'error': 'Payment system is currently unavailable. Please try again later.'
+            }), 503
+        
         data = request.get_json()
         appointment_id = data.get('appointment_id')
-        therapy_type = data.get('therapy_type')
+        therapy_type = data.get('therapy_type', 'acupressure')
         
-        if not appointment_id or not therapy_type:
-            return jsonify({'error': 'Appointment ID and therapy type are required'}), 400
+        if not appointment_id:
+            return jsonify({
+                'success': False,
+                'error': 'Appointment ID is required'
+            }), 400
         
-        # Get therapy price
-        amount = RAZORPAY_CONFIG['therapy_prices'].get(therapy_type, 10000)
+        # Get therapy price (convert to paise)
+        amount = RAZORPAY_CONFIG['therapy_prices'].get(therapy_type, 5000)
+        
+        logger.info(f"💰 Creating payment order for {appointment_id}, Amount: {amount} paise")
         
         # Create Razorpay order
         order_data = {
             'amount': amount,
             'currency': 'INR',
-            'receipt': f'receipt_{appointment_id}',
+            'receipt': f'receipt_{appointment_id}_{int(datetime.utcnow().timestamp())}',
             'notes': {
                 'appointment_id': appointment_id,
                 'therapy_type': therapy_type,
                 'patient_id': session['user_id']
-            }
+            },
+            'payment_capture': 1
         }
         
+        # Create order in Razorpay
         order = razorpay_client.order.create(data=order_data)
         
         # Store payment record in database
@@ -2246,100 +2540,128 @@ def create_payment():
                 'payment_id': order['id'],
                 'appointment_id': appointment_id,
                 'patient_id': session['user_id'],
-                'amount': amount / 1,  # Convert to INR
+                'amount': amount / 100,  # Convert back to rupees for display
                 'currency': 'INR',
                 'status': 'created',
                 'therapy_type': therapy_type,
+                'razorpay_order_id': order['id'],
                 'created_at': datetime.utcnow(),
                 'updated_at': datetime.utcnow()
             }
             current_db.payments.insert_one(payment_doc)
         
+        logger.info(f"✅ Razorpay order created: {order['id']}")
+        
         return jsonify({
+            'success': True,
             'order_id': order['id'],
             'amount': order['amount'],
             'currency': order['currency'],
-            'key_id': RAZORPAY_CONFIG['key_id']
+            'key_id': RAZORPAY_CONFIG['key_id'],  # This sends the REAL key to frontend
+            'amount_in_rupees': amount / 100
         })
         
     except Exception as e:
         logger.error(f"Error creating payment: {e}")
-        return jsonify({'error': 'Failed to create payment'}), 500
-
-@app.route('/api/verify-payment', methods=['POST'])
-@login_required
-def verify_payment():
-    """Verify Razorpay payment signature"""
-    try:
-        data = request.get_json()
-        payment_id = data.get('razorpay_payment_id')
-        order_id = data.get('razorpay_order_id')
-        signature = data.get('razorpay_signature')
-        
-        # Verify payment signature
-        params_dict = {
-            'razorpay_order_id': order_id,
-            'razorpay_payment_id': payment_id,
-            'razorpay_signature': signature
-        }
-        
-        try:
-            razorpay_client.utility.verify_payment_signature(params_dict)
-        except razorpay.errors.SignatureVerificationError:
-            return jsonify({'error': 'Payment verification failed'}), 400
-        
-        # Update payment status in database
-        current_db = get_db_safe()
-        if current_db is not None:
-            # Update payment record
-            current_db.payments.update_one(
-                {'payment_id': order_id},
-                {'$set': {
-                    'razorpay_payment_id': payment_id,
-                    'status': 'paid',
-                    'paid_at': datetime.utcnow(),
-                    'updated_at': datetime.utcnow()
-                }}
-            )
-            
-            # Get appointment details from payment
-            payment = current_db.payments.find_one({'payment_id': order_id})
-            if payment:
-                # Update appointment status to pending (waiting for receptionist confirmation)
-                current_db.appointments.update_one(
-                    {'appointment_id': payment['appointment_id']},
-                    {'$set': {
-                        'status': 'pending',
-                        'payment_status': 'paid',
-                        'payment_id': order_id,
-                        'updated_at': datetime.utcnow()
-                    }}
-                )
-                
-                # Create notification for receptionist
-                create_notification(
-                    'REC001',
-                    'New Paid Appointment Request',
-                    f'New appointment request with payment received. Appointment ID: {payment["appointment_id"]}',
-                    'success'
-                )
-                
-                # Create notification for patient
-                create_notification(
-                    session['user_id'],
-                    'Payment Successful',
-                    f'Payment received for appointment {payment["appointment_id"]}. Waiting for receptionist confirmation.',
-                    'success'
-                )
-        
         return jsonify({
-            'message': 'Payment verified successfully',
-            'appointment_id': payment['appointment_id'] if payment else None
-        })
+            'success': False,
+            'error': 'Failed to create payment order. Please try again.'
+        }), 500
+
+
+
+# @app.route('/api/create-payment', methods=['POST'])
+# @login_required
+# def create_payment():
+#     """Create REAL Razorpay payment order"""
+#     try:
+#         # STRICT CHECK: Only allow if Razorpay is properly configured
+#         if razorpay_client is None:
+#             logger.error("Razorpay client not initialized - Check API Keys")
+#             return jsonify({
+#                 'success': False,
+#                 'error': 'Payment gateway is currently unavailable. Please try again in few minutes.'
+#             }), 503
         
-    except Exception as e:
-        logger.error(f"Error verifying payment: {e}")
-        return jsonify({'error': 'Payment verification failed'}), 500
+#         data = request.get_json()
+#         appointment_id = data.get('appointment_id')
+#         therapy_type = data.get('therapy_type', 'acupressure')
+        
+#         if not appointment_id:
+#             return jsonify({
+#                 'success': False,
+#                 'error': 'Appointment ID is required'
+#             }), 400
+        
+#         # Get therapy price (convert to paise)
+#         amount = RAZORPAY_CONFIG['therapy_prices'].get(therapy_type, 5000)
+        
+#         # Validate amount
+#         if amount < 100:  # Minimum 1 rupee
+#             amount = 5000  # Default 50 rupees
+        
+#         logger.info(f"💰 Creating REAL payment order for {appointment_id}, Amount: {amount} paise")
+        
+#         # Create Razorpay order - REAL TRANSACTION
+#         order_data = {
+#             'amount': amount,  # Amount in paise
+#             'currency': 'INR',
+#             'receipt': f'receipt_{appointment_id}_{int(datetime.utcnow().timestamp())}',
+#             'notes': {
+#                 'appointment_id': appointment_id,
+#                 'therapy_type': therapy_type,
+#                 'patient_id': session['user_id'],
+#                 'patient_name': f"{session.get('first_name', '')} {session.get('last_name', '')}"
+#             },
+#             'payment_capture': 1  # Auto capture payment
+#         }
+        
+#         # Create order in Razorpay
+#         order = razorpay_client.order.create(data=order_data)
+        
+#         # Store payment record in database
+#         current_db = get_db_safe()
+#         if current_db is not None:
+#             payment_doc = {
+#                 'payment_id': order['id'],
+#                 'appointment_id': appointment_id,
+#                 'patient_id': session['user_id'],
+#                 'amount': amount / 100,  # Convert back to rupees for display
+#                 'currency': 'INR',
+#                 'status': 'created',
+#                 'therapy_type': therapy_type,
+#                 'razorpay_order_id': order['id'],
+#                 'created_at': datetime.utcnow(),
+#                 'updated_at': datetime.utcnow()
+#             }
+#             current_db.payments.insert_one(payment_doc)
+        
+#         logger.info(f"✅ REAL Razorpay order created: {order['id']} for ₹{amount/100}")
+        
+#         return jsonify({
+#             'success': True,
+#             'order_id': order['id'],
+#             'amount': order['amount'],
+#             'currency': order['currency'],
+#             'key_id': RAZORPAY_CONFIG['key_id'],
+#             'amount_in_rupees': amount / 100
+#         })
+        
+#     except razorpay.errors.BadRequestError as e:
+#         logger.error(f"Razorpay Bad Request: {e}")
+#         return jsonify({
+#             'success': False,
+#             'error': 'Invalid payment request. Please check the amount and try again.'
+#         }), 400
+#     except Exception as e:
+#         logger.error(f"Error creating REAL payment: {e}")
+#         return jsonify({
+#             'success': False,
+#             'error': 'Failed to create payment order. Please try again or contact support.'
+#         }), 500
+
+
+
 
 # Enhanced appointment creation with payment requirement
 @app.route('/api/appointments', methods=['POST'])
