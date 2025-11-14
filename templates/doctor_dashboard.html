@@ -150,6 +150,10 @@
                     <i class="fas fa-user-clock mr-3"></i>
                     <span>Availability</span>
                 </div>
+                <div class="sidebar-item" data-tab="profile">
+                    <i class="fas fa-user-edit mr-3"></i>
+                    <span>My Profile</span>
+                </div>
             </nav>
         </div>
         
@@ -249,7 +253,7 @@
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-xl font-bold text-gray-800">Today's Schedule</h2>
-                            <button onclick="loadAppointments()" class="p-2 text-gray-500 hover:text-blue-600 transition">
+                            <button onclick="loadTodaySchedule()" class="p-2 text-gray-500 hover:text-blue-600 transition">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
@@ -395,29 +399,83 @@
             <div id="availabilityTab" class="hidden">
                 <div class="card p-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-6">Manage Availability</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="text-lg font-semibold mb-4">Current Schedule</h3>
-                            <div id="currentSchedule" class="space-y-3">
-                                <!-- Current schedule will be loaded here -->
+                    
+                    <!-- Current Status -->
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-blue-800">Current Status</h3>
+                                <p class="text-blue-600">Update your availability in real-time</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span id="currentStatus" class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Available</span>
+                                <button onclick="toggleDoctorStatus()" id="statusToggle" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                    <i class="fas fa-toggle-on mr-2"></i>Set as Busy
+                                </button>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Current Schedule -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Weekly Schedule</h3>
+                            <div id="currentSchedule" class="space-y-3">
+                                <!-- Schedule will be loaded here -->
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                                <h4 class="font-semibold mb-3">Quick Actions</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="setAllDayAvailability('monday,friday', '09:00', '17:00')" class="px-3 py-2 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition">
+                                        Weekdays 9AM-5PM
+                                    </button>
+                                    <button onclick="clearAllAvailability()" class="px-3 py-2 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200 transition">
+                                        Clear All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Update Availability -->
                         <div>
                             <h3 class="text-lg font-semibold mb-4">Update Availability</h3>
                             <form id="availabilityForm" class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Day of Week</label>
-                                    <select id="availabilityDay" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                                        <option value="">Select Day</option>
-                                        <option value="monday">Monday</option>
-                                        <option value="tuesday">Tuesday</option>
-                                        <option value="wednesday">Wednesday</option>
-                                        <option value="thursday">Thursday</option>
-                                        <option value="friday">Friday</option>
-                                        <option value="saturday">Saturday</option>
-                                        <option value="sunday">Sunday</option>
-                                    </select>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Days</label>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="days" value="monday" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm">Mon</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="days" value="tuesday" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm">Tue</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="days" value="wednesday" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm">Wed</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="days" value="thursday" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm">Thu</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="days" value="friday" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm">Fri</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="days" value="saturday" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm">Sat</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="days" value="sunday" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="ml-2 text-sm">Sun</span>
+                                        </label>
+                                    </div>
                                 </div>
+                                
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
@@ -428,14 +486,125 @@
                                         <input type="time" id="endTime" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
                                     </div>
                                 </div>
+                                
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Max Appointments per Slot</label>
                                     <input type="number" id="maxAppointments" min="1" max="10" value="3" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
                                 </div>
+                                
                                 <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
                                     Update Availability
                                 </button>
                             </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Today's Schedule -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold mb-4">Today's Schedule</h3>
+                        <div id="todaysAppointments" class="space-y-3">
+                            <!-- Today's appointments will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab Content -->
+            <div id="profileTab" class="hidden">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">My Profile</h2>
+                        <button onclick="saveDoctorProfile()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-save mr-2"></i>Save Profile
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Personal Information -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Personal Information</h3>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Profile Photo</label>
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-bold">
+                                        {{ user.first_name[0] }}{{ user.last_name[0] }}
+                                    </div>
+                                    <div>
+                                        <input type="file" id="profilePhoto" accept="image/*" class="hidden">
+                                        <button onclick="document.getElementById('profilePhoto').click()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                                            <i class="fas fa-upload mr-2"></i>Upload Photo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                <input type="text" id="doctorFirstName" value="{{ user.first_name }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                <input type="text" id="doctorLastName" value="{{ user.last_name }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" id="doctorEmail" value="{{ user.email }}" readonly class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                <input type="tel" id="doctorPhone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Professional Information</h3>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Specialization</label>
+                                <input type="text" id="doctorSpecialization" value="{{ user.specialization or '' }}" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Qualifications</label>
+                                <textarea id="doctorQualifications" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="MD, MBBS, etc."></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Years of Experience</label>
+                                <input type="number" id="doctorExperience" min="0" max="50" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bio/Description</label>
+                                <textarea id="doctorBio" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Tell patients about your expertise and approach..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Information -->
+                    <div class="mt-6 space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-800 border-b pb-2">Additional Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Consultation Fee (₹)</label>
+                                <input type="number" id="consultationFee" min="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Languages Spoken</label>
+                                <input type="text" id="doctorLanguages" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="English, Hindi, etc.">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Awards & Recognition</label>
+                            <textarea id="doctorAwards" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Any awards, publications, or special recognition..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -585,6 +754,7 @@
             document.getElementById('patientsTab').classList.add('hidden');
             document.getElementById('treatmentRecordsTab').classList.add('hidden');
             document.getElementById('availabilityTab').classList.add('hidden');
+            document.getElementById('profileTab').classList.add('hidden');
             
             // Show selected tab
             switch(tabName) {
@@ -607,6 +777,11 @@
                 case 'availability':
                     document.getElementById('availabilityTab').classList.remove('hidden');
                     loadCurrentAvailability();
+                    loadDoctorStatus();
+                    break;
+                case 'profile':
+                    document.getElementById('profileTab').classList.remove('hidden');
+                    loadDoctorProfile();
                     break;
             }
         }
@@ -1383,6 +1558,546 @@
                 default: return 'status-pending';
             }
         }
-    </script>
+
+        // Profile Management Functions
+        function loadDoctorProfile() {
+            fetch('/api/doctor/profile')
+                .then(response => response.json())
+                .then(profile => {
+                    // Populate form fields
+                    document.getElementById('doctorFirstName').value = profile.first_name || '';
+                    document.getElementById('doctorLastName').value = profile.last_name || '';
+                    document.getElementById('doctorEmail').value = profile.email || '';
+                    document.getElementById('doctorPhone').value = profile.phone || '';
+                    document.getElementById('doctorSpecialization').value = profile.specialization || '';
+                    document.getElementById('doctorQualifications').value = profile.qualifications || '';
+                    document.getElementById('doctorExperience').value = profile.experience || 0;
+                    document.getElementById('doctorBio').value = profile.bio || '';
+                    document.getElementById('consultationFee').value = profile.consultation_fee || 0;
+                    document.getElementById('doctorLanguages').value = profile.languages || '';
+                    document.getElementById('doctorAwards').value = profile.awards || '';
+                    
+                    // Update current status
+                    updateDoctorStatusDisplay(profile.is_available);
+                })
+                .catch(error => {
+                    console.error('Error loading doctor profile:', error);
+                });
+        }
+
+        function saveDoctorProfile() {
+            const profileData = {
+                phone: document.getElementById('doctorPhone').value,
+                specialization: document.getElementById('doctorSpecialization').value,
+                qualifications: document.getElementById('doctorQualifications').value,
+                experience: parseInt(document.getElementById('doctorExperience').value),
+                bio: document.getElementById('doctorBio').value,
+                consultation_fee: parseInt(document.getElementById('consultationFee').value),
+                languages: document.getElementById('doctorLanguages').value,
+                awards: document.getElementById('doctorAwards').value
+            };
+            
+            fetch('/api/doctor/profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(profileData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Profile updated successfully!');
+                    // Update UI elements
+                    document.getElementById('doctorName').textContent = `Dr. ${document.getElementById('doctorFirstName').value} ${document.getElementById('doctorLastName').value}`;
+                    document.getElementById('headerName').textContent = `Dr. ${document.getElementById('doctorFirstName').value} ${document.getElementById('doctorLastName').value}`;
+                    document.getElementById('doctorSpecialization').textContent = profileData.specialization;
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving profile:', error);
+                alert('Failed to save profile');
+            });
+        }
+
+        // Availability Status Functions
+        function loadDoctorStatus() {
+            fetch('/api/doctor/profile')
+                .then(response => response.json())
+                .then(profile => {
+                    updateDoctorStatusDisplay(profile.is_available);
+                })
+                .catch(error => {
+                    console.error('Error loading doctor status:', error);
+                updateDoctorStatusDisplay(true);
+                });
+        }
+
+        function toggleDoctorStatus() {
+            const currentStatus = document.getElementById('currentStatus').textContent.toLowerCase();
+            const isAvailable = currentStatus !== 'available';
+            
+            fetch('/api/doctor/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    is_available: isAvailable
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDoctorStatusDisplay(data.is_available);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                alert('Failed to update status');
+            });
+        }
+
+        function updateDoctorStatusDisplay(isAvailable) {
+            const statusElement = document.getElementById('currentStatus');
+            const toggleButton = document.getElementById('statusToggle');
+            
+            if (isAvailable) {
+                statusElement.textContent = 'Available';
+                statusElement.className = 'px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium';
+                toggleButton.innerHTML = '<i class="fas fa-toggle-on mr-2"></i>Set as Busy';
+                toggleButton.className = 'px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition';
+            } else {
+                statusElement.textContent = 'Busy';
+                statusElement.className = 'px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium';
+                toggleButton.innerHTML = '<i class="fas fa-toggle-off mr-2"></i>Set as Available';
+                toggleButton.className = 'px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition';
+            }
+        }
+
+        // Enhanced Availability Functions
+        function setAllDayAvailability(days, startTime, endTime) {
+            const daysArray = days.split(',');
+            
+            daysArray.forEach(day => {
+                const checkbox = document.querySelector(`input[value="${day}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            document.getElementById('startTime').value = startTime;
+            document.getElementById('endTime').value = endTime;
+        }
+
+        function clearAllAvailability() {
+            document.querySelectorAll('input[name="days"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+
+        // Load appointments for dashboard
+        function loadAppointments() {
+            loadRecentAppointments();
+        }
+
+// doctor_dashboard.html में
+function confirmAppointment(appointmentId) {
+    fetch(`/api/receptionist/appointments/${appointmentId}/confirm`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Appointment confirmed successfully!', 'success');
+            loadDashboardData(); // सिर्फ receptionist dashboard refresh हो रहा
+        }
+    })
+}        
+   
+
+// Load and display weekly schedule
+function loadWeeklySchedule() {
+    fetch('/api/doctor/complete-profile')
+        .then(response => response.json())
+        .then(profile => {
+            displayWeeklySchedule(profile.weekly_schedule);
+            displayPatientViewPreview(profile);
+        })
+        .catch(error => {
+            console.error('Error loading schedule:', error);
+        });
+}
+
+function displayWeeklySchedule(weeklySchedule) {
+    const container = document.getElementById('weeklyScheduleDisplay');
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    container.innerHTML = days.map(day => {
+        const daySchedule = weeklySchedule[day] || [];
+        return `
+            <div class="bg-white p-4 rounded-lg border">
+                <h4 class="font-semibold mb-2">${day}</h4>
+                ${daySchedule.length > 0 ? 
+                    daySchedule.map(slot => `
+                        <div class="text-sm text-green-600 mb-1">
+                            ${slot.start_time} - ${slot.end_time}
+                        </div>
+                    `).join('') : 
+                    '<div class="text-sm text-gray-500">Not available</div>'
+                }
+            </div>
+        `;
+    }).join('');
+}
+
+function displayPatientViewPreview(profile) {
+    const container = document.getElementById('patientViewPreview');
+    container.innerHTML = `
+        <p><strong>Name:</strong> ${profile.name}</p>
+        <p><strong>Specialization:</strong> ${profile.specialization}</p>
+        <p><strong>Available Days:</strong> ${Object.keys(profile.weekly_schedule || {}).join(', ')}</p>
+        <p><strong>Consultation Fee:</strong> ₹${profile.consultation_fee}</p>
+    `;
+}
+// Enhanced Doctor Dashboard Functions
+function loadDoctorCompleteProfile() {
+    fetch('/api/doctor/complete-profile')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load profile');
+            }
+            return response.json();
+        })
+        .then(profile => {
+            displayWeeklySchedule(profile.weekly_schedule || {});
+            displayPatientViewPreview(profile);
+            updateDoctorProfileForm(profile);
+        })
+        .catch(error => {
+            console.error('Error loading doctor profile:', error);
+            showEmptyScheduleState();
+            showEmptyPatientPreview();
+        });
+}
+
+function displayWeeklySchedule(weeklySchedule) {
+    const container = document.getElementById('weeklyScheduleDisplay');
+    
+    if (!container) {
+        console.error('Weekly schedule container not found');
+        return;
+    }
+
+    const days = [
+        { key: 'monday', name: 'Monday' },
+        { key: 'tuesday', name: 'Tuesday' },
+        { key: 'wednesday', name: 'Wednesday' },
+        { key: 'thursday', name: 'Thursday' },
+        { key: 'friday', name: 'Friday' },
+        { key: 'saturday', name: 'Saturday' },
+        { key: 'sunday', name: 'Sunday' }
+    ];
+
+    let hasSchedule = false;
+    
+    container.innerHTML = days.map(day => {
+        const daySchedule = weeklySchedule[day.name] || weeklySchedule[day.key] || [];
+        
+        if (daySchedule.length > 0) {
+            hasSchedule = true;
+        }
+        
+        return `
+            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-calendar-day text-blue-600 mr-2"></i>
+                    ${day.name}
+                </h4>
+                <div class="space-y-2">
+                    ${daySchedule.length > 0 ? 
+                        daySchedule.map((slot, index) => `
+                            <div class="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                                <div class="text-sm text-green-700">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    ${formatTimeSlot(slot.start_time, slot.end_time)}
+                                </div>
+                                <div class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                    Max: ${slot.max_appointments || 3}
+                                </div>
+                            </div>
+                        `).join('') : 
+                        '<div class="text-sm text-gray-500 text-center py-2 bg-gray-50 rounded">Not available</div>'
+                    }
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if (!hasSchedule) {
+        container.innerHTML = `
+            <div class="col-span-full text-center py-8">
+                <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 mb-4">No weekly schedule set</p>
+                <button onclick="showTab('availability')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-plus mr-2"></i>Set Your Schedule
+                </button>
+            </div>
+        `;
+    }
+}
+
+function formatTimeSlot(startTime, endTime) {
+    if (!startTime || !endTime) return 'Invalid time';
+    
+    // Convert 24h to 12h format
+    const formatTime = (timeStr) => {
+        const [hours, minutes] = timeStr.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const formattedHour = hour % 12 || 12;
+        return `${formattedHour}:${minutes} ${ampm}`;
+    };
+    
+    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+}
+
+function displayPatientViewPreview(profile) {
+    const container = document.getElementById('patientViewPreview');
+    
+    if (!container) {
+        console.error('Patient view preview container not found');
+        return;
+    }
+
+    const weeklySchedule = profile.weekly_schedule || {};
+    const availableDays = Object.keys(weeklySchedule).filter(day => 
+        weeklySchedule[day] && weeklySchedule[day].length > 0
+    );
+
+    container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="mb-2"><strong class="text-blue-800">Name:</strong> ${profile.name || 'Dr. ' + (profile.first_name || '') + ' ' + (profile.last_name || '')}</p>
+                <p class="mb-2"><strong class="text-blue-800">Specialization:</strong> ${profile.specialization || 'Not specified'}</p>
+                <p class="mb-2"><strong class="text-blue-800">Experience:</strong> ${profile.experience || 0} years</p>
+                <p class="mb-2"><strong class="text-blue-800">Consultation Fee:</strong> ₹${profile.consultation_fee || 0}</p>
+            </div>
+            <div>
+                <p class="mb-2"><strong class="text-blue-800">Available Days:</strong> 
+                    ${availableDays.length > 0 ? 
+                        availableDays.map(day => day.charAt(0).toUpperCase() + day.slice(1)).join(', ') : 
+                        'No days scheduled'
+                    }
+                </p>
+                <p class="mb-2"><strong class="text-blue-800">Therapy Type:</strong> ${(profile.therapy_type || 'General').title()}</p>
+                <p class="mb-2"><strong class="text-blue-800">Languages:</strong> ${profile.languages || 'Not specified'}</p>
+                <p class="mb-2"><strong class="text-blue-800">Status:</strong> 
+                    <span class="${profile.is_available ? 'text-green-600' : 'text-red-600'}">
+                        ${profile.is_available ? 'Available' : 'Busy'}
+                    </span>
+                </p>
+            </div>
+        </div>
+        ${availableDays.length > 0 ? `
+            <div class="mt-4 p-3 bg-white rounded border border-blue-200">
+                <strong class="text-blue-800 block mb-2">Weekly Schedule Preview:</strong>
+                <div class="text-sm space-y-1">
+                    ${availableDays.map(day => {
+                        const slots = weeklySchedule[day];
+                        return `<div>${day}: ${slots.map(slot => `${slot.start_time} - ${slot.end_time}`).join(', ')}</div>`;
+                    }).join('')}
+                </div>
+            </div>
+        ` : ''}
+    `;
+}
+
+function updateDoctorProfileForm(profile) {
+    // Update form fields with current profile data
+    if (document.getElementById('doctorSpecialization')) {
+        document.getElementById('doctorSpecialization').value = profile.specialization || '';
+    }
+    if (document.getElementById('doctorQualifications')) {
+        document.getElementById('doctorQualifications').value = profile.qualifications || '';
+    }
+    if (document.getElementById('doctorExperience')) {
+        document.getElementById('doctorExperience').value = profile.experience || 0;
+    }
+    if (document.getElementById('doctorBio')) {
+        document.getElementById('doctorBio').value = profile.bio || '';
+    }
+    if (document.getElementById('consultationFee')) {
+        document.getElementById('consultationFee').value = profile.consultation_fee || 0;
+    }
+    if (document.getElementById('doctorLanguages')) {
+        document.getElementById('doctorLanguages').value = profile.languages || '';
+    }
+    if (document.getElementById('doctorPhone')) {
+        document.getElementById('doctorPhone').value = profile.phone || '';
+    }
+}
+
+function showEmptyScheduleState() {
+    const container = document.getElementById('weeklyScheduleDisplay');
+    if (container) {
+        container.innerHTML = `
+            <div class="col-span-full text-center py-8">
+                <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 mb-2">Unable to load schedule</p>
+                <p class="text-sm text-gray-400 mb-4">Please check your connection and try again</p>
+                <button onclick="loadDoctorCompleteProfile()" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-sync-alt mr-2"></i>Retry
+                </button>
+            </div>
+        `;
+    }
+}
+
+function showEmptyPatientPreview() {
+    const container = document.getElementById('patientViewPreview');
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                <span class="text-yellow-700">Unable to load profile preview</span>
+            </div>
+        `;
+    }
+}
+
+// Enhanced Availability Form Submission
+function submitEnhancedAvailabilityForm(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => cb.value);
+    
+    if (selectedDays.length === 0) {
+        alert('Please select at least one day');
+        return;
+    }
+
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    const maxAppointments = document.getElementById('maxAppointments').value;
+
+    if (!startTime || !endTime) {
+        alert('Please select start and end times');
+        return;
+    }
+
+    const scheduleData = {
+        schedule: selectedDays.map(day => ({
+            day: day,
+            start_time: startTime,
+            end_time: endTime,
+            max_appointments: parseInt(maxAppointments)
+        }))
+    };
+
+    // Show loading state
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Updating Schedule...';
+    submitButton.disabled = true;
+
+    fetch('/api/doctor/complete-profile', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            weekly_schedule: scheduleData.schedule.reduce((acc, slot) => {
+                if (!acc[slot.day]) acc[slot.day] = [];
+                acc[slot.day].push({
+                    start_time: slot.start_time,
+                    end_time: slot.end_time,
+                    max_appointments: slot.max_appointments
+                });
+                return acc;
+            }, {})
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Schedule updated successfully!', 'success');
+            loadDoctorCompleteProfile(); // Refresh the display
+            e.target.reset(); // Reset form
+        } else {
+            throw new Error(data.message || 'Failed to update schedule');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating schedule:', error);
+        showToast('Failed to update schedule: ' + error.message, 'error');
+    })
+    .finally(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+// Initialize when dashboard loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Load complete profile when dashboard is shown
+    if (currentTab === 'dashboard' || currentTab === 'availability') {
+        loadDoctorCompleteProfile();
+    }
+    
+    // Update the existing showTab function to load profile when switching to availability tab
+    const originalShowTab = window.showTab;
+    window.showTab = function(tabName) {
+        originalShowTab(tabName);
+        
+        if (tabName === 'availability') {
+            setTimeout(() => {
+                loadDoctorCompleteProfile();
+            }, 100);
+        }
+    };
+    
+    // Update the existing availability form submission
+    const availabilityForm = document.getElementById('availabilityForm');
+    if (availabilityForm) {
+        availabilityForm.removeEventListener('submit', updateAvailability);
+        availabilityForm.addEventListener('submit', submitEnhancedAvailabilityForm);
+    }
+});
+
+// Utility function to show toast messages
+function showToast(message, type = 'info') {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast');
+    existingToasts.forEach(toast => toast.remove());
+
+    const toast = document.createElement('div');
+    toast.className = `toast fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}-circle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+   </script>
 </body>
 </html>

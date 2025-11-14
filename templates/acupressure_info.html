@@ -434,32 +434,52 @@
                     <span class="text-xl font-bold">DCAM</span>
                 </div>
                 
-               <div class="mb-8 p-4 bg-blue-800/50 rounded-xl">
+                <div class="mb-8 p-4 bg-blue-800/50 rounded-xl">
                     <div class="flex items-center">
                         <div class="avatar mr-3">
-                            <span id="userAvatar">JD</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold" id="userName">John Doe</p>
-                            <p class="text-sm text-blue-200" id="userRole">Patient</p>
-                            <p class="text-sm text-blue-200">ID: P12345</p>
+                             <span id="userAvatar">
+                                {% if user and user.first_name and user.last_name %}
+                                    {{ user.first_name[0] }}{{ user.last_name[0] }}
+                                {% elif user and user.first_name %}
+                                    {{ user.first_name[0] }}
+                                {% else %}
+                                    U
+                                {% endif %}
+                             </span>
+                         </div>
+                         <div>
+                            <p class="font-semibold" id="userName">
+                                {% if user and user.first_name and user.last_name %}
+                                    {{ user.first_name }} {{ user.last_name }}
+                                {% elif user and user.first_name %}
+                                    {{ user.first_name }}
+                                {% else %}
+                                    User
+                                {% endif %}
+                            </p>
+                            <p class="text-sm text-blue-200" id="userRole">
+                                {{ user.role|title if user and user.role else 'User' }}
+                            </p>
+                            <p class="text-sm text-blue-200">ID: {{ user.user_id if user and user.user_id else 'N/A' }}</p>
                         </div>
                     </div>
                 </div>
+                
+
                 
                 <nav class="space-y-2">
                     <a href="/patient-dashboard" class="sidebar-item">
                         <i class="fas fa-tachometer-alt mr-3"></i>
                         <span>Dashboard</span>
                     </a>
-                    <div class="sidebar-item active">
-                        <i class="fas fa-info-circle mr-3"></i>
-                        <span>Therapies Info</span>
-                    </div>
                     <a href="/book-appointment" class="sidebar-item">
                         <i class="fas fa-calendar-plus mr-3"></i>
                         <span>Book Appointment</span>
                     </a>
+                     <div class="sidebar-item active">
+                        <i class="fas fa-info-circle mr-3"></i>
+                        <span>Therapies Info</span>
+                    </div>
                     <a href="/patient-info" class="sidebar-item">
                         <i class="fas fa-user mr-3"></i>
                         <span>My Information</span>
@@ -473,14 +493,28 @@
             <!-- Page Header -->
             <div class="page-header">
                 <h1 class="text-2xl font-bold text-gray-800">Therapies Information</h1>
-                <div class="user-info">
+              <div class="user-info">
                     <div class="flex items-center gap-3">
                         <div class="avatar">
-                            JD
+                            {% if user and user.first_name and user.last_name %}
+                                {{ user.first_name[0] }}{{ user.last_name[0] }}
+                            {% elif user and user.first_name %}
+                                {{ user.first_name[0] }}
+                            {% else %}
+                                U
+                            {% endif %}
                         </div>
                         <div class="hidden md:block">
-                            <p class="font-semibold">John Doe</p>
-                            <p class="text-sm text-gray-600">Patient</p>
+                            <p class="font-semibold">
+                                {% if user and user.first_name and user.last_name %}
+                                    {{ user.first_name }} {{ user.last_name }}
+                                {% elif user and user.first_name %}
+                                    {{ user.first_name }}
+                                {% else %}
+                                    User
+                                {% endif %}
+                            </p>
+                            <p class="text-sm text-gray-600">{{ user.role|title if user and user.role else 'User' }}</p>
                         </div>
                     </div>
                     <a href="/logout" class="logout-btn">
@@ -489,7 +523,6 @@
                     </a>
                 </div>
             </div>
-
             <!-- Therapy Navigation -->
             <div class="therapy-nav">
                 <div class="therapy-nav-item active" data-therapy="acupressure">Acupressure/Acupuncture</div>
@@ -2627,6 +2660,98 @@
 
         // Initial scroll to active therapy
         setTimeout(scrollToActiveTherapy, 100);
+
+    
+        // Function to update user information dynamically
+        function updateUserInfo() {
+            // Fetch current user data from API
+            fetch('/api/current-user')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(userData => {
+                    // Update sidebar
+                    updateSidebarUserInfo(userData);
+                    // Update page header
+                    updateHeaderUserInfo(userData);
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                    // Use template data if API fails
+                    const templateData = {
+                        first_name: "{{ user.first_name if user and user.first_name else 'User' }}",
+                        last_name: "{{ user.last_name if user and user.last_name else '' }}",
+                        role: "{{ user.role if user and user.role else 'User' }}",
+                        user_id: "{{ user.user_id if user and user.user_id else 'N/A' }}"
+                    };
+                    updateSidebarUserInfo(templateData);
+                    updateHeaderUserInfo(templateData);
+                });
+        }
+
+        function updateSidebarUserInfo(user) {
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const userRole = document.getElementById('userRole');
+            
+            if (userAvatar && user.first_name && user.last_name) {
+                userAvatar.textContent = (user.first_name[0] + user.last_name[0]).toUpperCase();
+            } else if (userAvatar && user.first_name) {
+                userAvatar.textContent = user.first_name[0].toUpperCase();
+            }
+            
+            if (userName) {
+                if (user.first_name && user.last_name) {
+                    userName.textContent = `${user.first_name} ${user.last_name}`;
+                } else if (user.first_name) {
+                    userName.textContent = user.first_name;
+                } else {
+                    userName.textContent = 'User';
+                }
+            }
+            
+            if (userRole) {
+                userRole.textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User';
+            }
+        }
+
+        function updateHeaderUserInfo(user) {
+            const headerAvatar = document.querySelector('.page-header .avatar');
+            const headerName = document.querySelector('.page-header .font-semibold');
+            const headerRole = document.querySelector('.page-header .text-gray-600');
+            
+            if (headerAvatar && user.first_name && user.last_name) {
+                headerAvatar.textContent = (user.first_name[0] + user.last_name[0]).toUpperCase();
+            } else if (headerAvatar && user.first_name) {
+                headerAvatar.textContent = user.first_name[0].toUpperCase();
+            }
+            
+            if (headerName) {
+                if (user.first_name && user.last_name) {
+                    headerName.textContent = `${user.first_name} ${user.last_name}`;
+                } else if (user.first_name) {
+                    headerName.textContent = user.first_name;
+                } else {
+                    headerName.textContent = 'User';
+                }
+            }
+            
+            if (headerRole) {
+                headerRole.textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User';
+            }
+        }
+
+        // Initial scroll to active therapy
+        setTimeout(scrollToActiveTherapy, 100);
+
+        // Update user info on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUserInfo();
+        });
+     
     </script>
 </body>
 </html>

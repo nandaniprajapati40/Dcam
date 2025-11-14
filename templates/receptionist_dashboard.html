@@ -4,1454 +4,851 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receptionist Dashboard - DCAM Therapy Center</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --secondary: #3b82f6;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-            --info: #06b6d4;
-            --light: #f8fafc;
-            --dark: #1e293b;
-        }
-        
-        body {
-            background-color: #f1f5f9;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .dashboard-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 1.5rem 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 0;
-            color: var(--dark);
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 1.5rem;
-        }
-        
-        .card-header {
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 1rem 1.5rem;
-            border-radius: 12px 12px 0 0 !important;
-            font-weight: 600;
-        }
-        
-        .table th {
-            border-top: none;
-            font-weight: 600;
-            color: #475569;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.35em 0.65em;
-            font-weight: 500;
-        }
-        
-        .btn {
-            border-radius: 8px;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-        }
-        
-        .nav-pills .nav-link {
-            border-radius: 8px;
-            margin-right: 0.5rem;
-            color: #475569;
-            font-weight: 500;
-        }
-        
-        .nav-pills .nav-link.active {
-            background-color: var(--primary);
-        }
-        
-        .search-box {
-            position: relative;
-        }
-        
-        .search-box input {
-            padding-left: 2.5rem;
-            border-radius: 8px;
-        }
-        
-        .search-box i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-        }
-        
         .notification-badge {
             position: absolute;
             top: -5px;
             right: -5px;
-            background: var(--danger);
+            background: #ef4444;
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.75rem;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
-        .doctor-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+        .sidebar {
+            transition: all 0.3s ease;
         }
-        
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .status-available {
-            background-color: var(--success);
-        }
-        
-        .status-busy {
-            background-color: var(--warning);
-        }
-        
-        .status-offline {
-            background-color: var(--danger);
-        }
-        
-        .action-buttons .btn {
-            margin-right: 0.25rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .patient-id {
-            font-family: monospace;
-            background-color: #f1f5f9;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.875rem;
-        }
-        
-        .print-btn {
-            background-color: #475569;
-            border-color: #475569;
-        }
-        
-        .print-btn:hover {
-            background-color: #334155;
-            border-color: #334155;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: #64748b;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #cbd5e1;
-        }
-
-        .logout-btn {
-            color: #dc3545;
-            font-weight: 500;
-        }
-        
-        .logout-btn:hover {
-            background-color: #dc3545;
-            color: white;
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <header class="dashboard-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h1 class="h3 mb-0">
-                        <i class="fas fa-hand-holding-heart me-2"></i>DCAM Therapy Center
-                    </h1>
-                    <p class="mb-0 opacity-75">Receptionist Dashboard</p>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <button id="menuToggle" class="md:hidden text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-xl font-bold">DCAM Therapy Center</h1>
                 </div>
-                <div class="col-md-6 text-end">
-                    <div class="d-flex align-items-center justify-content-end">
-                        <!-- Notifications -->
-                        <div class="dropdown me-3">
-                            <a class="btn btn-light btn-sm position-relative" href="#" role="button" id="notificationDropdown" data-bs-toggle="dropdown">
-                                <i class="fas fa-bell"></i>
-                                <span id="notificationCount" class="notification-badge">0</span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end p-0" style="width: 350px;">
-                                <div class="dropdown-header bg-primary text-white">
-                                    <strong>Notifications</strong>
-                                </div>
-                                <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
-                                    <div class="text-center p-3">
-                                        <div class="spinner-border spinner-border-sm" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <span class="ms-2">Loading notifications...</span>
-                                    </div>
-                                </div>
-                                <div class="dropdown-footer text-center p-2 border-top">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="markAllNotificationsRead()">
-                                        Mark All as Read
-                                    </button>
-                                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notificationBtn" class="relative p-2 text-white hover:bg-blue-700 rounded-full">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span id="notificationCount" class="notification-badge hidden">0</span>
+                        </button>
+                        <!-- Notification Dropdown -->
+                        <div id="notificationDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 hidden">
+                            <div class="p-4 border-b">
+                                <h3 class="font-semibold text-gray-800">Notifications</h3>
+                            </div>
+                            <div id="notificationList" class="max-h-96 overflow-y-auto">
+                                <!-- Notifications will be loaded here -->
+                            </div>
+                            <div class="p-2 border-t">
+                                <button id="markAllRead" class="w-full text-center text-blue-600 hover:text-blue-800 text-sm py-2">
+                                    Mark all as read
+                                </button>
                             </div>
                         </div>
-                        
-                        <!-- User Info -->
-                        <div class="dropdown">
-                            <a class="btn btn-light btn-sm dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>
-                                {{ user.first_name }} {{ user.last_name }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                            </ul>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" class="flex items-center space-x-2 text-white hover:bg-blue-700 rounded-full p-2">
+                            <i class="fas fa-user-circle text-xl"></i>
+                            <span class="hidden md:block">{{ user.first_name }} {{ user.last_name }}</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                        <!-- User Dropdown -->
+                        <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 hidden">
+                            <div class="p-4 border-b">
+                                <p class="font-semibold text-gray-800">{{ user.first_name }} {{ user.last_name }}</p>
+                                <p class="text-sm text-gray-600">{{ user.email }}</p>
+                                <p class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mt-1">Receptionist</p>
+                            </div>
+                            <div class="p-2">
+                                <a href="/logout" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <!-- Main Content -->
-    <div class="container mt-4">
-        <!-- Stats Overview -->
-        <div class="row">
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-number" id="todaysAppointments">0</div>
-                    <div class="stat-label">Today's Appointments</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-number" id="pendingAppointments">0</div>
-                    <div class="stat-label">Pending Appointments</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalPatients">0</div>
-                    <div class="stat-label">Total Patients</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalDoctors">0</div>
-                    <div class="stat-label">Total Doctors</div>
-                </div>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="sidebar bg-white w-64 min-h-screen shadow-lg fixed md:relative z-40">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-6">Receptionist Panel</h2>
+                <nav class="space-y-2">
+                    <a href="/receptionist-dashboard" class="flex items-center space-x-3 text-blue-600 bg-blue-50 rounded-lg px-4 py-3 font-medium">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/manage-appointments" class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-3 font-medium">
+                        <i class="fas fa-calendar-check w-5"></i>
+                        <span>Manage Appointments</span>
+                    </a>
+                    <a href="/receptionist/doctor-availability" class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-3 font-medium">
+                        <i class="fas fa-user-md w-5"></i>
+                        <span>Doctor Availability</span>
+                    </a>
+                    <a href="/receptionist/appointments" class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-3 font-medium">
+                        <i class="fas fa-list-alt w-5"></i>
+                        <span>All Appointments</span>
+                    </a>
+                </nav>
             </div>
         </div>
 
-        <!-- Main Dashboard Tabs -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <ul class="nav nav-pills card-header-pills" id="dashboardTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" role="tab">
-                                    <i class="fas fa-calendar-day me-2"></i>Daily Appointments
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#doctors" type="button" role="tab">
-                                    <i class="fas fa-user-md me-2"></i>Doctor Availability
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="new-appointment-tab" data-bs-toggle="tab" data-bs-target="#new-appointment" type="button" role="tab">
-                                    <i class="fas fa-plus-circle me-2"></i>New Appointment
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab">
-                                    <i class="fas fa-users me-2"></i>Patient History
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab">
-                                    <i class="fas fa-rupee-sign me-2"></i>Payment Tracking
-                                </button>
-                            </li>
-                        </ul>
+        <!-- Main Content -->
+        <div class="flex-1 md:ml-0">
+            <!-- Mobile Menu Overlay -->
+            <div id="mobileOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden hidden"></div>
+
+            <main class="p-6">
+                <!-- Welcome Section -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome, {{ user.first_name }}! 👋</h1>
+                    <p class="text-gray-600">Manage appointments and patient registrations efficiently.</p>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Quick Actions Card -->
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <a href="/receptionist/appointments" class="flex items-center space-x-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                <div class="bg-blue-100 p-2 rounded-lg">
+                                    <i class="fas fa-calendar-plus text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Manage Appointments</p>
+                                    <p class="text-sm text-gray-600">Confirm and schedule appointments</p>
+                                </div>
+                            </a>
+                            <a href="/receptionist/doctor-availability" class="flex items-center space-x-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+                                <div class="bg-green-100 p-2 rounded-lg">
+                                    <i class="fas fa-user-md text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Doctor Availability</p>
+                                    <p class="text-sm text-gray-600">Check doctor schedules</p>
+                                </div>
+                            </a>
+                            <button id="refreshDataBtn" class="w-full flex items-center space-x-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                                <div class="bg-gray-100 p-2 rounded-lg">
+                                    <i class="fas fa-sync-alt text-gray-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Refresh Data</p>
+                                    <p class="text-sm text-gray-600">Update dashboard information</p>
+                                </div>
+                            </button>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="tab-content" id="dashboardTabsContent">
-                            <!-- Daily Appointments Tab -->
-                            <div class="tab-pane fade show active" id="appointments" role="tabpanel">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="search-box">
-                                            <i class="fas fa-search"></i>
-                                            <input type="text" class="form-control" id="appointmentSearch" placeholder="Search by patient name, doctor, or ID...">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <button class="btn btn-primary" onclick="loadAppointments()">
-                                            <i class="fas fa-sync-alt me-1"></i>Refresh
-                                        </button>
-                                        <button class="btn print-btn" onclick="printAppointments()">
-                                            <i class="fas fa-print me-1"></i>Print List
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="appointmentsTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Patient</th>
-                                                <th>Patient ID</th>
-                                                <th>Doctor</th>
-                                                <th>Therapy</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="appointmentsList">
-                                            <tr>
-                                                <td colspan="7" class="text-center">
-                                                    <div class="spinner-border" role="status">
-                                                        <span class="visually-hidden">Loading...</span>
-                                                    </div>
-                                                    <p class="mt-2">Loading appointments...</p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <!-- Doctor Availability Tab -->
-                            <div class="tab-pane fade" id="doctors" role="tabpanel">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <h5 class="mb-0">Doctor Availability Status</h5>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <button class="btn btn-primary" onclick="loadDoctors()">
-                                            <i class="fas fa-sync-alt me-1"></i>Refresh
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="row" id="doctorsList">
-                                    <div class="col-12 text-center">
-                                        <div class="spinner-border" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="mt-2">Loading doctors...</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- New Appointment Tab -->
-                            <div class="tab-pane fade" id="new-appointment" role="tabpanel">
-                                <h5 class="mb-3">Create New Appointment</h5>
-                                <form id="newAppointmentForm">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="patientSearch" class="form-label">Select Patient</label>
-                                                <div class="search-box">
-                                                    <i class="fas fa-search"></i>
-                                                    <input type="text" class="form-control" id="patientSearch" placeholder="Search patient by name or ID...">
-                                                </div>
-                                                <div id="patientSearchResults" class="mt-2" style="max-height: 200px; overflow-y: auto; display: none;"></div>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="selectedPatient" class="form-label">Selected Patient</label>
-                                                <input type="text" class="form-control" id="selectedPatient" readonly>
-                                                <input type="hidden" id="selectedPatientId">
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="appointmentDate" class="form-label">Appointment Date</label>
-                                                <input type="date" class="form-control" id="appointmentDate" required>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="appointmentTime" class="form-label">Appointment Time</label>
-                                                <input type="time" class="form-control" id="appointmentTime" required>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="therapyType" class="form-label">Therapy Type</label>
-                                                <select class="form-select" id="therapyType" required>
-                                                    <option value="">Select Therapy</option>
-                                                    <option value="acupressure">Acupressure</option>
-                                                    <option value="ayurveda">Ayurveda</option>
-                                                    <option value="homeopathy">Homeopathy</option>
-                                                    <option value="naturopathy">Naturopathy</option>
-                                                    <option value="yoga">Yoga</option>
-                                                    <option value="unani">Unani</option>
-                                                    <option value="chiropractic">Chiropractic</option>
-                                                    <option value="physiotherapy">Physiotherapy</option>
-                                                    <option value="diet">Diet</option>
-                                                    <option value="herbal">Herbal</option>
-                                                    <option value="sound">Sound</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="doctorSelect" class="form-label">Select Doctor</label>
-                                                <select class="form-select" id="doctorSelect" required>
-                                                    <option value="">Select Doctor</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="consultationType" class="form-label">Consultation Type</label>
-                                                <select class="form-select" id="consultationType" required>
-                                                    <option value="initial">Initial Consultation</option>
-                                                    <option value="follow-up">Follow-up</option>
-                                                    <option value="emergency">Emergency</option>
-                                                    <option value="routine">Routine Checkup</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="appointmentReason" class="form-label">Reason for Visit</label>
-                                                <textarea class="form-control" id="appointmentReason" rows="2"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="text-end">
-                                        <button type="reset" class="btn btn-secondary">Clear</button>
-                                        <button type="submit" class="btn btn-primary">Create Appointment</button>
-                                    </div>
-                                </form>
-                            </div>
-                            
-                            <!-- Patient History Tab -->
-                            <div class="tab-pane fade" id="patients" role="tabpanel">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="search-box">
-                                            <i class="fas fa-search"></i>
-                                            <input type="text" class="form-control" id="patientHistorySearch" placeholder="Search patient by name or ID...">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <button class="btn btn-primary" onclick="loadAllPatients()">
-                                            <i class="fas fa-sync-alt me-1"></i>Refresh
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="patientsTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Patient ID</th>
-                                                <th>Name</th>
-                                                <th>Phone</th>
-                                                <th>Email</th>
-                                                <th>Last Visit</th>
-                                                <th>Total Appointments</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="patientsList">
-                                            <tr>
-                                                <td colspan="7" class="text-center">
-                                                    <div class="spinner-border" role="status">
-                                                        <span class="visually-hidden">Loading...</span>
-                                                    </div>
-                                                    <p class="mt-2">Loading patients...</p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <!-- Payment Tracking Tab -->
-                            <div class="tab-pane fade" id="payments" role="tabpanel">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <h5 class="mb-0">Payment Tracking</h5>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <button class="btn btn-primary" onclick="loadPayments()">
-                                            <i class="fas fa-sync-alt me-1"></i>Refresh
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="paymentsTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Appointment ID</th>
-                                                <th>Patient</th>
-                                                <th>Therapy</th>
-                                                <th>Doctor</th>
-                                                <th>Fee</th>
-                                                <th>Status</th>
-                                                <th>Due Date</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="paymentsList">
-                                            <tr>
-                                                <td colspan="8" class="text-center">
-                                                    <div class="spinner-border" role="status">
-                                                        <span class="visually-hidden">Loading...</span>
-                                                    </div>
-                                                    <p class="mt-2">Loading payments...</p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+
+                    <!-- Recent Notifications -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 lg:col-span-2">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Recent Notifications</h3>
+                            <button id="viewAllNotifications" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                View All
+                            </button>
+                        </div>
+                        <div id="recentNotifications" class="space-y-3 max-h-64 overflow-y-auto">
+                            <!-- Notifications will be loaded here -->
+                            <div class="text-center py-8">
+                                <i class="fas fa-bell-slash text-gray-300 text-2xl mb-2"></i>
+                                <p class="text-gray-500">No new notifications</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- All Appointments Table -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800">All Appointments</h3>
+                        <a href="/receptionist/appointments" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            View All Appointments
+                        </a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Therapy</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todayAppointmentsTable" class="divide-y divide-gray-200">
+                                <!-- Today's appointments will be loaded here -->
+                                <tr>
+                                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                        <i class="fas fa-calendar-day text-gray-300 text-2xl mb-2"></i>
+                                        <p>Loading today's appointments...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- Patient History Modal -->
-    <div class="modal fade" id="patientHistoryModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="patientHistoryModalTitle">Patient History</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="patientHistoryModalBody">
-                    Loading patient history...
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn print-btn" onclick="printPatientHistory()">
-                        <i class="fas fa-print me-1"></i>Print History
+<div class="space-y-6" id="doctorSchedulesContainer">
+    <div class="text-center py-8">
+        <div class="loading-spinner mx-auto mb-2"></div>
+        <p class="text-gray-500">Loading doctor schedules...</p>
+    </div>
+</div>
+
+<script>
+// Load and display detailed doctor schedules
+function loadDoctorSchedules() {
+    fetch('/api/doctor-schedules')
+        .then(response => response.json())
+        .then(data => {
+            renderDoctorSchedules(data.doctors);
+        })
+        .catch(error => {
+            console.error('Error loading doctor schedules:', error);
+            document.getElementById('doctorSchedulesContainer').innerHTML = `
+                <div class="text-center py-8 text-red-500">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>Failed to load doctor schedules</p>
+                    <button onclick="loadDoctorSchedules()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Retry
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
+            `;
+        });
+}
 
-    <!-- Payment Modal -->
-    <div class="modal fade" id="paymentModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalTitle">Process Payment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="paymentModalBody">
-                    Loading payment details...
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" id="confirmPaymentBtn">Confirm Payment</button>
-                </div>
+function renderDoctorSchedules(doctors) {
+    const container = document.getElementById('doctorSchedulesContainer');
+    
+    if (!doctors || doctors.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-calendar-times text-2xl mb-2"></i>
+                <p>No doctor schedules available</p>
+                <p class="text-sm mt-1">Doctors can set their schedules from their dashboard</p>
             </div>
-        </div>
-    </div>
-       <!-- Patient Management Tab -->
-                            <div class="tab-pane fade" id="patients" role="tabpanel">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="search-box">
-                                            <i class="fas fa-search"></i>
-                                            <input type="text" class="form-control" id="patientSearch" placeholder="Search patients...">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <button class="btn btn-primary btn-sm" onclick="loadPatients()">
-                                            <i class="fas fa-sync-alt me-1"></i>Refresh
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Patient ID</th>
-                                                <th>Name</th>
-                                                <th>Phone</th>
-                                                <th>Email</th>
-                                                <th>Last Visit</th>
-                                                <th>Total Visits</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="patientsList">
-                                            <tr>
-                                                <td colspan="7" class="text-center">
-                                                    <div class="spinner-border" role="status">
-                                                        <span class="visually-hidden">Loading...</span>
-                                                    </div>
-                                                    <p class="mt-2">Loading patients...</p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <!-- Doctor Management Tab -->
-                            <div class="tab-pane fade" id="doctors" role="tabpanel">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <h5 class="mb-0">Doctor Management</h5>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <button class="btn btn-primary btn-sm" onclick="loadDoctors()">
-                                            <i class="fas fa-sync-alt me-1"></i>Refresh
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="row" id="doctorsList">
-                                    <div class="col-12 text-center">
-                                        <div class="spinner-border" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="mt-2">Loading doctors...</p>
-                                    </div>
-                                </div>
-                            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = doctors.map(doctor => {
+        const statusClass = doctor.is_available ? 
+            'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+        const statusText = doctor.is_available ? 'Available' : 'Unavailable';
+
+        // Get today's schedule
+        const today = new Date().toLocaleString('en', { weekday: 'long' }).toLowerCase();
+        const todaySchedule = doctor.weekly_schedule[today.charAt(0).toUpperCase() + today.slice(1)] || [];
+
+        return `
+            <div class="bg-white border rounded-lg p-6 hover:shadow-lg transition-shadow">
+                <!-- Doctor Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-xl text-gray-800">${doctor.name}</h3>
+                        <p class="text-gray-600">${doctor.specialization}</p>
+                        <div class="flex items-center mt-2 space-x-4 text-sm">
+                            <span class="text-blue-600">
+                                <i class="fas fa-phone mr-1"></i>${doctor.phone || 'Not provided'}
+                            </span>
+                            <span class="text-purple-600">
+                                <i class="fas fa-envelope mr-1"></i>${doctor.email}
+                            </span>
                         </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-2 rounded-full text-sm font-medium ${statusClass}">
+                            <i class="fas fa-circle mr-1 text-xs"></i>${statusText}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Today's Schedule -->
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2 flex items-center">
+                        <i class="fas fa-calendar-day mr-2"></i>Today's Schedule (${new Date().toLocaleDateString('en', { weekday: 'long', month: 'short', 'day': 'numeric' })})
+                    </h4>
+                    ${todaySchedule.length > 0 ? `
+                        <div class="space-y-2">
+                            ${todaySchedule.map(slot => `
+                                <div class="flex justify-between items-center bg-white p-2 rounded border">
+                                    <span class="font-medium">${slot.start_time} - ${slot.end_time}</span>
+                                    <span class="text-sm text-gray-600">Max: ${slot.max_appointments} patients</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <p class="text-blue-600 text-sm">No schedule for today</p>
+                    `}
+                </div>
+
+                <!-- Weekly Schedule -->
+                <div class="mb-4">
+                    <h4 class="font-semibold text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-calendar-week mr-2"></i>Weekly Schedule
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        ${Object.entries(doctor.weekly_schedule).map(([day, slots]) => `
+                            <div class="border rounded-lg p-3 ${slots.length > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50'}">
+                                <h5 class="font-medium text-gray-800 mb-2">${day}</h5>
+                                ${slots.length > 0 ? `
+                                    <div class="space-y-1">
+                                        ${slots.map(slot => `
+                                            <div class="text-sm">
+                                                <div class="font-medium">${slot.start_time} - ${slot.end_time}</div>
+                                                <div class="text-xs text-gray-600">Max ${slot.max_appointments} appointments</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : `
+                                    <p class="text-sm text-gray-500 text-center">No schedule</p>
+                                `}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="flex justify-between items-center pt-4 border-t">
+                    <div class="text-sm text-gray-600">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Last updated: ${new Date().toLocaleDateString()}
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="sendScheduleReminder('${doctor.user_id}')" 
+                                class="px-4 py-2 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition flex items-center">
+                            <i class="fas fa-bell mr-2"></i>Remind
+                        </button>
+                        <button onclick="viewDoctorAppointments('${doctor.user_id}')" 
+                                class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition flex items-center">
+                            <i class="fas fa-list mr-2"></i>View Appointments
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        `;
+    }).join('');
+}
 
-    <!-- Appointment Detail Modal -->
-    <div class="modal fade" id="appointmentDetailModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Appointment Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="appointmentDetailContent">
-                    Loading...
-                </div>
-            </div>
-        </div>
-    </div>
-  <!-- Refund Processing Modal -->
-    <div class="modal fade" id="refundModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Process Refund</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to process refund for this appointment?</p>
-                    <div id="refundDetails"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmRefundBtn">Process Refund</button>
-                </div>
-            </div>
-        </div>
-    </div>
-   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+function sendScheduleReminder(doctorId) {
+    if (confirm('Send schedule reminder to this doctor?')) {
+        fetch(`/api/doctor/${doctorId}/remind-schedule`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Reminder sent successfully!');
+            } else {
+                alert('Failed to send reminder: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error sending reminder:', error);
+            alert('Error sending reminder');
+        });
+    }
+}
+
+function viewDoctorAppointments(doctorId) {
+    window.location.href = `/receptionist/appointments?doctor=${doctorId}`;
+}
+
+// Auto-refresh schedules every 5 minutes
+setInterval(loadDoctorSchedules, 300000);
+
+// Load schedules when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadDoctorSchedules();
+});
+</script>
     <script>
-        // Global variables
-        let allAppointments = [];
-        let allPayments = [];
-        let currentAppointmentId = null;
+        // DOM Elements
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const sidebar = document.querySelector('.sidebar');
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+        const refreshDataBtn = document.getElementById('refreshDataBtn');
+        const markAllRead = document.getElementById('markAllRead');
+        const viewAllNotifications = document.getElementById('viewAllNotifications');
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            loadDashboardStats();
-            loadAppointments();
-            loadPayments();
-            loadPatients();
-            loadDoctors();
-            loadNotifications();
-            setupEventListeners();
-            
-            // Auto-refresh every 30 seconds
-            setInterval(() => {
-                loadDashboardStats();
-                loadAppointments();
-                loadNotifications();
-            }, 30000);
+        // State
+        let unreadNotifications = 0;
+
+        // Mobile Menu Toggle
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('hidden');
         });
 
-        function setupEventListeners() {
-            // Appointment search
-            document.getElementById('appointmentSearch').addEventListener('input', filterAppointments);
-            
-            // Appointment filter buttons
-            document.querySelectorAll('[data-filter]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    filterAppointmentsByType(this.dataset.filter);
-                });
-            });
+        mobileOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            mobileOverlay.classList.add('hidden');
+        });
 
-            // Patient search
-            document.getElementById('patientSearch').addEventListener('input', filterPatients);
+        // Notification Dropdown
+        notificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('hidden');
+            userDropdown.classList.add('hidden');
+        });
+
+        // User Menu Dropdown
+        userMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+            notificationDropdown.classList.add('hidden');
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', () => {
+            notificationDropdown.classList.add('hidden');
+            userDropdown.classList.add('hidden');
+        });
+
+        // Stop propagation for dropdowns
+        notificationDropdown.addEventListener('click', (e) => e.stopPropagation());
+        userDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        // Load Dashboard Data
+        async function loadDashboardData() {
+            try {
+                showLoadingState();
+                
+                // Load today's appointments
+                await loadAllAppointments();
+                
+                // Load notifications
+                await loadNotifications();
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showErrorState();
+            }
         }
 
-        function loadDashboardStats() {
-            fetch('/api/dashboard-stats')
-                .then(response => response.json())
-                .then(stats => {
-                    document.getElementById('todaysAppointments').textContent = stats.todays_appointments || 0;
-                    document.getElementById('pendingPayments').textContent = stats.pending_appointments || 0;
-                    document.getElementById('totalPatients').textContent = stats.total_patients || 0;
-                    document.getElementById('totalDoctors').textContent = stats.total_doctors || 0;
-                })
-                .catch(error => {
-                    console.error('Error loading dashboard stats:', error);
-                });
+        // Load All Appointments (not just today's)
+       async function loadAllAppointments() {
+    try {
+        const response = await fetch('/api/receptionist/appointments?status=all&date=all');
+        if (!response.ok) throw new Error('Failed to fetch appointments');
+        
+        const data = await response.json();
+        
+        // Check if the response has the expected structure
+        if (data.appointments) {
+            updateAppointmentsTable(data.appointments);
+        } else if (Array.isArray(data)) {
+            // Handle case where response is directly an array
+            updateAppointmentsTable(data);
+        } else {
+            throw new Error('Invalid response format');
         }
+        
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        document.getElementById('todayAppointmentsTable').innerHTML = `
+            <tr>
+                <td colspan="6" class="px-4 py-8 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle text-red-300 text-2xl mb-2"></i>
+                    <p>Failed to load appointments</p>
+                    <p class="text-sm">${error.message}</p>
+                </td>
+            </tr>
+        `;
+    }
+}
 
-        function loadAppointments() {
-            fetch('/api/receptionist/appointments')
-                .then(response => response.json())
-                .then(data => {
-                    allAppointments = data.appointments || [];
-                    renderAppointments(allAppointments);
-                })
-                .catch(error => {
-                    console.error('Error loading appointments:', error);
-                    renderAppointments([]);
-                });
-        }
-
-        function renderAppointments(appointments) {
-            const container = document.getElementById('appointmentsList');
+        // Update Appointments Table with ALL appointments
+        function updateAppointmentsTable(appointments) {
+            const tbody = document.getElementById('todayAppointmentsTable');
             
             if (appointments.length === 0) {
-                container.innerHTML = `
+                tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="empty-state">
-                                <i class="fas fa-calendar-times"></i>
-                                <p>No appointments found</p>
-                            </div>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            <i class="fas fa-calendar-day text-gray-300 text-2xl mb-2"></i>
+                            <p>No appointments found</p>
                         </td>
                     </tr>
                 `;
                 return;
             }
 
-            container.innerHTML = appointments.map(appt => {
-                const date = new Date(appt.date);
-                const isToday = new Date().toDateString() === date.toDateString();
-                const isUrgent = appt.status === 'payment_pending' && new Date(appt.date) < new Date(Date.now() + 24 * 60 * 60 * 1000);
-                
-                const rowClass = isToday ? 'today-highlight' : isUrgent ? 'urgent-highlight' : '';
-                
-                const statusBadge = getStatusBadge(appt.status);
-                const paymentBadge = getPaymentBadge(appt.payment_status);
-                
-                const actions = getAppointmentActions(appt);
-                
+            tbody.innerHTML = appointments.map(appointment => {
+                const appointmentDate = new Date(appointment.date);
+                const dateString = appointmentDate.toLocaleDateString('en-US', { 
+                    year: 'numeric',
+                    month: 'short', 
+                    day: 'numeric'
+                });
+                const timeString = appointmentDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+
+                const statusBadge = getStatusBadge(appointment.status);
+                const actions = getAppointmentActions(appointment);
+
                 return `
-                    <tr class="${rowClass}" data-appointment-id="${appt.appointment_id}">
-                        <td>
-                            <div>${date.toLocaleDateString()}</div>
-                            <small class="text-muted">${date.toLocaleTimeString()}</small>
-                        </td>
-                        <td>
-                            <div class="fw-semibold">${appt.patient_name}</div>
-                            <small class="text-muted patient-id">${appt.patient_id}</small>
-                        </td>
-                        <td>${appt.doctor_name || 'Not assigned'}</td>
-                        <td>${appt.therapy_name}</td>
-                        <td>${statusBadge}</td>
-                        <td>${paymentBadge}</td>
-                        <td>
-                            <div class="appointment-actions">
-                                ${actions}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">${appointment.patient_name || 'Unknown Patient'}</div>
+                                    <div class="text-sm text-gray-500">${appointment.patient_phone || 'N/A'}</div>
+                                </div>
                             </div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">${appointment.doctor_name || 'Not Assigned'}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">${dateString}</div>
+                            <div class="text-sm text-gray-500">${timeString}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">${appointment.therapy_name || 'General Therapy'}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            ${statusBadge}
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                            ${actions}
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
+        // Get Status Badge
         function getStatusBadge(status) {
             const statusConfig = {
-                'pending': { class: 'bg-warning', text: 'Pending' },
-                'confirmed': { class: 'bg-success', text: 'Confirmed' },
-                'completed': { class: 'bg-info', text: 'Completed' },
-                'cancelled': { class: 'bg-danger', text: 'Cancelled' },
-                'payment_pending': { class: 'bg-warning', text: 'Payment Due' },
-                'refund_requested': { class: 'bg-secondary', text: 'Refund Requested' }
+                'pending': { color: 'yellow', text: 'Pending' },
+                'confirmed': { color: 'green', text: 'Confirmed' },
+                'in-progress': { color: 'blue', text: 'In Progress' },
+                'completed': { color: 'gray', text: 'Completed' },
+                'cancelled': { color: 'red', text: 'Cancelled' }
             };
-            
-            const config = statusConfig[status] || { class: 'bg-secondary', text: status };
-            return `<span class="badge ${config.class}">${config.text}</span>`;
+
+            const config = statusConfig[status] || { color: 'gray', text: status };
+            return `<span class="px-2 py-1 rounded-full text-xs font-medium bg-${config.color}-100 text-${config.color}-800">${config.text}</span>`;
         }
 
-        function getPaymentBadge(paymentStatus) {
-            const paymentConfig = {
-                'paid': { class: 'payment-status-paid', text: 'Paid' },
-                'unpaid': { class: 'payment-status-pending', text: 'Unpaid' },
-                'refunded': { class: 'payment-status-refunded', text: 'Refunded' },
-                'refund_requested': { class: 'bg-secondary', text: 'Refund Requested' }
-            };
+        // Get Appointment Actions
+        function getAppointmentActions(appointment) {
+            const actions = [];
             
-            const config = paymentConfig[paymentStatus] || { class: 'bg-secondary', text: paymentStatus || 'Unpaid' };
-            return `<span class="badge ${config.class}">${config.text}</span>`;
+            if (appointment.status === 'pending') {
+                actions.push(`
+                    <button onclick="confirmAppointment('${appointment.appointment_id}')" 
+                            class="text-green-600 hover:text-green-900 mr-3">
+                        <i class="fas fa-check"></i> Confirm
+                    </button>
+                `);
+            }
+            
+            if (appointment.status === 'confirmed' && !appointment.checked_in) {
+                actions.push(`
+                    <button onclick="checkInAppointment('${appointment.appointment_id}')" 
+                            class="text-blue-600 hover:text-blue-900 mr-3">
+                        <i class="fas fa-sign-in-alt"></i> Check In
+                    </button>
+                `);
+            }
+            
+            if (appointment.checked_in && !appointment.checked_out) {
+                actions.push(`
+                    <button onclick="checkOutAppointment('${appointment.appointment_id}')" 
+                            class="text-purple-600 hover:text-purple-900 mr-3">
+                        <i class="fas fa-sign-out-alt"></i> Check Out
+                    </button>
+                `);
+            }
+            
+            actions.push(`
+                <button onclick="viewAppointmentDetails('${appointment.appointment_id}')" 
+                        class="text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            `);
+
+            return actions.join('');
         }
 
-        function getAppointmentActions(appt) {
-            let actions = '';
-            
-            // View details button
-            actions += `<button class="btn btn-sm btn-outline-primary" onclick="viewAppointmentDetails('${appt.appointment_id}')" title="View Details">
-                <i class="fas fa-eye"></i>
-            </button>`;
-            
-            // Status-specific actions
-            if (appt.status === 'pending' && appt.payment_status === 'paid') {
-                actions += `<button class="btn btn-sm btn-success" onclick="confirmAppointment('${appt.appointment_id}')" title="Confirm Appointment">
-                    <i class="fas fa-check"></i>
-                </button>`;
+        // Load Notifications
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/receptionist/notifications');
+                if (!response.ok) throw new Error('Failed to fetch notifications');
+                
+                const notifications = await response.json();
+                updateNotifications(notifications);
+                
+            } catch (error) {
+                console.error('Error loading notifications:', error);
             }
-            
-            if (appt.status === 'confirmed') {
-                if (!appt.checked_in) {
-                    actions += `<button class="btn btn-sm btn-info" onclick="checkInPatient('${appt.appointment_id}')" title="Check In">
-                        <i class="fas fa-sign-in-alt"></i>
-                    </button>`;
-                } else if (!appt.checked_out) {
-                    actions += `<button class="btn btn-sm btn-primary" onclick="checkOutPatient('${appt.appointment_id}')" title="Check Out">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>`;
-                }
-            }
-            
-            if (appt.status === 'refund_requested') {
-                actions += `<button class="btn btn-sm btn-warning" onclick="processRefund('${appt.appointment_id}')" title="Process Refund">
-                    <i class="fas fa-undo"></i>
-                </button>`;
-            }
-            
-            if (['pending', 'confirmed'].includes(appt.status)) {
-                actions += `<button class="btn btn-sm btn-outline-warning" onclick="rescheduleAppointment('${appt.appointment_id}')" title="Reschedule">
-                    <i class="fas fa-clock"></i>
-                </button>`;
-            }
-            
-            if (['pending', 'confirmed', 'payment_pending'].includes(appt.status)) {
-                actions += `<button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment('${appt.appointment_id}')" title="Cancel">
-                    <i class="fas fa-times"></i>
-                </button>`;
-            }
-            
-            return actions;
         }
 
-        function filterAppointments() {
-            const query = document.getElementById('appointmentSearch').value.toLowerCase();
-            const filtered = allAppointments.filter(appt => 
-                appt.patient_name.toLowerCase().includes(query) ||
-                appt.doctor_name.toLowerCase().includes(query) ||
-                appt.therapy_name.toLowerCase().includes(query) ||
-                appt.appointment_id.toLowerCase().includes(query)
-            );
-            renderAppointments(filtered);
-        }
-
-        function filterAppointmentsByType(type) {
-            let filtered = allAppointments;
+        // Update Notifications
+        function updateNotifications(notifications) {
+            const notificationList = document.getElementById('notificationList');
+            const recentNotifications = document.getElementById('recentNotifications');
+            const notificationCount = document.getElementById('notificationCount');
             
-            switch(type) {
-                case 'today':
-                    const today = new Date().toDateString();
-                    filtered = allAppointments.filter(appt => 
-                        new Date(appt.date).toDateString() === today
-                    );
-                    break;
-                case 'pending':
-                    filtered = allAppointments.filter(appt => 
-                        appt.status === 'pending' || appt.status === 'payment_pending'
-                    );
-                    break;
-                case 'payment':
-                    filtered = allAppointments.filter(appt => 
-                        appt.payment_status === 'unpaid' || appt.status === 'payment_pending'
-                    );
-                    break;
+            // Count unread notifications
+            unreadNotifications = notifications.filter(n => !n.is_read).length;
+            
+            // Update notification badge
+            if (unreadNotifications > 0) {
+                notificationCount.textContent = unreadNotifications;
+                notificationCount.classList.remove('hidden');
+            } else {
+                notificationCount.classList.add('hidden');
             }
             
-            renderAppointments(filtered);
-        }
-
-        // Appointment Actions
-        function viewAppointmentDetails(appointmentId) {
-            fetch(`/api/receptionist/appointments/${appointmentId}`)
-                .then(response => response.json())
-                .then(appointment => {
-                    const modalContent = document.getElementById('appointmentDetailContent');
-                    modalContent.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Appointment Information</h6>
-                                <p><strong>ID:</strong> ${appointment.appointment_id}</p>
-                                <p><strong>Patient:</strong> ${appointment.patient_name}</p>
-                                <p><strong>Therapy:</strong> ${appointment.therapy_name}</p>
-                                <p><strong>Doctor:</strong> ${appointment.doctor_name}</p>
-                                <p><strong>Date:</strong> ${new Date(appointment.date).toLocaleString()}</p>
-                                <p><strong>Status:</strong> ${getStatusBadge(appointment.status)}</p>
+            // Update notification dropdown
+            if (notifications.length === 0) {
+                notificationList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                        <p>No notifications</p>
+                    </div>
+                `;
+            } else {
+                notificationList.innerHTML = notifications.slice(0, 10).map(notification => `
+                    <div class="p-4 border-b border-gray-100 hover:bg-gray-50 ${notification.is_read ? '' : 'bg-blue-50'}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">${notification.title}</p>
+                                <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    ${new Date(notification.created_at).toLocaleString()}
+                                </p>
                             </div>
-                            <div class="col-md-6">
-                                <h6>Payment Information</h6>
-                                <p><strong>Payment Status:</strong> ${getPaymentBadge(appointment.payment_status)}</p>
-                                <p><strong>Amount:</strong> ₹${appointment.amount || '100'}</p>
-                                <p><strong>Consultation:</strong> ${appointment.consultation_type}</p>
-                                ${appointment.payment_id ? `<p><strong>Payment ID:</strong> ${appointment.payment_id}</p>` : ''}
-                            </div>
+                            ${!notification.is_read ? `
+                                <span class="ml-2 flex-shrink-0">
+                                    <span class="bg-blue-500 w-2 h-2 rounded-full block"></span>
+                                </span>
+                            ` : ''}
                         </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Reason for Visit</h6>
-                                <p>${appointment.reason || 'No reason provided'}</p>
-                            </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Update recent notifications in main content
+            const recent = notifications.slice(0, 5);
+            if (recent.length === 0) {
+                recentNotifications.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-bell-slash text-gray-300 text-2xl mb-2"></i>
+                        <p class="text-gray-500">No new notifications</p>
+                    </div>
+                `;
+            } else {
+                recentNotifications.innerHTML = recent.map(notification => `
+                    <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-shrink-0 mt-1">
+                            <i class="fas fa-bell text-blue-500"></i>
                         </div>
-                        ${appointment.checked_in ? `
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6>Check-in Information</h6>
-                                <p><strong>Checked in at:</strong> ${new Date(appointment.checked_in_at).toLocaleString()}</p>
-                                ${appointment.checked_out ? `<p><strong>Checked out at:</strong> ${new Date(appointment.check_out_time).toLocaleString()}</p>` : ''}
-                            </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">${notification.title}</p>
+                            <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                            <p class="text-xs text-gray-400 mt-1">
+                                ${new Date(notification.created_at).toLocaleString()}
+                            </p>
                         </div>
-                        ` : ''}
-                    `;
-                    
-                    const modal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
-                    modal.show();
-                })
-                .catch(error => {
-                    console.error('Error loading appointment details:', error);
-                    alert('Failed to load appointment details');
-                });
+                    </div>
+                `).join('');
+            }
         }
 
-        function confirmAppointment(appointmentId) {
-            if (confirm('Are you sure you want to confirm this appointment?')) {
-                fetch(`/api/receptionist/appointments/${appointmentId}/confirm`, {
+        // Action Functions
+async function confirmAppointment(appointmentId) {
+    try {
+        const response = await fetch(`/api/receptionist/appointments/${appointmentId}/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showToast(result.message || 'Appointment confirmed successfully!', 'success');
+            loadDashboardData(); // Refresh data
+        } else {
+            throw new Error(result.error || 'Failed to confirm appointment');
+        }
+    } catch (error) {
+        console.error('Error confirming appointment:', error);
+        showToast(error.message || 'Failed to confirm appointment', 'error');
+    }
+}
+
+
+        async function checkInAppointment(appointmentId) {
+            try {
+                const response = await fetch(`/api/receptionist/appointments/${appointmentId}/check-in`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert('Error: ' + data.error);
-                    } else {
-                        alert('Appointment confirmed successfully!');
-                        loadAppointments();
-                        loadDashboardStats();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error confirming appointment:', error);
-                    alert('Failed to confirm appointment');
                 });
+                
+                if (response.ok) {
+                    showToast('Patient checked in successfully!', 'success');
+                    loadDashboardData(); // Refresh data
+                } else {
+                    throw new Error('Failed to check in patient');
+                }
+            } catch (error) {
+                console.error('Error checking in patient:', error);
+                showToast('Failed to check in patient', 'error');
             }
         }
 
-        function checkInPatient(appointmentId) {
-            fetch(`/api/receptionist/appointments/${appointmentId}/check-in`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                } else {
-                    alert('Patient checked in successfully!');
-                    loadAppointments();
-                }
-            })
-            .catch(error => {
-                console.error('Error checking in patient:', error);
-                alert('Failed to check in patient');
-            });
-        }
-
-        function checkOutPatient(appointmentId) {
-            fetch(`/api/receptionist/appointments/${appointmentId}/check-out`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                } else {
-                    alert('Patient checked out successfully! Appointment marked as completed.');
-                    loadAppointments();
-                    loadDashboardStats();
-                }
-            })
-            .catch(error => {
-                console.error('Error checking out patient:', error);
-                alert('Failed to check out patient');
-            });
-        }
-
-        function processRefund(appointmentId) {
-            currentAppointmentId = appointmentId;
-            
-            fetch(`/api/receptionist/appointments/${appointmentId}`)
-                .then(response => response.json())
-                .then(appointment => {
-                    document.getElementById('refundDetails').innerHTML = `
-                        <div class="alert alert-info">
-                            <p><strong>Appointment:</strong> ${appointment.appointment_id}</p>
-                            <p><strong>Patient:</strong> ${appointment.patient_name}</p>
-                            <p><strong>Amount to refund:</strong> ₹${appointment.amount || '100'}</p>
-                        </div>
-                    `;
-                    
-                    const modal = new bootstrap.Modal(document.getElementById('refundModal'));
-                    modal.show();
-                })
-                .catch(error => {
-                    console.error('Error loading refund details:', error);
-                    alert('Failed to load refund details');
+        async function checkOutAppointment(appointmentId) {
+            try {
+                const response = await fetch(`/api/receptionist/appointments/${appointmentId}/check-out`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
+                
+                if (response.ok) {
+                    showToast('Patient checked out successfully!', 'success');
+                    loadDashboardData(); // Refresh data
+                } else {
+                    throw new Error('Failed to check out patient');
+                }
+            } catch (error) {
+                console.error('Error checking out patient:', error);
+                showToast('Failed to check out patient', 'error');
+            }
         }
 
-        // Setup refund confirmation
-        document.getElementById('confirmRefundBtn').addEventListener('click', function() {
-            fetch(`/api/receptionist/appointments/${currentAppointmentId}/process-refund`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+        function viewAppointmentDetails(appointmentId) {
+            window.location.href = `/receptionist/appointments?appointment=${appointmentId}`;
+        }
+
+        // Mark All Notifications as Read
+        markAllRead.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/receptionist/notifications/read-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showToast('All notifications marked as read', 'success');
+                    loadNotifications(); // Refresh notifications
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                } else {
-                    alert('Refund processed successfully!');
-                    bootstrap.Modal.getInstance(document.getElementById('refundModal')).hide();
-                    loadAppointments();
-                    loadPayments();
-                    loadDashboardStats();
-                }
-            })
-            .catch(error => {
-                console.error('Error processing refund:', error);
-                alert('Failed to process refund');
-            });
+            } catch (error) {
+                console.error('Error marking notifications as read:', error);
+                showToast('Failed to mark notifications as read', 'error');
+            }
         });
 
-        function rescheduleAppointment(appointmentId) {
-            const newDate = prompt('Enter new date and time (YYYY-MM-DDTHH:MM):', new Date().toISOString().slice(0, 16));
+        // Refresh Data
+        refreshDataBtn.addEventListener('click', () => {
+            loadDashboardData();
+            showToast('Data refreshed successfully!', 'success');
+        });
+
+        // View All Notifications
+        viewAllNotifications.addEventListener('click', () => {
+            // Show notification dropdown
+            notificationDropdown.classList.remove('hidden');
+        });
+
+        // Utility Functions
+        function showLoadingState() {
+            // You can add loading indicators here if needed
+        }
+
+        function showErrorState() {
+            showToast('Failed to load dashboard data', 'error');
+        }
+
+        function showToast(message, type = 'info') {
+            // Remove existing toasts
+            const existingToasts = document.querySelectorAll('.toast');
+            existingToasts.forEach(toast => toast.remove());
+
+            const toast = document.createElement('div');
+            toast.className = `toast fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            toast.textContent = message;
             
-            if (newDate) {
-                fetch(`/api/receptionist/appointments/${appointmentId}/confirm`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        scheduled_time: newDate
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert('Error: ' + data.error);
-                    } else {
-                        alert('Appointment rescheduled successfully!');
-                        loadAppointments();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error rescheduling appointment:', error);
-                    alert('Failed to reschedule appointment');
-                });
-            }
-        }
-
-        function cancelAppointment(appointmentId) {
-            if (confirm('Are you sure you want to cancel this appointment?')) {
-                fetch(`/api/receptionist/appointments/${appointmentId}/cancel`, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert('Error: ' + data.error);
-                    } else {
-                        alert('Appointment cancelled successfully!');
-                        loadAppointments();
-                        loadDashboardStats();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error cancelling appointment:', error);
-                    alert('Failed to cancel appointment');
-                });
-            }
-        }
-
-        function loadPayments() {
-            fetch('/api/receptionist/payments')
-                .then(response => response.json())
-                .then(payments => {
-                    allPayments = payments;
-                    renderPayments(payments);
-                })
-                .catch(error => {
-                    console.error('Error loading payments:', error);
-                    renderPayments([]);
-                });
-        }
-
-        function renderPayments(payments) {
-            const container = document.getElementById('paymentsList');
+            document.body.appendChild(toast);
             
-            if (payments.length === 0) {
-                container.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="empty-state">
-                                <i class="fas fa-receipt"></i>
-                                <p>No payments found</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            container.innerHTML = payments.map(payment => {
-                const date = new Date(payment.created_at);
-                
-                return `
-                    <tr>
-                        <td><span class="patient-id">${payment.appointment_id}</span></td>
-                        <td>${payment.patient_name}</td>
-                        <td>${payment.therapy_name}</td>
-                        <td>₹${payment.amount}</td>
-                        <td>${getPaymentBadge(payment.status)}</td>
-                        <td>${date.toLocaleDateString()}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewPaymentDetails('${payment.payment_id}')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            ${payment.status === 'refund_requested' ? `
-                            <button class="btn btn-sm btn-warning" onclick="processRefund('${payment.appointment_id}')">
-                                <i class="fas fa-undo"></i>
-                            </button>
-                            ` : ''}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         }
 
-        function viewPaymentDetails(paymentId) {
-            alert('View payment details: ' + paymentId);
-            // Implement payment details view
-        }
+        // Auto-refresh data every 30 seconds
+        setInterval(loadDashboardData, 30000);
 
-        function loadPatients() {
-            fetch('/api/receptionist/patients')
-                .then(response => response.json())
-                .then(patients => {
-                    renderPatients(patients);
-                })
-                .catch(error => {
-                    console.error('Error loading patients:', error);
-                    renderPatients([]);
-                });
-        }
-
-        function renderPatients(patients) {
-            const container = document.getElementById('patientsList');
-            
-            if (patients.length === 0) {
-                container.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="empty-state">
-                                <i class="fas fa-users"></i>
-                                <p>No patients found</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            container.innerHTML = patients.map(patient => {
-                const lastVisit = patient.last_login ? new Date(patient.last_login).toLocaleDateString() : 'Never';
-                
-                return `
-                    <tr>
-                        <td><span class="patient-id">${patient.user_id}</span></td>
-                        <td>${patient.first_name} ${patient.last_name}</td>
-                        <td>${patient.phone || 'N/A'}</td>
-                        <td>${patient.email}</td>
-                        <td>${lastVisit}</td>
-                        <td>
-                            <span class="badge bg-primary">${Math.floor(Math.random() * 10)}</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewPatientHistory('${patient.user_id}')">
-                                <i class="fas fa-history"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" onclick="createAppointmentForPatient('${patient.user_id}')">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function filterPatients() {
-            const query = document.getElementById('patientSearch').value.toLowerCase();
-            // Implement patient filtering
-        }
-
-        function viewPatientHistory(patientId) {
-            fetch(`/api/receptionist/patients/${patientId}/history`)
-                .then(response => response.json())
-                .then(history => {
-                    alert(`Patient History for ${history.patient_name}\nTotal Appointments: ${history.total_appointments}`);
-                })
-                .catch(error => {
-                    console.error('Error loading patient history:', error);
-                    alert('Failed to load patient history');
-                });
-        }
-
-        function createAppointmentForPatient(patientId) {
-            alert('Create appointment for patient: ' + patientId);
-            // Implement appointment creation for specific patient
-        }
-
-        function loadDoctors() {
-            fetch('/api/therapists')
-                .then(response => response.json())
-                .then(doctors => {
-                    renderDoctors(doctors);
-                })
-                .catch(error => {
-                    console.error('Error loading doctors:', error);
-                    renderDoctors([]);
-                });
-        }
-
-        function renderDoctors(doctors) {
-            const container = document.getElementById('doctorsList');
-            
-            if (doctors.length === 0) {
-                container.innerHTML = `
-                    <div class="col-12">
-                        <div class="empty-state">
-                            <i class="fas fa-user-md"></i>
-                            <p>No doctors found</p>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = doctors.map(doctor => {
-                return `
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">${doctor.name}</h5>
-                                <p class="card-text text-muted">${doctor.specialization}</p>
-                                <div class="mb-2">
-                                    <span class="badge bg-success">Available</span>
-                                </div>
-                                <div class="mt-2">
-                                    <small class="text-muted">Email: ${doctor.email}</small>
-                                </div>
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewDoctorSchedule('${doctor.user_id}')">
-                                        View Schedule
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function viewDoctorSchedule(doctorId) {
-            alert('View schedule for doctor: ' + doctorId);
-            // Implement doctor schedule view
-        }
-
-        function loadNotifications() {
-            fetch('/api/receptionist/notifications')
-                .then(response => response.json())
-                .then(notifications => {
-                    renderNotifications(notifications);
-                })
-                .catch(error => {
-                    console.error('Error loading notifications:', error);
-                });
-        }
-
-        function renderNotifications(notifications) {
-            const container = document.getElementById('notificationList');
-            const countElement = document.getElementById('notificationCount');
-            
-            const unreadCount = notifications.filter(n => !n.is_read).length;
-            countElement.textContent = unreadCount;
-            
-            if (notifications.length === 0) {
-                container.innerHTML = `
-                    <div class="p-3 text-center text-muted">
-                        <i class="fas fa-bell-slash mb-2"></i>
-                        <p class="mb-0">No notifications</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = notifications.map(notification => {
-                const timeAgo = getTimeAgo(notification.created_at);
-                const readClass = notification.is_read ? '' : 'bg-light';
-                
-                return `
-                    <div class="dropdown-item p-3 border-bottom ${readClass}">
-                        <div class="d-flex">
-                            <div class="flex-grow-1">
-                                <p class="mb-1">${notification.message}</p>
-                                <small class="text-muted">${timeAgo}</small>
-                            </div>
-                            ${!notification.is_read ? 
-                                `<button class="btn btn-sm btn-outline-primary" onclick="markNotificationRead('${notification.id}')">
-                                    <i class="fas fa-check"></i>
-                                </button>` : ''
-                            }
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function getTimeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-            
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins} min ago`;
-            if (diffHours < 24) return `${diffHours} hr ago`;
-            if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-            
-            return date.toLocaleDateString();
-        }
-
-        function markNotificationRead(notificationId) {
-            fetch(`/api/receptionist/notifications/${notificationId}/mark-read`, {
-                method: 'POST'
-            })
-            .then(() => {
-                loadNotifications();
-            })
-            .catch(error => {
-                console.error('Error marking notification as read:', error);
-            });
-        }
-
-        function markAllNotificationsRead() {
-            fetch('/api/receptionist/notifications/read-all', {
-                method: 'POST'
-            })
-            .then(() => {
-                loadNotifications();
-            })
-            .catch(error => {
-                console.error('Error marking all notifications as read:', error);
-            });
-        }
-
-        // Logout function
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '/logout';
-            }
-        }
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData();
+        });
     </script>
 </body>
 </html>

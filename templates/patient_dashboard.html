@@ -294,7 +294,6 @@
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            justify-content: between;
         }
         
         .section-header i {
@@ -584,6 +583,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Doctors Section
+            <div class="card mt-6">
+                <h2 class="section-header">
+                    <i class="fas fa-user-md"></i>Our Expert Doctors
+                </h2>
+                 -->
+                <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="doctorsGrid">
+                     Doctors will be loaded here -->
+                <!-- </div>  -->
+                
+                <!-- <div class="text-center mt-4">
+                    <button onclick="loadAllDoctors()" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                        <i class="fas fa-users mr-2"></i>View All Doctors
+                    </button>
+                </div>
+            </div> -->
         </div>
     </div>
 
@@ -591,1087 +607,659 @@
     <div id="scrollToTop" class="scroll-indicator">
         <i class="fas fa-chevron-up"></i>
     </div>
-     
+
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-    // Global variables
-    let allAppointments = [];
-    let currentFilter = 'all';
-    let currentAppointmentId = null;
-    let currentTherapyType = null;
+    <script>
+        // Global variables
+        let allAppointments = [];
+        let currentFilter = 'all';
+        let currentAppointmentId = null;
+        let currentTherapyType = null;
 
-    // Mobile menu toggle
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('overlay');
-    
-    menuToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-    });
-    
-    overlay.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    });
-
-    // Load patient data
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     console.log('Initializing patient dashboard...');
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
         
-    //     // Load data with error handling
-    //     try {
-    //         loadPatientStats();
-    //         loadAllAppointments();
-    //         loadNotifications();
-    //         loadPaymentHistory();
-    //         setupEventListeners();
-            
-    //         // Auto-refresh every 30 seconds
-    //         setInterval(() => {
-    //             loadPatientStats();
-    //             loadAllAppointments();
-    //             loadNotifications();
-    //         }, 30000);
-    //     } catch (error) {
-    //         console.error('Error during initialization:', error);
-    //     }
-    // });
-     
-    
-    // Load patient data
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing patient dashboard...');
-    
-    // Load data with error handling
-    try {
-        loadPatientStats();
-        loadAllAppointments();
-        
-        // Only load these if containers exist
-        if (document.getElementById('notifications')) {
-            loadNotifications();
-        }
-        if (document.getElementById('paymentHistory')) {
-            loadPaymentHistory();
-        }
-        
-        setupEventListeners();
-        
-        // Auto-refresh every 30 seconds
-        setInterval(() => {
-            loadPatientStats();
-            loadAllAppointments();
-            if (document.getElementById('notifications')) {
-                loadNotifications();
-            }
-        }, 30000);
-    } catch (error) {
-        console.error('Error during initialization:', error);
-    }
-});
-
-
-    function setupEventListeners() {
-        // Add click handlers for filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+        if (menuToggle && sidebar && overlay) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
             });
-        });
-    }
-    
-    // Safe data fetching and processing functions
-    function safeArray(data) {
-        if (Array.isArray(data)) {
-            return data;
-        } else if (data && typeof data === 'object' && data.appointments) {
-            return data.appointments || [];
-        } else if (data && typeof data === 'object') {
-            return [data];
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
         }
-        return [];
-    }
 
-    function loadAllAppointments() {
-        fetch('/api/patient-appointments')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Extract appointments array safely
-                const appointments = safeArray(data);
-                allAppointments = appointments;
-                renderAppointments(appointments, currentFilter);
-                updateStatsFromAppointments(appointments);
-            })
-            .catch(error => {
-                console.error('Error loading appointments:', error);
-                // Set empty array and render empty state
-                allAppointments = [];
-                renderAppointments([], currentFilter);
-                document.getElementById('recentAppointments').innerHTML = `
+        // Load patient data
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing patient dashboard...');
+            
+            // Load data with error handling
+            try {
+                loadPatientStats();
+                loadAllAppointments();
+                loadDoctorsForPatients();
+                
+                setupEventListeners();
+                
+                // Auto-refresh every 30 seconds
+                setInterval(() => {
+                    loadPatientStats();
+                    loadAllAppointments();
+                }, 30000);
+            } catch (error) {
+                console.error('Error during initialization:', error);
+            }
+        });
+
+        function setupEventListeners() {
+            // Add click handlers for filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Scroll to top functionality
+            const scrollBtn = document.getElementById('scrollToTop');
+            if (scrollBtn) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 300) {
+                        scrollBtn.classList.add('active');
+                    } else {
+                        scrollBtn.classList.remove('active');
+                    }
+                });
+
+                scrollBtn.addEventListener('click', function() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        }
+        
+        // Safe data fetching and processing functions
+        function safeArray(data) {
+            if (Array.isArray(data)) {
+                return data;
+            } else if (data && typeof data === 'object' && data.appointments) {
+                return data.appointments || [];
+            } else if (data && typeof data === 'object') {
+                return [data];
+            }
+            return [];
+        }
+
+        function loadAllAppointments() {
+            fetch('/api/patient-appointments')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Extract appointments array safely
+                    const appointments = safeArray(data);
+                    allAppointments = appointments;
+                    renderAppointments(appointments, currentFilter);
+                    updateStatsFromAppointments(appointments);
+                })
+                .catch(error => {
+                    console.error('Error loading appointments:', error);
+                    // Set empty array and render empty state
+                    allAppointments = [];
+                    renderAppointments([], currentFilter);
+                    const container = document.getElementById('recentAppointments');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p class="text-gray-500">Error loading appointments</p>
+                                <button onclick="loadAllAppointments()" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                                    Try Again
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+        }
+
+        function renderAppointments(appointments, filter = 'all') {
+            const container = document.getElementById('recentAppointments');
+            
+            if (!container) {
+                console.error('Appointments container not found');
+                return;
+            }
+            
+            // Ensure appointments is always an array
+            const safeAppointments = safeArray(appointments);
+            
+            let filteredAppointments = safeAppointments;
+            
+            // Apply filters safely
+            if (filter === 'payment_pending') {
+                filteredAppointments = safeAppointments.filter(apt => 
+                    apt && (apt.status === 'payment_pending' || apt.payment_status === 'unpaid')
+                );
+            } else if (filter === 'upcoming') {
+                filteredAppointments = safeAppointments.filter(apt => 
+                    apt && ['pending', 'confirmed', 'scheduled'].includes(apt.status)
+                );
+            } else if (filter === 'completed') {
+                filteredAppointments = safeAppointments.filter(apt => apt && apt.status === 'completed');
+            } else if (filter === 'cancelled') {
+                filteredAppointments = safeAppointments.filter(apt => apt && apt.status === 'cancelled');
+            }
+            
+            // Ensure filteredAppointments is an array
+            if (!Array.isArray(filteredAppointments)) {
+                filteredAppointments = [];
+            }
+            
+            if (filteredAppointments.length === 0) {
+                container.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p class="text-gray-500">Error loading appointments</p>
-                        <button onclick="loadAllAppointments()" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
-                            Try Again
-                        </button>
+                        <i class="fas fa-calendar-times"></i>
+                        <p class="text-gray-500">No ${filter === 'all' ? '' : filter + ' '}appointments found</p>
+                        ${filter === 'all' ? `
+                            <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                                Book Your First Appointment
+                            </a>
+                        ` : ''}
                     </div>
                 `;
-            });
-    }
-
-    function renderAppointments(appointments, filter = 'all') {
-        const container = document.getElementById('recentAppointments');
-        
-        if (!container) {
-            console.error('Appointments container not found');
-            return;
-        }
-        
-        // Ensure appointments is always an array
-        const safeAppointments = safeArray(appointments);
-        
-        let filteredAppointments = safeAppointments;
-        
-        // Apply filters safely
-        if (filter === 'payment_pending') {
-            filteredAppointments = safeAppointments.filter(apt => 
-                apt && (apt.status === 'payment_pending' || apt.payment_status === 'unpaid')
-            );
-        } else if (filter === 'upcoming') {
-            filteredAppointments = safeAppointments.filter(apt => 
-                apt && ['pending', 'confirmed', 'scheduled'].includes(apt.status)
-            );
-        } else if (filter === 'completed') {
-            filteredAppointments = safeAppointments.filter(apt => apt && apt.status === 'completed');
-        } else if (filter === 'cancelled') {
-            filteredAppointments = safeAppointments.filter(apt => apt && apt.status === 'cancelled');
-        }
-        
-        // Ensure filteredAppointments is an array
-        if (!Array.isArray(filteredAppointments)) {
-            filteredAppointments = [];
-        }
-        
-        if (filteredAppointments.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
-                    <p class="text-gray-500">No ${filter === 'all' ? '' : filter + ' '}appointments found</p>
-                    ${filter === 'all' ? `
-                        <a href="/book-appointment" class="mt-4 inline-block px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
-                            Book Your First Appointment
-                        </a>
-                    ` : ''}
-                </div>
-            `;
-            return;
-        }
-        
-        // Safe rendering of appointments
-        container.innerHTML = filteredAppointments.map(appt => {
-            if (!appt) return '';
+                return;
+            }
             
-            try {
-                const date = new Date(appt.date || new Date());
-                const dateString = date.toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                });
-                const timeString = date.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
+            // Safe rendering of appointments
+            container.innerHTML = filteredAppointments.map(appt => {
+                if (!appt) return '';
                 
-                const statusClass = {
-                    'pending': 'status-pending',
-                    'confirmed': 'status-confirmed',
-                    'cancelled': 'status-cancelled',
-                    'completed': 'status-completed',
-                    'scheduled': 'status-confirmed',
-                    'payment_pending': 'status-payment-pending',
-                    'refund_requested': 'status-refund-requested'
-                }[appt.status] || 'status-pending';
-                
-                const statusText = {
-                    'pending': 'Pending Approval',
-                    'confirmed': 'Confirmed',
-                    'cancelled': 'Cancelled',
-                    'completed': 'Completed',
-                    'scheduled': 'Scheduled',
-                    'payment_pending': 'Payment Pending',
-                    'refund_requested': 'Refund Requested'
-                }[appt.status] || appt.status || 'Pending';
-                
-                // Action buttons based on status
-                let actionButtons = '';
-                const appointmentId = appt.appointment_id || 'UNKNOWN';
-                const therapyType = appt.therapy_type || 'general';
-                
-                if (appt.status === 'payment_pending' || appt.payment_status === 'unpaid') {
-                    actionButtons = `
-                        <div class="mt-3 flex gap-2 flex-wrap">
-                            <button onclick="completePayment('${appointmentId}', '${therapyType}')" 
-                                    class="px-3 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition flex items-center">
-                                <i class="fas fa-credit-card mr-1"></i>Complete Payment
-                            </button>
-                            <button onclick="cancelAppointment('${appointmentId}')" 
-                                    class="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition flex items-center">
-                                <i class="fas fa-times mr-1"></i>Cancel
-                            </button>
-                        </div>
-                    `;
-                } else if (appt.status && ['pending', 'confirmed', 'scheduled'].includes(appt.status)) {
-                    actionButtons = `
-                        <div class="mt-3">
-                            <button onclick="cancelAppointment('${appointmentId}')" 
-                                    class="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition flex items-center">
-                                <i class="fas fa-times mr-1"></i>Cancel Appointment
-                            </button>
-                        </div>
-                    `;
-                }
-                
-                // Add receipt button for completed/confirmed appointments with payment
-                if (appt.status && ['completed', 'confirmed'].includes(appt.status) && appt.payment_status === 'paid') {
-                    actionButtons += `
-                        <div class="mt-2">
-                            <button onclick="viewReceipt('${appointmentId}')" 
-                                    class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center">
-                                <i class="fas fa-receipt mr-1"></i>View Receipt
-                            </button>
-                        </div>
-                    `;
-                }
-                
-                return `
-                    <div class="appointment-card">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <div class="flex justify-between items-center mb-2">
-                                    <h4 class="font-semibold text-gray-800">${appt.therapy_name || therapyType.title()}</h4>
-                                    <span class="status-badge ${statusClass}">${statusText}</span>
+                try {
+                    const date = new Date(appt.date || new Date());
+                    const dateString = date.toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    const timeString = date.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
+                    
+                    const statusClass = {
+                        'pending': 'status-pending',
+                        'confirmed': 'status-confirmed',
+                        'cancelled': 'status-cancelled',
+                        'completed': 'status-completed',
+                        'scheduled': 'status-confirmed',
+                        'payment_pending': 'status-payment-pending',
+                        'refund_requested': 'status-payment-pending'
+                    }[appt.status] || 'status-pending';
+                    
+                    const statusText = {
+                        'pending': 'Pending Approval',
+                        'confirmed': 'Confirmed',
+                        'cancelled': 'Cancelled',
+                        'completed': 'Completed',
+                        'scheduled': 'Scheduled',
+                        'payment_pending': 'Payment Pending',
+                        'refund_requested': 'Refund Requested'
+                    }[appt.status] || appt.status || 'Pending';
+
+                    // Action buttons based on status
+                    let actionButtons = '';
+                    const appointmentId = appt.appointment_id || 'UNKNOWN';
+                    const therapyType = appt.therapy_type || 'general';
+
+                    // Don't show any action buttons for cancelled or completed appointments
+                    if (appt.status === 'cancelled' || appt.status === 'completed') {
+                        actionButtons = ''; // No buttons for cancelled/completed appointments
+                    } else if (appt.status === 'payment_pending' || appt.payment_status === 'unpaid') {
+                        actionButtons = `
+                            <div class="mt-3 flex gap-2 flex-wrap">
+                                <button onclick="completePayment('${appointmentId}', '${therapyType}')" 
+                                        class="px-3 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700 transition flex items-center">
+                                    <i class="fas fa-credit-card mr-1"></i>Complete Payment
+                                </button>
+                                <button onclick="cancelAppointment('${appointmentId}')" 
+                                        class="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition flex items-center">
+                                    <i class="fas fa-times mr-1"></i>Cancel
+                                </button>
+                            </div>
+                        `;
+                    } else if (appt.status && ['pending', 'confirmed', 'scheduled'].includes(appt.status)) {
+                        actionButtons = `
+                            <div class="mt-3">
+                                <button onclick="cancelAppointment('${appointmentId}')" 
+                                        class="px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition flex items-center">
+                                    <i class="fas fa-times mr-1"></i>Cancel Appointment
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    // Add receipt button for completed/confirmed appointments with payment
+                    if ((appt.status === 'completed' || appt.status === 'confirmed') && appt.payment_status === 'paid') {
+                        actionButtons += `
+                            <div class="mt-2">
+                                <button onclick="viewReceipt('${appointmentId}')" 
+                                        class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center">
+                                    <i class="fas fa-receipt mr-1"></i>View Receipt
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <div class="appointment-card">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 class="font-semibold text-gray-800">${appt.therapy_name || (therapyType ? therapyType.charAt(0).toUpperCase() + therapyType.slice(1) : 'General')}</h4>
+                                        <span class="status-badge ${statusClass}">${statusText}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-1">
+                                        <i class="fas fa-user-md mr-2"></i>
+                                        <strong>Doctor:</strong> ${appt.doctor_name || 'Not assigned'}
+                                    </p>
+                                    <p class="text-sm text-gray-600 mb-1">
+                                        <i class="fas fa-calendar mr-2"></i>
+                                        <strong>Date:</strong> ${dateString} at ${timeString}
+                                    </p>
+                                    <p class="text-sm text-gray-600 mb-1">
+                                        <i class="fas fa-stethoscope mr-2"></i>
+                                        <strong>Type:</strong> ${appt.consultation_type || 'General'} Consultation
+                                    </p>
+                                    <p class="text-sm text-gray-700 mt-2">
+                                        <i class="fas fa-comment-medical mr-2"></i>
+                                        <strong>Reason:</strong> ${appt.reason || 'General consultation'}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-2">
+                                        Appointment ID: ${appointmentId} | 
+                                        Payment: <span class="font-semibold ${appt.payment_status === 'paid' ? 'text-green-600' : 'text-red-600'}">${appt.payment_status || 'unpaid'}</span>
+                                    </p>
+                                    ${actionButtons}
                                 </div>
-                                <p class="text-sm text-gray-600 mb-1">
-                                    <i class="fas fa-user-md mr-2"></i>
-                                    <strong>Doctor:</strong> ${appt.doctor_name || 'Not assigned'}
-                                </p>
-                                <p class="text-sm text-gray-600 mb-1">
-                                    <i class="fas fa-calendar mr-2"></i>
-                                    <strong>Date:</strong> ${dateString} at ${timeString}
-                                </p>
-                                <p class="text-sm text-gray-600 mb-1">
-                                    <i class="fas fa-stethoscope mr-2"></i>
-                                    <strong>Type:</strong> ${appt.consultation_type || 'General'} Consultation
-                                </p>
-                                <p class="text-sm text-gray-700 mt-2">
-                                    <i class="fas fa-comment-medical mr-2"></i>
-                                    <strong>Reason:</strong> ${appt.reason || 'General consultation'}
-                                </p>
-                                <p class="text-xs text-gray-500 mt-2">
-                                    Appointment ID: ${appointmentId} | 
-                                    Payment: <span class="font-semibold ${appt.payment_status === 'paid' ? 'text-green-600' : 'text-red-600'}">${appt.payment_status || 'unpaid'}</span>
-                                </p>
-                                ${actionButtons}
                             </div>
                         </div>
+                    `;
+                } catch (error) {
+                    console.error('Error rendering appointment:', error);
+                    return '';
+                }
+            }).join('');
+        }
+
+        function filterAppointments(filterType) {
+            currentFilter = filterType;
+            
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === filterType) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            renderAppointments(allAppointments, filterType);
+        }
+
+        function loadPatientStats() {
+            fetch('/api/patient-dashboard-stats')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load stats');
+                    }
+                    return response.json();
+                })
+                .then(stats => {
+                    updatePatientStats(stats);
+                })
+                .catch(error => {
+                    console.error('Error loading patient stats:', error);
+                    // Set default stats
+                    updatePatientStats({
+                        upcoming_appointments: 0,
+                        completed_sessions: 0,
+                        pending_payments: 0,
+                        therapies_tried: 0
+                    });
+                });
+        }
+
+        function updatePatientStats(stats) {
+            // Safely update stats with fallbacks
+            const upcomingEl = document.getElementById('upcomingAppointmentsCount');
+            const completedEl = document.getElementById('completedSessionsCount');
+            const pendingEl = document.getElementById('pendingPaymentsCount');
+            const therapiesEl = document.getElementById('therapiesTriedCount');
+            
+            if (upcomingEl) upcomingEl.textContent = stats.upcoming_appointments || 0;
+            if (completedEl) completedEl.textContent = stats.completed_sessions || 0;
+            if (pendingEl) pendingEl.textContent = stats.pending_payments || 0;
+            if (therapiesEl) therapiesEl.textContent = stats.therapies_tried || 0;
+        }
+
+        function updateStatsFromAppointments(appointments) {
+            // Safely calculate stats from appointments
+            const safeAppointments = safeArray(appointments);
+            
+            const upcoming = safeAppointments.filter(apt => 
+                apt && ['pending', 'confirmed', 'scheduled'].includes(apt.status)
+            ).length;
+            
+            const completed = safeAppointments.filter(apt => apt && apt.status === 'completed').length;
+            const paymentPending = safeAppointments.filter(apt => 
+                apt && (apt.status === 'payment_pending' || apt.payment_status === 'unpaid')
+            ).length;
+            
+            // Count unique therapy types
+            const therapyTypes = new Set();
+            safeAppointments.forEach(apt => {
+                if (apt && apt.therapy_type) {
+                    therapyTypes.add(apt.therapy_type);
+                }
+            });
+            
+            // Update stats
+            const upcomingEl = document.getElementById('upcomingAppointmentsCount');
+            const completedEl = document.getElementById('completedSessionsCount');
+            const pendingEl = document.getElementById('pendingPaymentsCount');
+            const therapiesEl = document.getElementById('therapiesTriedCount');
+            
+            if (upcomingEl) upcomingEl.textContent = upcoming;
+            if (completedEl) completedEl.textContent = completed;
+            if (pendingEl) pendingEl.textContent = paymentPending;
+            if (therapiesEl) therapiesEl.textContent = therapyTypes.size;
+        }
+
+        // Load doctors for patient view
+        function loadDoctorsForPatients() {
+            fetch('/api/doctors')
+                .then(response => response.json())
+                .then(doctors => {
+                    renderDoctorsForPatients(doctors.slice(0, 6)); // Show first 6 doctors
+                })
+                .catch(error => {
+                    console.error('Error loading doctors:', error);
+                });
+        }
+
+        function renderDoctorsForPatients(doctors) {
+            const container = document.getElementById('doctorsGrid');
+            
+            if (!container) {
+                console.error('Doctors grid container not found');
+                return;
+            }
+            
+            if (!doctors || doctors.length === 0) {
+                container.innerHTML = '<div class="col-span-3 text-center py-8 text-gray-500">No doctors available</div>';
+                return;
+            }
+            
+            container.innerHTML = doctors.map(doctor => {
+                if (!doctor) return '';
+                
+                const statusClass = doctor.is_available ? 
+                    'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                const initials = doctor.name ? 
+                    doctor.name.split(' ').map(n => n[0]).join('') : 'DR';
+                
+                return `
+                    <div class="bg-white rounded-lg shadow-sm border p-4">
+                        <div class="text-center mb-3">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-bold mx-auto mb-2">
+                                ${initials}
+                            </div>
+                            <h4 class="font-semibold text-gray-800">${doctor.name || 'Doctor'}</h4>
+                            <p class="text-sm text-gray-600">${doctor.specialization || 'General Practitioner'}</p>
+                            <span class="inline-block px-2 py-1 ${statusClass} rounded-full text-xs font-medium mt-1">
+                                ${doctor.is_available ? 'Available' : 'Busy'}
+                            </span>
+                        </div>
+                        
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><i class="fas fa-graduation-cap mr-2"></i>${doctor.qualifications || 'MD'}</p>
+                            <p><i class="fas fa-briefcase mr-2"></i>${doctor.experience || '0'} years experience</p>
+                            <p><i class="fas fa-rupee-sign mr-2"></i>₹${doctor.consultation_fee || '0'} consultation</p>
+                        </div>
+                        
+                        <div class="mt-4 flex justify-between">
+                            <button onclick="viewDoctorProfile('${doctor.user_id || ''}')" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition">
+                                <i class="fas fa-eye mr-1"></i>View Profile
+                            </button>
+                            <button onclick="bookWithDoctor('${doctor.user_id || ''}')" class="px-3 py-1 bg-teal-600 text-white rounded text-sm hover:bg-teal-700 transition">
+                                <i class="fas fa-calendar-plus mr-1"></i>Book Appointment
+                            </button>
+                        </div>
                     </div>
                 `;
-            } catch (error) {
-                console.error('Error rendering appointment:', error);
-                return '';
-            }
-        }).join('');
-    }
-
-    function filterAppointments(filterType) {
-        currentFilter = filterType;
-        renderAppointments(allAppointments, filterType);
-    }
-
-    function loadPaymentHistory() {
-        const paymentContainer = document.getElementById('paymentHistory');
-        if (!paymentContainer) {
-            console.warn('Payment history container not found');
-            return;
+            }).join('');
         }
-        
-        fetch('/api/patient-payments')
+
+        function viewDoctorProfile(doctorId) {
+            // Open doctor profile in modal or new page
+            alert('Viewing doctor profile: ' + doctorId);
+        }
+
+        function bookWithDoctor(doctorId) {
+            // Redirect to booking page with doctor pre-selected
+            window.location.href = `/book-appointment?doctor=${doctorId}`;
+        }
+
+        function loadAllDoctors() {
+            // Redirect to all doctors page
+            window.location.href = '/all-doctors';
+        }
+
+        function completePayment(appointmentId, therapyType) {
+            currentAppointmentId = appointmentId;
+            currentTherapyType = therapyType;
+            
+            // Show loading state
+            const payButton = event.target;
+            const originalText = payButton.innerHTML;
+            payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Processing...';
+            payButton.disabled = true;
+            
+            console.log('Starting REAL payment for:', appointmentId, therapyType);
+            
+            // Initiate REAL Razorpay payment
+            initiateRazorpayPayment(appointmentId, therapyType);
+            
+            // Reset button after 3 seconds if payment modal doesn't open
+            setTimeout(() => {
+                payButton.innerHTML = originalText;
+                payButton.disabled = false;
+            }, 3000);
+        }
+
+        function initiateRazorpayPayment(appointmentId, therapyType) {
+            console.log('🔄 Initiating REAL Razorpay payment...');
+            
+            // First create payment order
+            fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    appointment_id: appointmentId,
+                    therapy_type: therapyType
+                })
+            })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`Server error: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                // Extract payments array safely
-                const payments = safeArray(data);
-                renderPaymentHistory(payments);
-            })
-            .catch(error => {
-                console.error('Error loading payment history:', error);
-                // Set empty payment history
-                renderPaymentHistory([]);
-            });
-    }
-
-    function renderPaymentHistory(payments) {
-        const container = document.getElementById('paymentHistory');
-        if (!container) {
-            console.error('Payment history container not found');
-            return;
-        }
-        
-        // Ensure payments is always an array
-        const safePayments = safeArray(payments);
-        
-        if (safePayments.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-receipt"></i>
-                    <p class="text-gray-500">No payment history found</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = safePayments.map(payment => {
-            if (!payment) return '';
-            
-            try {
-                const date = new Date(payment.created_at || new Date());
-                const dateString = date.toLocaleDateString('en-IN');
+                console.log('💰 Payment order response:', data);
                 
-                return `
-                    <div class="flex justify-between items-center p-3 border-b">
-                        <div>
-                            <p class="font-semibold">${payment.therapy_type || 'Therapy'} Therapy</p>
-                            <p class="text-sm text-gray-600">Appointment: ${payment.appointment_id || 'N/A'}</p>
-                            <p class="text-xs text-gray-500">${dateString}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-semibold text-green-600">₹${payment.amount || 0}</p>
-                            <span class="text-xs px-2 py-1 rounded-full ${payment.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                                ${payment.status || 'unknown'}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Error rendering payment:', error);
-                return '';
-            }
-        }).join('');
-    }
-
-    function loadPatientStats() {
-        fetch('/api/patient-dashboard-stats')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load stats');
+                if (!data.success) {
+                    alert('Payment Error: ' + (data.error || 'Failed to create payment order'));
+                    return;
                 }
-                return response.json();
-            })
-            .then(stats => {
-                updatePatientStats(stats);
-            })
-            .catch(error => {
-                console.error('Error loading patient stats:', error);
-                // Set default stats
-                updatePatientStats({
-                    upcoming_appointments: 0,
-                    completed_sessions: 0,
-                    pending_appointments: 0,
-                    therapies_tried: 0
+
+                // REAL Razorpay options
+                const options = {
+                    key: data.key_id,
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: 'DCAM Therapy Center',
+                    description: `Payment for ${therapyType} therapy appointment`,
+                    order_id: data.order_id,
+                    handler: function(response) {
+                        console.log('✅ Razorpay payment successful:', response);
+                        // Verify payment on server
+                        verifyRazorpayPayment(response);
+                    },
+                    prefill: {
+                        name: '{{ session.first_name }} {{ session.last_name }}',
+                        email: '{{ session.email }}',
+                        contact: '' // You can add phone if available
+                    },
+                    theme: {
+                        color: '#168E9A'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            console.log('Payment modal closed by user');
+                            alert('Payment was cancelled. You can complete payment later from your appointments.');
+                        }
+                    }
+                };
+
+                // Open Razorpay checkout - REAL PAYMENT
+                const rzp = new Razorpay(options);
+                
+                // Handle payment failures
+                rzp.on('payment.failed', function(response) {
+                    console.error('❌ Payment failed:', response.error);
+                    alert('Payment failed: ' + 
+                        (response.error.description || 'Please try again with different payment method'));
                 });
+                
+                rzp.open();
+                
+            })
+            .catch(error => {
+                console.error('Error creating payment order:', error);
+                alert('Error starting payment: ' + error.message);
             });
-    }
+        }
 
-    function updatePatientStats(stats) {
-        // Safely update stats with fallbacks
-        document.getElementById('upcomingAppointmentsCount').textContent = stats.upcoming_appointments || 0;
-        document.getElementById('completedSessionsCount').textContent = stats.completed_sessions || 0;
-        document.getElementById('pendingPaymentsCount').textContent = stats.pending_payments || stats.pending_appointments || 0;
-        document.getElementById('therapiesTriedCount').textContent = stats.therapies_tried || 0;
-    }
-
-    function updateStatsFromAppointments(appointments) {
-        // Safely calculate stats from appointments
-        const safeAppointments = safeArray(appointments);
-        
-        const upcoming = safeAppointments.filter(apt => 
-            apt && ['pending', 'confirmed', 'scheduled'].includes(apt.status)
-        ).length;
-        
-        const completed = safeAppointments.filter(apt => apt && apt.status === 'completed').length;
-        const paymentPending = safeAppointments.filter(apt => 
-            apt && (apt.status === 'payment_pending' || apt.payment_status === 'unpaid')
-        ).length;
-        
-        // Count unique therapy types
-        const therapyTypes = new Set();
-        safeAppointments.forEach(apt => {
-            if (apt && apt.therapy_type) {
-                therapyTypes.add(apt.therapy_type);
-            }
-        });
-        
-        // Update stats
-        document.getElementById('upcomingAppointmentsCount').textContent = upcoming;
-        document.getElementById('completedSessionsCount').textContent = completed;
-        document.getElementById('pendingPaymentsCount').textContent = paymentPending;
-        document.getElementById('therapiesTriedCount').textContent = therapyTypes.size;
-    }
-
-    function loadNotifications() {
-        fetch('/api/patient-notifications')
+        function verifyRazorpayPayment(response) {
+            console.log('🔍 Verifying payment with server...');
+            
+            fetch('/api/verify-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
+                })
+            })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Failed to load notifications');
+                    throw new Error(`Verification failed: ${response.status}`);
                 }
                 return response.json();
             })
-            .then(notifications => {
-                renderNotifications(notifications);
+            .then(data => {
+                console.log('✅ Payment verification result:', data);
+                
+                if (data.success) {
+                    // Show success message
+                    alert('🎉 Payment Successful! Your appointment is now confirmed.');
+                    
+                    // Refresh data
+                    loadAllAppointments();
+                    loadPatientStats();
+                    
+                    // Show confetti effect (optional)
+                    showConfetti();
+                } else {
+                    alert('Payment verification failed: ' + (data.error || 'Please contact support'));
+                }
             })
             .catch(error => {
-                console.error('Error loading notifications:', error);
-                renderNotifications([]);
+                console.error('Error verifying payment:', error);
+                alert('Payment verification error. Please contact support with your payment ID.');
             });
-    }
+        }
 
-    function renderNotifications(notifications) {
-        const container = document.getElementById('notifications');
-        if (!container) {
-            console.warn('Notifications container not found');
-            return;
-        }
-        
-        // Ensure notifications is always an array
-        const safeNotifications = safeArray(notifications);
-        
-        if (safeNotifications.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-bell-slash"></i>
-                    <p class="text-gray-500">No notifications</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = safeNotifications.map(notification => {
-            if (!notification) return '';
+        // Optional: Celebration effect
+        function showConfetti() {
+            // Simple celebration effect
+            const confetti = document.createElement('div');
+            confetti.innerHTML = '🎉';
+            confetti.style.position = 'fixed';
+            confetti.style.top = '50%';
+            confetti.style.left = '50%';
+            confetti.style.transform = 'translate(-50%, -50%)';
+            confetti.style.fontSize = '3rem';
+            confetti.style.zIndex = '10000';
+            document.body.appendChild(confetti);
             
-            try {
-                const date = new Date(notification.created_at || new Date());
-                const timeAgo = getTimeAgo(date);
+            setTimeout(() => {
+                confetti.remove();
+            }, 2000);
+        }
+
+        function cancelAppointment(appointmentId) {
+            if (confirm('Are you sure you want to cancel this appointment?')) {
+                // Show loading state
+                const cancelButton = event.target;
+                const originalText = cancelButton.innerHTML;
+                cancelButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Cancelling...';
+                cancelButton.disabled = true;
                 
-                return `
-                    <div class="p-3 border-b">
-                        <p class="text-sm">${notification.message || 'Notification'}</p>
-                        <p class="text-xs text-gray-500 mt-1">${timeAgo}</p>
-                    </div>
-                `;
-            } catch (error) {
-                console.error('Error rendering notification:', error);
-                return '';
+                fetch('/api/cancel-appointment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        appointment_id: appointmentId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Appointment cancelled successfully.');
+                        // Refresh appointments to reflect changes
+                        loadAllAppointments();
+                        loadPatientStats();
+                    } else {
+                        alert('Failed to cancel appointment: ' + (data.error || 'Unknown error'));
+                        // Reset button
+                        cancelButton.innerHTML = originalText;
+                        cancelButton.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cancelling appointment:', error);
+                    alert('Error cancelling appointment. Please try again.');
+                    // Reset button
+                    cancelButton.innerHTML = originalText;
+                    cancelButton.disabled = false;
+                });
             }
-        }).join('');
-    }
-
-    function getTimeAgo(date) {
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins} min ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    }
-
-    // Scroll to top functionality
-    window.addEventListener('scroll', function() {
-        const scrollBtn = document.getElementById('scrollToTop');
-        if (window.scrollY > 300) {
-            scrollBtn.classList.add('active');
-        } else {
-            scrollBtn.classList.remove('active');
-        }
-    });
-
-    document.getElementById('scrollToTop').addEventListener('click', function() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // Payment functionality
-   // function completePayment(appointmentId, therapyType) {
-     //   currentAppointmentId = appointmentId;
-     //   currentTherapyType = therapyType;
-     //   
-        // Show payment modal
-     //   showPaymentModal(appointmentId, therapyType);
-   // }
-
-    // function showPaymentModal(appointmentId, therapyType) {
-    //     const modal = document.createElement('div');
-    //     modal.className = 'payment-modal';
-    //     modal.innerHTML = `
-    //         <div class="payment-modal-content">
-        //         <h3 class="text-xl font-bold mb-4">Complete Payment</h3>
-        //         <p class="mb-4">You are about to pay for your ${therapyType} therapy appointment.</p>
-        //         <p class="mb-4 font-semibold">Amount: ₹500</p>
-        //         <div class="flex justify-between mt-6">
-        //             <button onclick="closePaymentModal()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
-        //                 Cancel
-        //             </button>
-        //             <button onclick="initiateRazorpayPayment()" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
-        //                 Pay Now
-        //             </button>
-        //         </div>
-        //     </div>
-        // `;
-    //     document.body.appendChild(modal);
-    // }
-// function completePayment(appointmentId, therapyType) {
-//     currentAppointmentId = appointmentId;
-//     currentTherapyType = therapyType;
-    
-//     // Show payment modal
-//     showPaymentModal(appointmentId, therapyType);
-// }
-
-// function showPaymentModal(appointmentId, therapyType) {
-//     const modal = document.createElement('div');
-//     modal.className = 'payment-modal';
-//     modal.innerHTML = `
-//         <div class="payment-modal-content">
-//             <h3 class="text-xl font-bold mb-4">Complete Payment</h3>
-//             <p class="mb-4">You are about to pay for your ${therapyType} therapy appointment.</p>
-//             <p class="mb-4 font-semibold">Amount: ₹100</p>
-//             <div class="flex justify-between mt-6">
-//                 <button onclick="closePaymentModal()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
-//                     Cancel
-//                 </button>
-//                 <button onclick="processDemoPayment()" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
-//                     Pay Now (Demo)
-//                 </button>
-//             </div>
-//         </div>
-//     `;
-//     document.body.appendChild(modal);
-// }
-
-// function processDemoPayment() {
-//     // For demo purposes, simulate successful payment
-//     fetch('/api/confirm-payment', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({
-//             appointment_id: currentAppointmentId,
-//             payment_id: 'demo_payment_' + Date.now(),
-//             amount: 100
-//         })
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         if (data.success) {
-//             alert('Payment successful! Your appointment is pending receptionist confirmation.');
-//             closePaymentModal();
-//             // Refresh appointments
-//             loadAllAppointments();
-//             loadPatientStats();
-//         } else {
-//             alert('Payment failed: ' + (data.error || 'Unknown error'));
-//         }
-//     })
-//     .catch(error => {
-//         console.error('Error processing payment:', error);
-//         alert('Error processing payment. Please try again.');
-//     });
-// }
-
-// REPLACE these functions in patient_dashboard.html:
-
-//function completePayment(appointmentId, therapyType) {
-  //  currentAppointmentId = appointmentId;
-    //currentTherapyType = therapyType;
-    
-    // Use actual Razorpay payment
-   // initiateRazorpayPayment(appointmentId, therapyType);
-//}
-
-//function initiateRazorpayPayment(appointmentId, therapyType) {
-    // First create payment order
-  //  fetch('/api/create-payment', {
-    //    method: 'POST',
-      //  headers: {
-        //    'Content-Type': 'application/json',
-        //},
-        //body: JSON.stringify({
-          //  appointment_id: appointmentId,
-            //therapy_type: therapyType
-        //})
-    //})
-    //.then(response => response.json())
-    //.then(data => {
-      //  if (data.error) {
-        //    alert('Payment error: ' + data.error);
-          //  return;
-        //}
-
-        // Razorpay options
-        // const options = {
-        //     key: data.key_id,
-        //     amount: data.amount,
-        //     currency: data.currency,
-        //     name: 'DCAM Therapy Center',
-        //     description: `Payment for ${therapyType} therapy appointment`,
-        //     order_id: data.order_id,
-        //     handler: function(response) {
-        //         // Verify payment on server
-        //         verifyRazorpayPayment(response);
-            // },
-            // prefill: {
-            //     name: '{{ session.first_name }} {{ session.last_name }}',
-            //     email: '{{ session.email }}',
-            //     contact: document.getElementById('patientPhone')?.value || ''
-            // },
-            // theme: {
-            //     color: '#168E9A'
-            // },
-        //     modal: {
-        //         ondismiss: function() {
-        //             console.log('Payment modal closed');
-        //         }
-        //     }
-        // };
-
-//         const rzp = new Razorpay(options);
-//         rzp.open();
-//     })
-//     .catch(error => {
-//         console.error('Error creating payment:', error);
-//         alert('Error initiating payment. Please try again.');
-//     });
-// }
-
-// function verifyRazorpayPayment(response) {
-//     fetch('/api/verify-payment', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({
-//             razorpay_payment_id: response.razorpay_payment_id,
-//             razorpay_order_id: response.razorpay_order_id,
-//             razorpay_signature: response.razorpay_signature
-//         })
-//     })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.error) {
-    //         alert('Payment verification failed: ' + data.error);
-    //     } else {
-    //         alert('Payment successful! Your appointment is confirmed.');
-    //         // Refresh appointments
-    //         loadAllAppointments();
-    //         loadPatientStats();
-    //     }
-    // })
-    // .catch(error => {
-//         console.error('Error verifying payment:', error);
-//         alert('Payment verification error. Please contact support.');
-//     });
-// }
-
-// REMOVE the demo payment functions (processDemoPayment, showPaymentModal with demo)
-
-function completePayment(appointmentId, therapyType) {
-    currentAppointmentId = appointmentId;
-    currentTherapyType = therapyType;
-    
-    // Show loading state
-    const payButton = event.target;
-    const originalText = payButton.innerHTML;
-    payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Processing...';
-    payButton.disabled = true;
-    
-    console.log('Starting REAL payment for:', appointmentId, therapyType);
-    
-    // Initiate REAL Razorpay payment
-    initiateRazorpayPayment(appointmentId, therapyType);
-    
-    // Reset button after 3 seconds if payment modal doesn't open
-    setTimeout(() => {
-        payButton.innerHTML = originalText;
-        payButton.disabled = false;
-    }, 3000);
-}
-
-function initiateRazorpayPayment(appointmentId, therapyType) {
-    console.log('🔄 Initiating REAL Razorpay payment...');
-    
-    // First create payment order
-    fetch('/api/create-payment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            appointment_id: appointmentId,
-            therapy_type: therapyType
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('💰 Payment order response:', data);
-        
-        if (!data.success) {
-            alert('Payment Error: ' + (data.error || 'Failed to create payment order'));
-            return;
         }
 
-        // REAL Razorpay options
-        const options = {
-            key: data.key_id,
-            amount: data.amount,
-            currency: data.currency,
-            name: 'DCAM Therapy Center',
-            description: `Payment for ${therapyType} therapy appointment`,
-            order_id: data.order_id,
-            handler: function(response) {
-                console.log('✅ Razorpay payment successful:', response);
-                // Verify payment on server
-                verifyRazorpayPayment(response);
-            },
-            prefill: {
-                name: '{{ session.first_name }} {{ session.last_name }}',
-                email: '{{ session.email }}',
-                contact: '' // You can add phone if available
-            },
-            theme: {
-                color: '#168E9A'
-            },
-            modal: {
-                ondismiss: function() {
-                    console.log('Payment modal closed by user');
-                    alert('Payment was cancelled. You can complete payment later from your appointments.');
-                }
-            }
-        };
-
-        // Open Razorpay checkout - REAL PAYMENT
-        const rzp = new Razorpay(options);
-        
-        // Handle payment failures
-        rzp.on('payment.failed', function(response) {
-            console.error('❌ Payment failed:', response.error);
-            alert('Payment failed: ' + 
-                (response.error.description || 'Please try again with different payment method'));
-        });
-        
-        rzp.open();
-        
-    })
-    .catch(error => {
-        console.error('Error creating payment order:', error);
-        alert('Error starting payment: ' + error.message);
-    });
-}
-
-function verifyRazorpayPayment(response) {
-    console.log('🔍 Verifying payment with server...');
-    
-    fetch('/api/verify-payment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_signature: response.razorpay_signature
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Verification failed: ${response.status}`);
+        function viewReceipt(appointmentId) {
+            // Open receipt in new tab
+            window.open(`/patient-receipt/${appointmentId}`, '_blank');
         }
-        return response.json();
-    })
-    .then(data => {
-        console.log('✅ Payment verification result:', data);
-        
-        if (data.success) {
-            // Show success message
-            alert('🎉 Payment Successful! Your appointment is now confirmed.');
-            
-            // Refresh data
-            loadAllAppointments();
-            loadPatientStats();
-            
-            // Show confetti effect (optional)
-            showConfetti();
-        } else {
-            alert('Payment verification failed: ' + (data.error || 'Please contact support'));
-        }
-    })
-    .catch(error => {
-        console.error('Error verifying payment:', error);
-        alert('Payment verification error. Please contact support with your payment ID.');
-    });
-}
-
-// Optional: Celebration effect
-function showConfetti() {
-    // Simple celebration effect
-    const confetti = document.createElement('div');
-    confetti.innerHTML = '🎉';
-    confetti.style.position = 'fixed';
-    confetti.style.top = '50%';
-    confetti.style.left = '50%';
-    confetti.style.transform = 'translate(-50%, -50%)';
-    confetti.style.fontSize = '3rem';
-    confetti.style.zIndex = '10000';
-    document.body.appendChild(confetti);
-    
-    setTimeout(() => {
-        confetti.remove();
-    }, 2000);
-}
-
-
-
-
-
-
-
-    function closePaymentModal() {
-        const modal = document.querySelector('.payment-modal');
-        if (modal) {
-            modal.remove();
-        }
-    }
-
-    function initiateRazorpayPayment() {
-        const options = {
-            key: 'YOUR_RAZORPAY_KEY',
-            amount: 50, // Amount in paise (₹500)
-            currency: 'INR',
-            name: 'DCAM Therapy Center',
-            description: 'Therapy Appointment Payment',
-            handler: function(response) {
-                handlePaymentSuccess(response);
-            },
-            prefill: {
-                name: '{{ session.first_name }} {{ session.last_name }}',
-                email: '{{ session.email }}',
-                contact: '{{ session.phone }}'
-            },
-            theme: {
-                color: '#168E9A'
-            }
-        };
-        
-        const rzp = new Razorpay(options);
-        rzp.open();
-    }
-
-    function handlePaymentSuccess(response) {
-        // Send payment success to server
-        fetch('/api/confirm-payment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                appointment_id: currentAppointmentId,
-                payment_id: response.razorpay_payment_id,
-                amount: 10
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Payment successful! Your appointment is confirmed.');
-                closePaymentModal();
-                // Refresh appointments
-                loadAllAppointments();
-                loadPatientStats();
-            } else {
-                alert('Payment verification failed. Please contact support.');
-            }
-        })
-        .catch(error => {
-            console.error('Error confirming payment:', error);
-            alert('Error confirming payment. Please contact support.');
-        });
-    }
-
-    // function cancelAppointment(appointmentId) {
-    //     if (confirm('Are you sure you want to cancel this appointment?')) {
-    //         fetch('/api/cancel-appointment', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify({
-    //                 appointment_id: appointmentId
-    //             })
-    //         })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             if (data.success) {
-    //                 alert('Appointment cancelled successfully.');
-    //                 // Refresh appointments
-    //                 loadAllAppointments();
-    //                 loadPatientStats();
-    //             } else {
-    //                 alert('Failed to cancel appointment: ' + (data.message || 'Unknown error'));
-    //             }
-    //         })
-    //         .catch(error => {
-    //             console.error('Error cancelling appointment:', error);
-    //             alert('Error cancelling appointment. Please try again.');
-    //         });
-    //     }
-    // }
-
-//     function cancelAppointment(appointmentId) {
-//     if (confirm('Are you sure you want to cancel this appointment?')) {
-//         fetch('/api/cancel-appointment', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({
-//                 appointment_id: appointmentId
-//             })
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.success) {
-//                 alert('Appointment cancelled successfully.');
-//                 // Refresh appointments
-//                 loadAllAppointments();
-//                 loadPatientStats();
-//             } else {
-//                 alert('Failed to cancel appointment: ' + (data.error || 'Unknown error'));
-//             }
-//         })
-//         .catch(error => {
-//             console.error('Error cancelling appointment:', error);
-//             alert('Error cancelling appointment. Please try again.');
-//         });
-//     }
-// }
-
-// patient_dashboard.html में showPaymentModal function को update करें
-// function showPaymentModal(appointmentId, therapyType) {
-//     const modal = document.createElement('div');
-//     modal.className = 'payment-modal';
-//     modal.innerHTML = `
-//         <div class="payment-modal-content">
-//             <h3 class="text-xl font-bold mb-4">Complete Payment</h3>
-//             <p class="mb-4">You are about to pay for your ${therapyType} therapy appointment.</p>
-//             <p class="mb-4 font-semibold">Amount: ₹50</p>
-//             <div class="flex justify-between mt-6">
-//                 <button onclick="closePaymentModal()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition">
-//                     Cancel
-//                 </button>
-//                 <button onclick="processDemoPayment()" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
-//                     Pay Now (₹50)
-//                 </button>
-//             </div>
-//         </div>
-//     `;
-//     document.body.appendChild(modal);
-// }
-
-// // processDemoPayment function को update करें
-// function processDemoPayment() {
-//     // For demo purposes, simulate successful payment with 50 rupees
-//     fetch('/api/confirm-payment', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({
-//             appointment_id: currentAppointmentId,
-//             payment_id: 'demo_payment_' + Date.now(),
-//             amount: 50  // Set to 50 rupees
-//         })
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         if (data.success) {
-//             alert('Payment successful! ₹50 payment received. Your appointment is pending receptionist confirmation.');
-//             closePaymentModal();
-//             // Refresh appointments
-//             loadAllAppointments();
-//             loadPatientStats();
-//         } else {
-//             alert('Payment failed: ' + (data.error || 'Unknown error'));
-//         }
-//     })
-//     .catch(error => {
-//         console.error('Error processing payment:', error);
-//         alert('Error processing payment. Please try again.');
-//     });
-// }
-
-// cancelAppointment function को भी update करें
-function cancelAppointment(appointmentId) {
-    if (confirm('Are you sure you want to cancel this appointment?')) {
-        fetch('/api/cancel-appointment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                appointment_id: appointmentId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Appointment cancelled successfully.');
-                // Refresh appointments
-                loadAllAppointments();
-                loadPatientStats();
-            } else {
-                alert('Failed to cancel appointment: ' + (data.error || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Error cancelling appointment:', error);
-            alert('Error cancelling appointment. Please try again.');
-        });
-    }
-}
-
-
-
-
-    function viewReceipt(appointmentId) {
-        // Open receipt in new tab
-        window.open(`/patient-receipt/${appointmentId}`, '_blank');
-    }
-</script>
+    </script>
 </body>
-</html> 
+</html>
