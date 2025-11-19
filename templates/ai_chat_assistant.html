@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Health Assistant - DCAM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #FAFCFB; color: #2c3e50; }
+        
+        /* Fixed Sidebar Layout */
+        .sidebar-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar { 
+            background: linear-gradient(180deg, #168E9A 0%, #12606C 100%); 
+            color: white; 
+            width: 280px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .sidebar-content {
+            padding: 1rem;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-item { 
+            padding: 14px 20px; 
+            border-radius: 8px; 
+            margin-bottom: 6px; 
+            transition: all 0.3s ease; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .sidebar-item:hover { 
+            background-color: rgba(255, 255, 255, 0.15); 
+            transform: translateX(5px); 
+        }
+        
+        .sidebar-item.active { 
+            background-color: rgba(255, 255, 255, 0.25); 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); 
+            transition: all 0.3s ease; 
+            padding: 1.5rem;
+        }
+        
+        .avatar { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            background-color: #168E9A; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+        }
+        
+        .mobile-menu-btn { display: none; }
+        
+        @media (max-width: 768px) {
+            .sidebar { 
+                position: fixed; 
+                left: -100%; 
+                z-index: 100; 
+                width: 280px; 
+                transition: all 0.3s ease; 
+            }
+            
+            .sidebar.active { left: 0; }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+            
+            .mobile-menu-btn { display: block; }
+            
+            .overlay { 
+                display: none; 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                right: 0; 
+                bottom: 0; 
+                background: rgba(0, 0, 0, 0.5); 
+                z-index: 99; 
+            }
+            
+            .overlay.active { display: block; }
+        }
+        
+        /* Chat Styles */
+        .chat-container {
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: white;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: #168E9A;
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+        
+        .ai-message {
+            align-self: flex-start;
+            background: #f3f4f6;
+            color: #374151;
+            border-bottom-left-radius: 6px;
+        }
+        
+        .chat-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            background: #fafafa;
+        }
+        
+        .suggested-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .suggestion-chip {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .suggestion-chip:hover {
+            background: #168E9A;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        .disclaimer {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-container">
+        <!-- Mobile Menu Button -->
+        <div class="mobile-menu-btn fixed top-4 left-4 z-50 lg:hidden">
+            <button id="menuToggle" class="p-2 bg-teal-600 text-white rounded-lg shadow-lg">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="overlay"></div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-content">
+                <div class="flex items-center mb-8">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-teal-600 font-bold mr-3">
+                        <i class="fas fa-user-injured"></i>
+                    </div>
+                    <span class="text-xl font-bold">DCAM Patient</span>
+                </div>
+                
+                <div class="mb-8 p-4 bg-white/10 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="avatar mr-3">
+                            {{ session.first_name[0] }}{{ session.last_name[0] }}
+                        </div>
+                        <div>
+                            <p class="font-semibold">{{ session.first_name }} {{ session.last_name }}</p>
+                            <p class="text-sm opacity-80">Patient</p>
+                            <p class="text-sm opacity-80">ID: {{ session.user_id }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav class="space-y-2">
+                    <a href="/patient-dashboard" class="sidebar-item">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/book-appointment" class="sidebar-item">
+                        <i class="fas fa-calendar-plus mr-3"></i>
+                        <span>Book Appointment</span>
+                    </a>
+                    <a href="/ai-chat-assistant" class="sidebar-item active">
+                        <i class="fas fa-robot mr-3"></i>
+                        <span>AI Health Assistant</span>
+                    </a>
+                    <a href="/acupressure-info" class="sidebar-item">
+                        <i class="fas fa-info-circle mr-3"></i>
+                        <span>Therapies Information</span>
+                    </a>
+                    <a href="/doctor-profiles" class="sidebar-item">
+                        <i class="fas fa-user-md mr-3"></i>
+                        <span>Doctor Profiles</span>
+                    </a>
+                    <a href="/patient-info" class="sidebar-item">
+                        <i class="fas fa-user mr-3"></i>
+                        <span>My Information</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-800">AI Health Assistant</h1>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div class="avatar mr-3">{{ session.first_name[0] }}{{ session.last_name[0] }}</div>
+                        <div>
+                            <p class="font-semibold">{{ session.first_name }} {{ session.last_name }}</p>
+                            <p class="text-sm text-gray-600">Patient</p>
+                        </div>
+                    </div>
+                    <a href="/logout" class="px-4 py-2 text-red-600 font-medium hover:text-red-800 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Welcome Section -->
+            <div class="welcome-banner mb-6">
+                <h2 class="text-2xl font-bold mb-2">Hello, {{ session.first_name }}! 👋</h2>
+                <p class="opacity-90">I'm your AI Health Assistant. I can help answer questions about our therapies, wellness tips, and general health information.</p>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle mr-2 mt-0.5"></i>
+                    <div>
+                        <strong>Important:</strong> I'm an AI assistant and cannot provide medical diagnoses. 
+                        For specific health concerns, medical emergencies, or personalized treatment plans, 
+                        please consult with our qualified doctors by booking an appointment.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="card p-0">
+                <div class="chat-container">
+                    <!-- Chat Messages -->
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Welcome message -->
+                        <div class="message ai-message">
+                            <div class="flex items-center mb-2">
+                                <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs mr-2">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <strong>Health Assistant</strong>
+                            </div>
+                            <p>Hello! I'm your AI Health Assistant at DCAM Therapy Center. I can help you with:</p>
+                            <ul class="mt-2 space-y-1">
+                                <li>• Information about our therapies (Acupressure, Ayurveda, Yoga, etc.)</li>
+                                <li>• General wellness and health tips</li>
+                                <li>• Guidance on which therapy might suit your needs</li>
+                                <li>• Answers to common health questions</li>
+                            </ul>
+                            <p class="mt-2">What would you like to know today? 😊</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Suggested Questions -->
+                    <div class="px-6 pt-4 border-t border-gray-100">
+                        <p class="text-sm text-gray-600 mb-3">Quick questions you might have:</p>
+                        <div class="suggested-questions" id="suggestedQuestions">
+                            <!-- Questions will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="chat-input-container">
+                        <form id="chatForm" class="flex gap-3">
+                            <input 
+                                type="text" 
+                                id="messageInput"
+                                placeholder="Ask me about therapies, wellness, or health tips..."
+                                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                required
+                            >
+                            <button 
+                                type="submit"
+                                class="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition flex items-center"
+                            >
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Send
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        if (menuToggle && sidebar && overlay) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+
+        // Chat functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatForm = document.getElementById('chatForm');
+            const messageInput = document.getElementById('messageInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const suggestedQuestions = document.getElementById('suggestedQuestions');
+
+            // Load suggested questions
+            loadSuggestedQuestions();
+
+            // Focus on input
+            messageInput.focus();
+
+            // Form submission
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const message = messageInput.value.trim();
+                
+                if (message) {
+                    sendMessage(message);
+                    messageInput.value = '';
+                }
+            });
+
+            // Load suggested questions from API
+            function loadSuggestedQuestions() {
+                fetch('/api/ai-suggested-questions')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.questions) {
+                            suggestedQuestions.innerHTML = data.questions.map(question => `
+                                <div class="suggestion-chip" onclick="useSuggestion('${question}')">
+                                    ${question}
+                                </div>
+                            `).join('');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading suggested questions:', error);
+                    });
+            }
+
+            // Send message to AI
+            window.sendMessage = function(message) {
+                // Add user message to chat
+                addMessageToChat(message, 'user');
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                // Send to server
+                fetch('/api/ai-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove typing indicator
+                    removeTypingIndicator();
+                    
+                    if (data.success) {
+                        addMessageToChat(data.response, 'ai', data.timestamp);
+                    } else {
+                        addMessageToChat(
+                            'Sorry, I encountered an error. Please try again later.', 
+                            'ai'
+                        );
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    removeTypingIndicator();
+                    addMessageToChat(
+                        'Sorry, I am currently unavailable. Please try again later.', 
+                        'ai'
+                    );
+                });
+            };
+
+            // Use suggested question
+            window.useSuggestion = function(question) {
+                messageInput.value = question;
+                messageInput.focus();
+            };
+
+            // Add message to chat
+            function addMessageToChat(message, sender, timestamp = null) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                
+                const time = timestamp ? new Date(timestamp).toLocaleTimeString('en-IN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : new Date().toLocaleTimeString('en-IN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                if (sender === 'user') {
+                    messageDiv.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <strong>You</strong>
+                            <span class="text-xs opacity-70">${time}</span>
+                        </div>
+                        <p>${message}</p>
+                    `;
+                } else {
+                    messageDiv.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs mr-2">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <strong>Health Assistant</strong>
+                            </div>
+                            <span class="text-xs opacity-70">${time}</span>
+                        </div>
+                        <div class="ai-response">${message}</div>
+                    `;
+                }
+                
+                chatMessages.appendChild(messageDiv);
+                scrollToBottom();
+            }
+
+            // Show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message ai-message typing-indicator';
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = `
+                    <div class="flex items-center mb-1">
+                        <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs mr-2">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <strong>Health Assistant</strong>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span>Thinking</span>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(typingDiv);
+                scrollToBottom();
+            }
+
+            // Remove typing indicator
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            // Scroll to bottom of chat
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Auto-resize input (optional enhancement)
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        });
+    </script>
+</body>
+</html>

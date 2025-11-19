@@ -25,6 +25,8 @@ from bson.objectid import ObjectId
 import razorpay.errors 
 import traceback
 load_dotenv()
+import google.generativeai as genai
+import markdown
 
 # Custom JSON encoder to handle ObjectId and datetime
 class JSONEncoder(json.JSONEncoder):
@@ -193,6 +195,7 @@ def get_db_safe():
 def is_db_connected():
     """Check if database is connected"""
     return check_db_health()
+
 
 # Enhanced predefined users with doctor specialization mapping
 PREDEFINED_USERS = {
@@ -1385,7 +1388,7 @@ def login():
                 # Role-based redirection after login
                 redirect_url = get_role_redirect_url(user_data['role'])
                 
-                logger.info(f"✅ Login successful for predefined user {user_data['email']}, role: {user_data['role']}")
+                logger.info(f"Login successful for predefined user {user_data['email']}, role: {user_data['role']}")
                 
                
 
@@ -1408,20 +1411,20 @@ def login():
         user = None
         
         if current_db is not None:
-            logger.info(f"🔍 Searching for user in database: {data['email']}")
+            logger.info(f" Searching for user in database: {data['email']}")
             user = current_db.users.find_one({'email': data['email']})
         
         if user:
-            logger.info(f"📋 User found: {user['user_id']}")
+            logger.info(f" User found: {user['user_id']}")
             
             # Check if account is active
             if not user.get('is_active', True):
-                logger.warning(f"❌ Account deactivated: {data['email']}")
+                logger.warning(f"Account deactivated: {data['email']}")
                 return jsonify({'error': 'Account is deactivated'}), 401
             
             # Verify password
             if check_password_hash(user['password'], data['password']):
-                logger.info(f"✅ Password verified for: {data['email']}")
+                logger.info(f"Password verified for: {data['email']}")
                 
                 # Login successful - set session
                 session.clear()
@@ -1488,7 +1491,7 @@ def get_role_redirect_url(role):
     }
     return redirect_routes.get(role, '/dashboard')
 
-# ========== PATIENT-SPECIFIC ROUTES ==========
+
 
 @app.route('/api/patient-dashboard-stats')
 @login_required
@@ -1502,6 +1505,120 @@ def patient_dashboard_stats():
         logger.error(f"Error getting patient stats: {e}")
         return jsonify({'error': 'Failed to load stats'}), 500
     
+
+# Gemini AI Configuration
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+
+# Initialize Gemini AI
+if GEMINI_API_KEY:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+        # Use gemini-1.5-flash for faster responses (free tier friendly)
+        gemini_model = genai.GenerativeModel('gemini-2.5-flash')
+        logger.info("Gemini AI configured successfully")
+    except Exception as e:
+        logger.error(f"Gemini AI configuration failed: {e}")
+        gemini_model = None
+else:
+    logger.warning("Gemini API key not found - AI chat disabled")
+    gemini_model = None  
+      
+@app.route('/ai-chat-assistant')
+@login_required
+def ai_chat_assistant():
+    """AI Chat Assistant page"""
+    return render_template('ai_chat_assistant.html')
+
+@app.route('/api/ai-chat', methods=['POST'])
+@login_required
+def ai_chat():
+    """Handle AI chat messages"""
+    try:
+        if not gemini_model:
+            return jsonify({
+                'success': False,
+                'error': 'AI service is currently unavailable. Please try again later.'
+            }), 503
+
+        data = request.get_json()
+        user_message = data.get('message', '').strip()
+        
+        if not user_message:
+            return jsonify({
+                'success': False,
+                'error': 'Message cannot be empty'
+            }), 400
+
+        # Create context for the AI about therapy and healthcare
+        context = """
+        You are a friendly and knowledgeable AI assistant for DCAM Therapy Center, 
+        a holistic healthcare facility offering various therapies including:
+        - Acupressure
+        - Ayurveda
+        - Homeopathy
+        - Naturopathy
+        - Yoga
+        - Physiotherapy
+        - Sound Therapy
+        
+        You should:
+        1. Provide helpful information about therapies and wellness
+        2. Offer general health advice (but always recommend consulting doctors for medical issues)
+        3. Be empathetic and supportive
+        4. Guide users to book appointments for specific concerns
+        5. Explain benefits of different therapies
+        6. Provide general wellness tips
+        
+        Important: Always remind users that for medical emergencies or specific health concerns, 
+        they should consult with our qualified doctors and not rely solely on AI advice.
+        """
+
+        # Generate response using Gemini
+        prompt = f"{context}\n\nUser: {user_message}\n\nAssistant:"
+        
+        response = gemini_model.generate_content(prompt)
+        
+        # Convert markdown to HTML for better formatting
+        ai_response = response.text
+        html_response = markdown.markdown(ai_response)
+        
+        # Log the interaction (without storing personal health info)
+        logger.info(f"AI Chat - User: {session['user_id']}, Message: {user_message[:100]}...")
+        
+        return jsonify({
+            'success': True,
+            'response': html_response,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in AI chat: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Sorry, I encountered an error. Please try again.'
+        }), 500
+
+@app.route('/api/ai-suggested-questions')
+@login_required
+def get_ai_suggested_questions():
+    """Get suggested questions for AI chat"""
+    suggested_questions = [
+        "What are the benefits of acupressure therapy?",
+        "How can yoga help with stress management?",
+        "What is the difference between Ayurveda and Homeopathy?",
+        "Can you suggest some natural remedies for better sleep?",
+        "What therapy would you recommend for back pain?",
+        "How does sound therapy work?",
+        "What are the advantages of naturopathy?",
+        "Can physiotherapy help with sports injuries?",
+        "What are some daily wellness practices you recommend?",
+        "How do I know which therapy is right for me?"
+    ]
+    
+    return jsonify({
+        'success': True,
+        'questions': suggested_questions
+    })
 
 @app.route('/api/confirm-payment', methods=['POST'])
 @login_required
@@ -1554,6 +1671,9 @@ def confirm_payment():
                 payment_data['created_at'] = datetime.utcnow()
                 current_db.payments.insert_one(payment_data)
             
+            # Generate receipt automatically
+            receipt_data = generate_appointment_receipt(appointment_id)
+            
             # Create notifications
             create_notification(
                 session['user_id'],
@@ -1574,13 +1694,14 @@ def confirm_payment():
         return jsonify({
             'success': True,
             'message': 'Payment confirmed successfully! ₹50 payment received. Your appointment is pending receptionist confirmation.',
-            'appointment_id': appointment_id
+            'appointment_id': appointment_id,
+            'receipt_generated': True,
+            'redirect_url': f'/appointment-receipt/{appointment_id}'  # Add redirect URL
         })
         
     except Exception as e:
         logger.error(f"Error confirming payment: {e}")
         return jsonify({'success': False, 'error': 'Failed to confirm payment'}), 500
-
 
 @app.route('/api/cancel-appointment', methods=['POST'])
 @login_required
@@ -1882,12 +2003,17 @@ def patient_info():
     except Exception as e:
         logger.error(f"Error loading patient info: {e}")
         return render_template('patient_info.html', user=session)
-
-@app.route('/appointment-receipt/<appointment_id>')
+@app.route('/patient-receipt/<appointment_id>')
 @login_required
-def appointment_receipt(appointment_id):
-    """Appointment receipt page"""
-    return render_template('appointment_receipt.html', appointment_id=appointment_id)
+def patient_receipt_page(appointment_id):
+    """Legacy route - redirect to new appointment receipt page"""
+    logger.info(f"Redirecting from legacy patient-receipt to appointment-receipt for {appointment_id}")
+    return redirect(url_for('appointment_receipt_page', appointment_id=appointment_id))
+# @app.route('/appointment-receipt/<appointment_id>')
+# @login_required
+# def appointment_receipt_page(appointment_id):
+#     """Serve the appointment receipt HTML page"""
+#     return render_template('appointment_receipt.html', appointment_id=appointment_id)
 
 # ========== DOCTOR-SPECIFIC ROUTES ==========
 
@@ -2102,33 +2228,6 @@ def get_doctor_appointments():
         logger.error(f"Error getting doctor appointments: {e}")
         return jsonify({'error': 'Failed to load appointments'}), 500
 
-# @app.route('/api/doctor/notifications')
-# @login_required
-# @role_required(['doctor'])
-# def get_doctor_notifications():
-#     """Get notifications for doctor"""
-#     try:
-#         current_db = get_db_safe()
-#         doctor_id = session['user_id']
-        
-#         notifications = []
-        
-#         if current_db is not None:
-#             notifications = list(current_db.notifications.find({
-#                 'user_id': doctor_id
-#             }).sort('created_at', -1).limit(10))
-            
-#             # Convert ObjectId to string
-#             for notification in notifications:
-#                 notification['_id'] = str(notification['_id'])
-#         else:
-#             print("hello")
-        
-#         return jsonify(notifications)
-        
-#     except Exception as e:
-#         logger.error(f"Error getting doctor notifications: {e}")
-#         return jsonify([])
 
 @app.route('/api/receptionist/notifications')
 @login_required
@@ -2389,17 +2488,16 @@ def create_payment():
             'success': False,
             'error': 'Failed to create payment order. Please try again.'
         }), 500
-
-
 def generate_appointment_receipt(appointment_id):
     """Generate appointment receipt and return receipt data"""
     try:
         current_db = get_db_safe()
         
         if current_db is None:
+            logger.warning(f"Cannot generate receipt - database not available for appointment {appointment_id}")
             return None
         
-        # Get appointment with all details
+        # Get appointment with all details using aggregation
         pipeline = [
             {'$match': {'appointment_id': appointment_id}},
             {'$lookup': {
@@ -2425,36 +2523,61 @@ def generate_appointment_receipt(appointment_id):
             {'$unwind': {'path': '$payment', 'preserveNullAndEmptyArrays': True}}
         ]
         
-        appointment = next(current_db.appointments.aggregate(pipeline), None)
+        appointment_result = current_db.appointments.aggregate(pipeline)
+        appointment = next(appointment_result, None)
+        
         if not appointment:
+            logger.error(f"Appointment {appointment_id} not found for receipt generation")
             return None
         
-        # Create receipt data
+        # Create receipt data with safe defaults
+        patient = appointment.get('patient', {})
+        doctor = appointment.get('doctor', {})
+        payment = appointment.get('payment', {})
+        
+        # Safely handle dates
+        appointment_date = appointment.get('date')
+        if isinstance(appointment_date, datetime):
+            formatted_date = appointment_date.strftime('%d %b %Y')
+            formatted_time = appointment_date.strftime('%I:%M %p')
+        else:
+            formatted_date = 'Not scheduled'
+            formatted_time = 'Not scheduled'
+        
+        # Safely handle payment date
+        payment_date = payment.get('paid_at')
+        if payment_date and isinstance(payment_date, datetime):
+            formatted_payment_date = payment_date.strftime('%d %b %Y %I:%M %p')
+        else:
+            formatted_payment_date = 'N/A'
+        
         receipt_data = {
             'receipt_id': f"RCP{random.randint(1000, 9999)}",
             'appointment_id': appointment_id,
             'generated_at': datetime.utcnow(),
-            'generated_by': session['user_id'],
-            'patient_name': f"{appointment.get('patient', {}).get('first_name', '')} {appointment.get('patient', {}).get('last_name', '')}",
-            'patient_email': appointment.get('patient', {}).get('email'),
-            'patient_phone': appointment.get('patient', {}).get('phone', 'N/A'),
-            'doctor_name': f"Dr. {appointment.get('doctor', {}).get('first_name', '')} {appointment.get('doctor', {}).get('last_name', '')}",
+            'patient_name': f"{patient.get('first_name', '')} {patient.get('last_name', '')}".strip() or 'Unknown Patient',
+            'patient_email': patient.get('email', ''),
+            'patient_phone': patient.get('phone', 'N/A'),
+            'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}".strip() or 'Doctor Not Assigned',
             'therapy_type': appointment.get('therapy_type', '').title(),
-            'appointment_date': appointment.get('date').strftime('%d %b %Y') if appointment.get('date') else 'Not scheduled',
-            'appointment_time': appointment.get('date').strftime('%I:%M %p') if appointment.get('date') else 'Not scheduled',
+            'appointment_date': formatted_date,
+            'appointment_time': formatted_time,
             'consultation_type': appointment.get('consultation_type', 'General').title(),
-            'amount': appointment.get('payment', {}).get('amount', 100),
-            'payment_status': appointment.get('payment_status', 'unpaid'),
-            'reason': appointment.get('reason', 'Not specified')
+            'amount': payment.get('amount', 100),
+            'payment_status': payment.get('status', 'unpaid'),
+            'payment_date': formatted_payment_date,
+            'payment_id': payment.get('payment_id', 'N/A'),
+            'reason': appointment.get('reason', 'Not specified'),
+            'status': appointment.get('status', 'pending')
         }
         
-        # Store receipt in database (optional)
+        # Store receipt in database
         receipt_doc = {
             'receipt_id': receipt_data['receipt_id'],
             'appointment_id': appointment_id,
             'receipt_data': receipt_data,
             'created_at': datetime.utcnow(),
-            'created_by': session['user_id']
+            'created_by': session.get('user_id', 'system')
         }
         
         # Create receipts collection if it doesn't exist
@@ -2466,19 +2589,17 @@ def generate_appointment_receipt(appointment_id):
         # Create notification about receipt generation
         create_notification(
             appointment.get('patient_id'),
-
-
             'Appointment Receipt Generated',
-            f'Receipt for your {appointment.get("therapy_type")} appointment has been generated. You can download it from your dashboard.',
+            f'Receipt for your {appointment.get("therapy_type", "therapy")} appointment has been generated. You can download it from your dashboard.',
             'info'
         )
         
+        logger.info(f"✅ Receipt generated for appointment: {appointment_id}")
         return receipt_data
         
     except Exception as e:
-        logger.error(f"Error generating receipt: {e}")
+        logger.error(f"Error generating receipt for appointment {appointment_id}: {e}")
         return None
-
 @app.route('/api/receptionist/confirm-appointment-with-time', methods=['POST'])
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -5241,55 +5362,7 @@ def is_doctor_available_now(doctor_id, current_db):
     except Exception as e:
         logger.error(f"Error checking doctor availability: {e}")
         return False        
-# Helper function to calculate next available slot
-# def calculate_next_available_slot(doctor_id, current_db):
-#     """Calculate next available time slot for a doctor"""
-#     try:
-#         # Get current time and day
-#         now = datetime.now(timezone.utc)
-#         current_day = now.strftime('%A').lower()
-#         current_time = now.strftime('%H:%M')
-        
-#         # Get doctor's availability
-#         availability = list(current_db.doctor_availability.find({
-#             'doctor_id': doctor_id,
-#             'is_active': True
-#         }).sort('day_of_week', 1))
-        
-#         if not availability:
-#             return "Not available"
-        
-#         # Days of week in order
-#         days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        
-#         # Find current day index
-#         current_day_index = days_order.index(current_day) if current_day in days_order else -1
-        
-#         # Check availability for today first
-#         today_availability = next((slot for slot in availability if slot['day_of_week'] == current_day), None)
-        
-#         if today_availability:
-#             if today_availability['start_time'] <= current_time <= today_availability['end_time']:
-#                 return "Available now"
-#             elif current_time < today_availability['start_time']:
-#                 return f"Today at {today_availability['start_time']}"
-        
-#         # Check next available day
-#         for i in range(1, 8):  # Check next 7 days
-#             check_day_index = (current_day_index + i) % len(days_order)
-#             check_day = days_order[check_day_index]
-            
-#             day_availability = next((slot for slot in availability if slot['day_of_week'] == check_day), None)
-            
-#             if day_availability:
-#                 day_name = check_day.capitalize()
-#                 return f"{day_name} at {day_availability['start_time']}"
-        
-#         return "Not available"
-        
-#     except Exception as e:
-#         logger.error(f"Error calculating next available slot: {e}")
-#         return "Not available"
+
 @app.route('/api/debug/doctor-availability')
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -5982,37 +6055,6 @@ def update_doctor_profile_complete():
     except Exception as e:
         logger.error(f"Error updating doctor profile: {e}")
         return jsonify({'success': False, 'message': 'Failed to update profile'}), 500
-    
-# @app.route('/api/doctor/<doctor_id>/remind-schedule', methods=['POST'])
-# @login_required
-# @role_required(['receptionist', 'admin'])
-# def remind_doctor_schedule(doctor_id):
-#     """Send schedule reminder to doctor"""
-#     try:
-#         current_db = get_db_safe()
-        
-#         if current_db is None:
-#             return jsonify({'success': False, 'message': 'Database not available'})
-        
-#         # Get doctor details
-#         doctor = current_db.users.find_one({'user_id': doctor_id})
-#         if not doctor:
-#             return jsonify({'success': False, 'message': 'Doctor not found'})
-        
-#         # Create notification for doctor
-#         create_notification(
-#             doctor_id,
-#             'Schedule Reminder',
-#             'Receptionist has requested you to review and update your weekly schedule if needed.',
-#             'warning'
-#         )
-        
-#         logger.info(f"Schedule reminder sent to doctor {doctor_id}")
-#         return jsonify({'success': True, 'message': 'Reminder sent successfully'})
-        
-#     except Exception as e:
-#         logger.error(f"Error sending schedule reminder: {e}")
-#         return jsonify({'success': False, 'message': 'Failed to send reminder'}), 500
 @app.route('/doctor-profiles')
 @login_required
 @role_required(['patient', 'receptionist', 'admin'])  # Add receptionist and admin
@@ -6270,7 +6312,7 @@ def get_doctor_availability_data():
 @login_required
 @role_required(['receptionist'])
 def debug_doctor_availability_check():
-    
+
     """Debug endpoint to check doctor availability data"""
     try:
         current_db = get_db_safe()
@@ -6509,12 +6551,16 @@ def doctor_complete_profile():
 from flask_socketio import SocketIO, emit
 
 socketio = SocketIO(app, cors_allowed_origins="*")
-
+# app.py में Socket.IO events add करें
 @socketio.on('connect')
 def handle_connect():
     if 'user_id' in session:
         join_room(session['user_id'])
         emit('connected', {'message': 'Connected to real-time updates'})
+        
+        # Join receptionists room for broadcast
+        if session.get('role') in ['receptionist', 'admin']:
+            join_room('receptionists')
 
 @socketio.on('join_room')
 def handle_join_room(data):
@@ -6522,8 +6568,26 @@ def handle_join_room(data):
     if room:
         join_room(room)
 
-def send_real_time_notification(user_id, notification_data):
-    socketio.emit('new_notification', notification_data, room=user_id)
+def broadcast_doctor_status_update(doctor_id, update_data):
+    """Broadcast doctor status update to all receptionists"""
+    socketio.emit('doctor_status_updated', update_data, room='receptionists')
+    
+    # Also send to the specific doctor
+    socketio.emit('doctor_status_updated', update_data, room=doctor_id)
+# @socketio.on('connect')
+# def handle_connect():
+#     if 'user_id' in session:
+#         join_room(session['user_id'])
+#         emit('connected', {'message': 'Connected to real-time updates'})
+
+# @socketio.on('join_room')
+# def handle_join_room(data):
+#     room = data.get('room')
+#     if room:
+#         join_room(room)
+
+# def send_real_time_notification(user_id, notification_data):
+#     socketio.emit('new_notification', notification_data, room=user_id)
 
 @app.route('/logout')
 def logout():
@@ -6602,6 +6666,385 @@ def init_doctor_availability():
     except Exception as e:
         logger.error(f"Doctor availability initialization error: {e}")
         return False
+
+@app.route('/api/receptionist/doctor/<doctor_id>/available-slots/<date>')
+@login_required
+@role_required(['receptionist', 'admin'])
+def get_doctor_available_slots_receptionist(doctor_id, date):
+    """Get available time slots for a specific doctor on a specific date"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'error': 'Database not available'}), 500
+        
+        # Parse the date
+        try:
+            target_date = datetime.fromisoformat(date.replace('Z', '+00:00')).date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format'}), 400
+        
+        # Get doctor's availability for this day of week
+        day_of_week = target_date.strftime('%A').lower()
+        
+        availability = current_db.doctor_availability.find_one({
+            'doctor_id': doctor_id,
+            'day_of_week': day_of_week,
+            'is_active': True
+        })
+        
+        if not availability:
+            return jsonify({'available_slots': [], 'message': 'Doctor not available on this day'})
+        
+        # Get existing appointments for this doctor on this date
+        start_of_day = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_of_day = start_of_day + timedelta(days=1)
+        
+        existing_appointments = list(current_db.appointments.find({
+            'therapist_id': doctor_id,
+            'date': {'$gte': start_of_day, '$lt': end_of_day},
+            'status': {'$in': ['scheduled', 'confirmed', 'in-progress']}
+        }))
+        
+        # Generate available time slots
+        available_slots = generate_time_slots(
+            availability['start_time'],
+            availability['end_time'],
+            existing_appointments,
+            availability.get('max_appointments', 3)
+        )
+        
+        # Get doctor details
+        doctor = current_db.users.find_one({'user_id': doctor_id})
+        
+        return jsonify({
+            'available_slots': available_slots,
+            'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Unknown Doctor',
+            'specialization': doctor.get('specialization', ''),
+            'day_schedule': {
+                'start_time': availability['start_time'],
+                'end_time': availability['end_time']
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting doctor available slots: {e}")
+        return jsonify({'error': 'Failed to load available slots'}), 500
+
+def generate_time_slots(start_time_str, end_time_str, existing_appointments, max_appointments_per_slot=3):
+    """Generate available time slots considering existing appointments"""
+    try:
+        # Parse time strings
+        start_time = datetime.strptime(start_time_str, '%H:%M').time()
+        end_time = datetime.strptime(end_time_str, '%H:%M').time()
+        
+        # Create slots (30-minute intervals)
+        slots = []
+        current_time = datetime.combine(datetime.today(), start_time)
+        end_datetime = datetime.combine(datetime.today(), end_time)
+        
+        while current_time < end_datetime:
+            slot_end = current_time + timedelta(minutes=30)
+            
+            # Count existing appointments in this time slot
+            slot_appointments = 0
+            for appointment in existing_appointments:
+                if appointment.get('date'):
+                    appointment_time = appointment['date'].time()
+                    if current_time.time() <= appointment_time < slot_end.time():
+                        slot_appointments += 1
+            
+            # If slot has availability, add it
+            if slot_appointments < max_appointments_per_slot:
+                slots.append({
+                    'start_time': current_time.strftime('%H:%M'),
+                    'end_time': slot_end.strftime('%H:%M'),
+                    'available_slots': max_appointments_per_slot - slot_appointments
+                })
+            
+            current_time = slot_end
+        
+        return slots
+        
+    except Exception as e:
+        logger.error(f"Error generating time slots: {e}")
+        return []
+
+@app.route('/api/receptionist/confirm-appointment-with-slot', methods=['POST'])
+@login_required
+@role_required(['receptionist', 'admin'])
+def confirm_appointment_with_slot():
+    """Confirm appointment with specific time slot selection"""
+    try:
+        data = request.get_json()
+        appointment_id = data.get('appointment_id')
+        selected_slot = data.get('selected_slot')
+        selected_date = data.get('selected_date')
+        
+        if not appointment_id or not selected_slot or not selected_date:
+            return jsonify({'success': False, 'error': 'Appointment ID, slot, and date are required'}), 400
+        
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'success': True, 'message': 'Appointment confirmed (demo mode)'})
+        
+        # Get appointment details
+        appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+        if not appointment:
+            return jsonify({'success': False, 'error': 'Appointment not found'}), 404
+        
+        # Parse date and time
+        try:
+            # Combine date and start time
+            slot_datetime_str = f"{selected_date}T{selected_slot['start_time']}:00"
+            scheduled_datetime = datetime.fromisoformat(slot_datetime_str.replace('Z', '+00:00'))
+        except ValueError as e:
+            return jsonify({'success': False, 'error': 'Invalid date/time format'}), 400
+        
+        # Update appointment with confirmed time
+        update_data = {
+            'status': 'confirmed',
+            'date': scheduled_datetime,
+            'confirmed_by': session['user_id'],
+            'confirmed_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow(),
+            'time_slot': selected_slot
+        }
+        
+        result = current_db.appointments.update_one(
+            {'appointment_id': appointment_id},
+            {'$set': update_data}
+        )
+        
+        if result.modified_count == 0:
+            return jsonify({'success': False, 'error': 'Failed to update appointment'}), 400
+        
+        # Get patient and doctor details for notifications
+        patient = current_db.users.find_one({'user_id': appointment.get('patient_id')})
+        doctor = current_db.users.find_one({'user_id': appointment.get('therapist_id')})
+        
+        # Format date for display
+        formatted_date = scheduled_datetime.strftime('%d %b %Y at %I:%M %p')
+        
+        # Send email notifications
+        if patient:
+            send_appointment_confirmation_email(
+                patient['email'],
+                f"{patient.get('first_name', '')} {patient.get('last_name', '')}",
+                formatted_date,
+                appointment.get('therapy_type', '').title(),
+                f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}" if doctor else 'Doctor'
+            )
+            
+            create_notification(
+                patient['user_id'],
+                'Appointment Confirmed! 🎉',
+                f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed for {formatted_date}.',
+                'success'
+            )
+        
+        # Notify doctor
+        if doctor:
+            send_doctor_notification_email(
+                doctor['email'],
+                f"{doctor.get('first_name', '')} {doctor.get('last_name', '')}",
+                f"{patient.get('first_name', '')} {patient.get('last_name', '')}" if patient else 'Patient',
+                formatted_date,
+                appointment.get('therapy_type', '').title()
+            )
+            
+            create_notification(
+                doctor['user_id'],
+                'New Appointment Confirmed',
+                f'New appointment confirmed with {patient.get("first_name", "Patient") if patient else "Patient"} for {appointment.get("therapy_type")} on {formatted_date}.',
+                'info'
+            )
+        
+        logger.info(f"✅ Appointment {appointment_id} confirmed with time slot by {session['user_id']}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Appointment confirmed successfully!',
+            'appointment_id': appointment_id,
+            'scheduled_time': formatted_date
+        })
+        
+    except Exception as e:
+        logger.error(f"Error confirming appointment with slot: {e}")
+        return jsonify({'success': False, 'error': 'Failed to confirm appointment'}), 500
+
+# Real-time Doctor Availability APIs
+@app.route('/api/doctor/real-time-status', methods=['POST'])
+@login_required
+@role_required(['doctor'])
+def update_doctor_real_time_status():
+    """Update doctor's real-time availability status"""
+    try:
+        current_db = get_db_safe()
+        doctor_id = session['user_id']
+        data = request.get_json()
+        
+        is_available = data.get('is_available', True)
+        status_message = data.get('status_message', '')
+        
+        # Update doctor status
+        update_data = {
+            'is_available': is_available,
+            'status_message': status_message,
+            'status_updated_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+        
+        result = current_db.users.update_one(
+            {'user_id': doctor_id},
+            {'$set': update_data}
+        )
+        
+        if result.modified_count > 0:
+            # Notify all receptionists
+            receptionists = current_db.users.find({'role': 'receptionist'})
+            for receptionist in receptionists:
+                create_notification(
+                    receptionist['user_id'],
+                    'Doctor Status Changed',
+                    f'Dr. {session.get("first_name")} {session.get("last_name")} is now {"available" if is_available else "busy"}. {status_message}',
+                    'info' if is_available else 'warning'
+                )
+            
+            # Broadcast real-time update
+            socketio.emit('doctor_status_updated', {
+                'doctor_id': doctor_id,
+                'doctor_name': f"Dr. {session.get('first_name')} {session.get('last_name')}",
+                'is_available': is_available,
+                'status_message': status_message,
+                'updated_at': datetime.utcnow().isoformat()
+            }, broadcast=True)
+            
+            return jsonify({
+                'success': True, 
+                'message': f'Status updated to {"available" if is_available else "busy"}',
+                'is_available': is_available
+            })
+        else:
+            return jsonify({'error': 'Failed to update status'}), 400
+            
+    except Exception as e:
+        logger.error(f"Error updating doctor real-time status: {e}")
+        return jsonify({'error': 'Failed to update status'}), 500
+
+@app.route('/api/receptionist/real-time-doctor-availability')
+@login_required
+@role_required(['receptionist', 'admin'])
+def get_real_time_doctor_availability():
+    """Get real-time doctor availability data with live updates"""
+    try:
+        current_db = get_db_safe()
+        if current_db is None:
+            return jsonify({
+                "success": False, 
+                "error": "Database not available",
+                "doctors": []
+            }), 500
+
+        doctors = list(current_db.users.find({"role": "doctor"}))
+        output = []
+        
+        for doctor in doctors:
+            try:
+                doctor_id = doctor["user_id"]
+                
+                # Get current availability status
+                is_available = doctor.get("is_available", True)
+                status_message = doctor.get("status_message", "")
+                status_updated_at = doctor.get("status_updated_at")
+                
+                # Get today's schedule
+                today = datetime.now().strftime("%A").lower()
+                today_availability = current_db.doctor_availability.find_one({
+                    "doctor_id": doctor_id,
+                    "day_of_week": today,
+                    "is_active": True
+                })
+                
+                # Check if doctor is currently in their scheduled time
+                is_available_now = False
+                if today_availability and is_available:
+                    current_time = datetime.now().strftime("%H:%M")
+                    start_time = today_availability.get("start_time", "00:00")
+                    end_time = today_availability.get("end_time", "23:59")
+                    is_available_now = start_time <= current_time <= end_time
+                
+                # Count today's appointments
+                today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                today_end = today_start + timedelta(days=1)
+                
+                todays_appointments = current_db.appointments.count_documents({
+                    "therapist_id": doctor_id,
+                    "date": {"$gte": today_start, "$lt": today_end},
+                    "status": {"$in": ["scheduled", "confirmed", "in-progress"]}
+                })
+                
+                # Get weekly schedule
+                availability = list(current_db.doctor_availability.find({
+                    "doctor_id": doctor_id, 
+                    "is_active": True
+                }))
+                
+                weekly_schedule = {}
+                days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                for day in days_order:
+                    day_slots = [slot for slot in availability if slot.get('day_of_week') == day]
+                    if day_slots:
+                        weekly_schedule[day.capitalize()] = [{
+                            'start_time': slot.get('start_time'),
+                            'end_time': slot.get('end_time'),
+                            'max_appointments': slot.get('max_appointments', 3)
+                        } for slot in day_slots]
+                
+                doctor_data = {
+                    "user_id": doctor_id,
+                    "name": f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}",
+                    "therapy_type": doctor.get("therapy_type", "General Therapy"),
+                    "specialization": doctor.get("specialization", "Therapy Specialist"),
+                    "experience": doctor.get("experience", 0),
+                    "consultation_fee": doctor.get("consultation_fee", 0),
+                    "phone": doctor.get("phone", ""),
+                    "email": doctor.get("email", ""),
+                    
+                    # Real-time status fields
+                    "is_available": is_available,
+                    "is_available_now": is_available_now and is_available,
+                    "status_message": status_message,
+                    "status_updated_at": status_updated_at.isoformat() if status_updated_at else None,
+                    
+                    "today_appointments": todays_appointments,
+                    "today_availability": today_availability,
+                    "weekly_schedule": weekly_schedule,
+                    "next_available": calculate_next_available_slot(doctor_id, current_db)
+                }
+                
+                output.append(doctor_data)
+                
+            except Exception as doctor_error:
+                logger.error(f"Error processing doctor {doctor.get('user_id', 'unknown')}: {doctor_error}")
+                continue
+
+        return jsonify({
+            "success": True, 
+            "doctors": output,
+            "last_updated": datetime.utcnow().isoformat(),
+            "total_doctors": len(output)
+        })
+
+    except Exception as e:
+        logger.error(f"Error in real-time doctor availability: {e}")
+        return jsonify({
+            "success": False, 
+            "error": "Failed to load doctor availability data",
+            "doctors": []
+        }), 500
+
 
 # Call this after database initialization
 if db_connected:

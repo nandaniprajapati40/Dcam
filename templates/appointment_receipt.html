@@ -175,5 +175,72 @@
         // Load receipt data when page loads
         document.addEventListener('DOMContentLoaded', loadReceiptData);
     </script>
+
+<!-- Add this to the script section -->
+<script>
+    async function loadReceiptData() {
+        const appointmentId = window.location.pathname.split('/').pop();
+        
+        // Validate appointment ID
+        if (!appointmentId || appointmentId === 'appointment-receipt') {
+            showReceiptError('Invalid appointment ID');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/appointment-receipt/${appointmentId}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            populateReceiptData(data);
+            
+        } catch (error) {
+            console.error('Error loading receipt:', error);
+            showReceiptError('Failed to load receipt data: ' + error.message);
+        }
+    }
+
+    function showReceiptError(message) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('receiptError').classList.remove('hidden');
+        document.getElementById('receiptError').innerHTML = `
+            <i class="fas fa-exclamation-triangle text-2xl text-red-500 mb-4"></i>
+            <p class="text-red-500">${message}</p>
+            <button onclick="loadReceiptData()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
+                Try Again
+            </button>
+            <button onclick="goToDashboard()" class="mt-2 bg-gray-600 text-white px-4 py-2 rounded-lg ml-2">
+                Go to Dashboard
+            </button>
+        `;
+    }
+
+    function goToDashboard() {
+        window.location.href = '/patient-dashboard';
+    }
+
+    // Load receipt data when page loads
+    document.addEventListener('DOMContentLoaded', loadReceiptData);
+
+    // After successful payment
+if (response.success) {
+    showToast(response.message, 'success');
+    
+    // Redirect to receipt page if available
+    if (response.redirect_url) {
+        setTimeout(() => {
+            window.location.href = response.redirect_url;
+        }, 2000);
+    } else if (response.appointment_id) {
+        // Fallback: redirect to receipt page with appointment ID
+        setTimeout(() => {
+            window.location.href = `/appointment-receipt/${response.appointment_id}`;
+        }, 2000);
+    }
+}
+</script>    
 </body>
 </html>

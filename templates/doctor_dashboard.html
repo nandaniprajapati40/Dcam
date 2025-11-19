@@ -1623,61 +1623,118 @@
         }
 
         // Availability Status Functions
-        function loadDoctorStatus() {
-            fetch('/api/doctor/profile')
-                .then(response => response.json())
-                .then(profile => {
-                    updateDoctorStatusDisplay(profile.is_available);
-                })
-                .catch(error => {
-                    console.error('Error loading doctor status:', error);
-                updateDoctorStatusDisplay(true);
-                });
-        }
+        // Doctor Dashboard - Availability Management Section को replace करें
+function loadDoctorStatus() {
+    fetch('/api/doctor/profile')
+        .then(response => response.json())
+        .then(profile => {
+            updateDoctorStatusDisplay(profile.is_available, profile.status_message);
+        })
+        .catch(error => {
+            console.error('Error loading doctor status:', error);
+            updateDoctorStatusDisplay(true, '');
+        });
+}
 
-        function toggleDoctorStatus() {
-            const currentStatus = document.getElementById('currentStatus').textContent.toLowerCase();
-            const isAvailable = currentStatus !== 'available';
-            
-            fetch('/api/doctor/status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    is_available: isAvailable
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateDoctorStatusDisplay(data.is_available);
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error updating status:', error);
-                alert('Failed to update status');
-            });
+function updateDoctorStatusDisplay(isAvailable, statusMessage = '') {
+    const statusElement = document.getElementById('currentStatus');
+    const toggleButton = document.getElementById('statusToggle');
+    const statusMessageElement = document.getElementById('statusMessage');
+    
+    if (isAvailable) {
+        statusElement.textContent = 'Available';
+        statusElement.className = 'px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium';
+        toggleButton.innerHTML = '<i class="fas fa-toggle-on mr-2"></i>Set as Busy';
+        toggleButton.className = 'px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition';
+    } else {
+        statusElement.textContent = 'Busy';
+        statusElement.className = 'px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium';
+        toggleButton.innerHTML = '<i class="fas fa-toggle-off mr-2"></i>Set as Available';
+        toggleButton.className = 'px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition';
+    }
+    
+    // Status message display
+    if (statusMessageElement) {
+        if (statusMessage) {
+            statusMessageElement.textContent = statusMessage;
+            statusMessageElement.classList.remove('hidden');
+        } else {
+            statusMessageElement.classList.add('hidden');
         }
+    }
+}
 
-        function updateDoctorStatusDisplay(isAvailable) {
-            const statusElement = document.getElementById('currentStatus');
-            const toggleButton = document.getElementById('statusToggle');
-            
-            if (isAvailable) {
-                statusElement.textContent = 'Available';
-                statusElement.className = 'px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium';
-                toggleButton.innerHTML = '<i class="fas fa-toggle-on mr-2"></i>Set as Busy';
-                toggleButton.className = 'px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition';
-            } else {
-                statusElement.textContent = 'Busy';
-                statusElement.className = 'px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium';
-                toggleButton.innerHTML = '<i class="fas fa-toggle-off mr-2"></i>Set as Available';
-                toggleButton.className = 'px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition';
-            }
+function toggleDoctorStatus() {
+    const currentStatus = document.getElementById('currentStatus').textContent.toLowerCase();
+    const isAvailable = currentStatus !== 'available';
+    
+    // Get status message from user
+    let statusMessage = '';
+    if (!isAvailable) {
+        statusMessage = prompt('Enter status message (optional):', 'Currently with patient') || '';
+    }
+    
+    fetch('/api/doctor/real-time-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            is_available: isAvailable,
+            status_message: statusMessage
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateDoctorStatusDisplay(data.is_available, statusMessage);
+            showToast(`Status updated to ${isAvailable ? 'available' : 'busy'}`, 'success');
+        } else {
+            showToast('Error updating status: ' + data.error, 'error');
         }
+    })
+    .catch(error => {
+        console.error('Error updating status:', error);
+        showToast('Failed to update status', 'error');
+    });
+}
+
+// Real-time updates के लिए WebSocket connection
+function initializeRealTimeUpdates() {
+    // WebSocket connection for real-time updates
+    const socket = io();
+    
+    socket.on('doctor_status_updated', function(data) {
+        // If this doctor's status was updated, refresh the display
+        if (data.doctor_id === session.user_id) {
+            updateDoctorStatusDisplay(data.is_available, data.status_message);
+        }
+    });
+    
+    socket.on('availability_updated', function(data) {
+        // Refresh availability data if needed
+        if (currentTab === 'availability') {
+            loadCurrentAvailability();
+        }
+    });
+}
+
+// Auto-refresh availability every 30 seconds
+function startAutoRefresh() {
+    setInterval(() => {
+        if (currentTab === 'availability') {
+            loadDoctorStatus();
+            loadCurrentAvailability();
+        }
+    }, 30000);
+}
+
+// DOM loaded पर initialize करें
+document.addEventListener('DOMContentLoaded', function() {
+    initializeRealTimeUpdates();
+    startAutoRefresh();
+});
+
 
         // Enhanced Availability Functions
         function setAllDayAvailability(days, startTime, endTime) {

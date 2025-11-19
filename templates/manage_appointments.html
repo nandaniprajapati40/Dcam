@@ -45,9 +45,41 @@
             margin: 20px auto;
         }
         
+        .slot-button {
+            transition: all 0.2s ease;
+        }
+        
+        .slot-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .slot-button.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
@@ -62,10 +94,9 @@
                         <span>Back to Dashboard</span>
                     </a>
                     <h1 class="text-xl font-bold">DCAM Therapy Center</h1>
-
                     <div class="nav-item flex items-center px-4 py-3 rounded-lg bg-white/20 transition-colors active">
                         <i class="fas fa-calendar-plus mr-3"></i>
-                        <span></span>
+                        <span>Manage Appointments</span>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -239,11 +270,20 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 hidden">
-        <div class="flex items-center space-x-3">
-            <i id="toastIcon" class="fas fa-info-circle"></i>
-            <span id="toastMessage" class="font-medium"></span>
+    <!-- Scheduling Modal -->
+    <div id="schedulingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">Schedule Appointment</h3>
+                    <button onclick="closeSchedulingModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="schedulingContent">
+                    <!-- Scheduling content will be loaded here -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -254,6 +294,8 @@
         let currentFilter = 'all';
         let currentPage = 1;
         const pageSize = 10;
+        let selectedTimeSlot = null;
+        let currentAppointmentId = null;
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -281,36 +323,35 @@
         }
 
         // Load appointments from API
-      // Load appointments from API
-async function loadAppointments() {
-    try {
-        showLoadingState();
-        
-        // Build query parameters
-        const params = new URLSearchParams({
-            status: currentFilter,
-            date: 'all'
-        });
-        
-        const response = await fetch(`/api/receptionist/appointments?${params}`);
-        if (!response.ok) throw new Error('Failed to fetch appointments');
-        
-        const data = await response.json();
-        
-        if (data.success && data.appointments) {
-            allAppointments = data.appointments;
-            filteredAppointments = [...allAppointments];
-            updateStats(data.stats || {});
-            renderAppointments();
-        } else {
-            throw new Error(data.error || 'Invalid response format');
+        async function loadAppointments() {
+            try {
+                showLoadingState();
+                
+                // Build query parameters
+                const params = new URLSearchParams({
+                    status: currentFilter,
+                    date: 'all'
+                });
+                
+                const response = await fetch(`/api/receptionist/appointments?${params}`);
+                if (!response.ok) throw new Error('Failed to fetch appointments');
+                
+                const data = await response.json();
+                
+                if (data.success && data.appointments) {
+                    allAppointments = data.appointments;
+                    filteredAppointments = [...allAppointments];
+                    updateStats(data.stats || {});
+                    renderAppointments();
+                } else {
+                    throw new Error(data.error || 'Invalid response format');
+                }
+                
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                showErrorState('Failed to load appointments: ' + error.message);
+            }
         }
-        
-    } catch (error) {
-        console.error('Error loading appointments:', error);
-        showErrorState('Failed to load appointments: ' + error.message);
-    }
-}
 
         // Update statistics
         function updateStats(stats) {
@@ -397,7 +438,7 @@ async function loadAppointments() {
                             </button>
                             
                             ${appointment.status === 'pending' ? `
-                                <button onclick="confirmAppointment('${appointment.appointment_id}')" 
+                                <button onclick="confirmAppointmentWithSchedule('${appointment.appointment_id}')" 
                                         class="text-green-600 hover:text-green-900 text-left">
                                     <i class="fas fa-check mr-1"></i>Confirm
                                 </button>
@@ -436,6 +477,289 @@ async function loadAppointments() {
             `).join('');
 
             updatePagination();
+        }
+
+        // Enhanced confirmation function with doctor availability
+        async function confirmAppointmentWithSchedule(appointmentId) {
+            try {
+                // Get appointment details first
+                const appointmentResponse = await fetch(`/api/receptionist/appointments/${appointmentId}`);
+                if (!appointmentResponse.ok) throw new Error('Failed to fetch appointment details');
+                
+                const appointmentData = await appointmentResponse.json();
+                if (!appointmentData.success) throw new Error(appointmentData.error);
+                
+                const appointment = appointmentData.appointment;
+                const doctorId = appointment.doctor.id;
+                
+                if (!doctorId) {
+                    // If no doctor assigned, use the old confirmation method
+                    return confirmAppointment(appointmentId);
+                }
+                
+                // Show scheduling modal
+                showSchedulingModal(appointment, doctorId);
+                
+            } catch (error) {
+                console.error('Error preparing schedule confirmation:', error);
+                // Fallback to simple confirmation
+                confirmAppointment(appointmentId);
+            }
+        }
+
+        // Show scheduling modal with doctor availability
+        function showSchedulingModal(appointment, doctorId) {
+            currentAppointmentId = appointment.appointment_id;
+            
+            const modal = document.getElementById('schedulingModal');
+            const content = document.getElementById('schedulingContent');
+            
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">Schedule Appointment</h4>
+                        <p class="text-blue-700">Select a date and available time slot for this appointment</p>
+                    </div>
+                    
+                    <!-- Appointment Summary -->
+                    <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <strong>Patient:</strong> ${appointment.patient.name}<br>
+                            <strong>Therapy:</strong> ${appointment.therapy_name}<br>
+                            <strong>Doctor:</strong> ${appointment.doctor.name}
+                        </div>
+                        <div>
+                            <strong>Current Status:</strong> <span class="status-badge status-${appointment.status}">${appointment.status}</span><br>
+                            <strong>Payment:</strong> <span class="payment-badge payment-${appointment.payment_status}">${appointment.payment_status}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Date Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+                        <input type="date" id="scheduleDate" min="${new Date().toISOString().split('T')[0]}" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <!-- Available Slots -->
+                    <div id="availableSlotsSection" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Available Time Slots</label>
+                        <div id="availableSlots" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+                            <!-- Slots will be loaded here -->
+                        </div>
+                        <div id="noSlots" class="text-center py-4 text-gray-500 hidden">
+                            <i class="fas fa-calendar-times text-2xl mb-2"></i>
+                            <p>No available slots for selected date</p>
+                        </div>
+                        <div id="slotsLoading" class="text-center py-4">
+                            <div class="loading-spinner mx-auto mb-2"></div>
+                            <p>Loading available slots...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Selected Slot Display -->
+                    <div id="selectedSlot" class="hidden p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <strong>Selected Time:</strong>
+                                <span id="selectedTime" class="ml-2 font-semibold"></span>
+                            </div>
+                            <button onclick="clearSelection()" class="text-red-600 hover:text-red-800">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Doctor Schedule Info -->
+                    <div id="doctorScheduleInfo" class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 hidden">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                            <span id="scheduleInfoText" class="text-sm text-yellow-700"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button onclick="closeSchedulingModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                        Cancel
+                    </button>
+                    <button id="confirmScheduleBtn" onclick="confirmWithSelectedSlot()" 
+                            disabled class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <i class="fas fa-check mr-2"></i>Confirm Appointment
+                    </button>
+                </div>
+            `;
+            
+            // Set up event listeners
+            const dateInput = document.getElementById('scheduleDate');
+            dateInput.addEventListener('change', function() {
+                loadAvailableSlots(doctorId, this.value);
+            });
+            
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.value = tomorrow.toISOString().split('T')[0];
+            
+            // Load slots for default date
+            loadAvailableSlots(doctorId, dateInput.value);
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Load available slots for selected date
+        async function loadAvailableSlots(doctorId, date) {
+            const slotsContainer = document.getElementById('availableSlots');
+            const noSlots = document.getElementById('noSlots');
+            const slotsLoading = document.getElementById('slotsLoading');
+            const slotsSection = document.getElementById('availableSlotsSection');
+            const doctorInfo = document.getElementById('doctorScheduleInfo');
+            const scheduleInfoText = document.getElementById('scheduleInfoText');
+            
+            slotsContainer.innerHTML = '';
+            noSlots.classList.add('hidden');
+            slotsLoading.classList.remove('hidden');
+            slotsSection.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`/api/doctor/${doctorId}/available-slots/${date}`);
+                if (!response.ok) throw new Error('Failed to load available slots');
+                
+                const data = await response.json();
+                
+                slotsLoading.classList.add('hidden');
+                
+                if (data.available_slots && data.available_slots.length > 0) {
+                    // Show doctor schedule info
+                    if (data.day_schedule) {
+                        scheduleInfoText.textContent = 
+                            `${data.doctor_name} is available from ${formatTimeDisplay(data.day_schedule.start_time)} to ${formatTimeDisplay(data.day_schedule.end_time)}`;
+                        doctorInfo.classList.remove('hidden');
+                    }
+                    
+                    // Render available slots
+                    slotsContainer.innerHTML = data.available_slots.map(slot => `
+                        <button onclick="selectTimeSlot('${slot.start_time}', '${slot.end_time}', ${slot.available_slots})" 
+                                class="slot-button p-3 border border-gray-300 rounded-lg text-center hover:bg-blue-50 hover:border-blue-500 transition-colors">
+                            <div class="font-semibold text-gray-800">${formatTimeDisplay(slot.start_time)}</div>
+                            <div class="text-xs text-gray-500">to ${formatTimeDisplay(slot.end_time)}</div>
+                            <div class="text-xs text-green-600 mt-1">
+                                <i class="fas fa-user-clock"></i> ${slot.available_slots} slots
+                            </div>
+                        </button>
+                    `).join('');
+                } else {
+                    noSlots.classList.remove('hidden');
+                    scheduleInfoText.textContent = data.message || 'No available slots for selected date';
+                    doctorInfo.classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Error loading available slots:', error);
+                slotsLoading.classList.add('hidden');
+                noSlots.classList.remove('hidden');
+                noSlots.innerHTML = `
+                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl mb-2"></i>
+                    <p>Failed to load available slots</p>
+                    <button onclick="loadAvailableSlots('${doctorId}', '${date}')" class="mt-2 text-blue-600 hover:text-blue-800 text-sm">
+                        <i class="fas fa-redo mr-1"></i>Retry
+                    </button>
+                `;
+            }
+        }
+
+        // Select a time slot
+        function selectTimeSlot(startTime, endTime, availableSlots) {
+            const selectedSlot = document.getElementById('selectedSlot');
+            const selectedTime = document.getElementById('selectedTime');
+            const confirmBtn = document.getElementById('confirmScheduleBtn');
+            
+            selectedTime.textContent = `${formatTimeDisplay(startTime)} - ${formatTimeDisplay(endTime)}`;
+            selectedSlot.classList.remove('hidden');
+            confirmBtn.disabled = false;
+            
+            // Store selected slot globally
+            selectedTimeSlot = { start_time: startTime, end_time: endTime };
+            
+            // Highlight selected slot
+            document.querySelectorAll('#availableSlots button').forEach(btn => {
+                btn.classList.remove('bg-blue-100', 'border-blue-500', 'selected');
+                if (btn.textContent.includes(formatTimeDisplay(startTime))) {
+                    btn.classList.add('bg-blue-100', 'border-blue-500', 'selected');
+                }
+            });
+        }
+
+        // Clear selection
+        function clearSelection() {
+            const selectedSlot = document.getElementById('selectedSlot');
+            const confirmBtn = document.getElementById('confirmScheduleBtn');
+            
+            selectedSlot.classList.add('hidden');
+            confirmBtn.disabled = true;
+            selectedTimeSlot = null;
+            
+            // Remove highlights
+            document.querySelectorAll('#availableSlots button').forEach(btn => {
+                btn.classList.remove('bg-blue-100', 'border-blue-500', 'selected');
+            });
+        }
+
+        // Confirm appointment with selected slot
+        async function confirmWithSelectedSlot() {
+            if (!selectedTimeSlot) {
+                showToast('Please select a time slot', 'error');
+                return;
+            }
+            
+            const dateInput = document.getElementById('scheduleDate');
+            if (!dateInput.value) {
+                showToast('Please select a date', 'error');
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirmScheduleBtn');
+            const originalText = confirmBtn.innerHTML;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Confirming...';
+            confirmBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/receptionist/confirm-appointment-with-slot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        appointment_id: currentAppointmentId,
+                        selected_slot: selectedTimeSlot,
+                        selected_date: dateInput.value
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showToast('Appointment scheduled successfully!', 'success');
+                    closeSchedulingModal();
+                    loadAppointments(); // Refresh the list
+                } else {
+                    throw new Error(result.error || 'Failed to confirm appointment');
+                }
+                
+            } catch (error) {
+                console.error('Error confirming appointment with slot:', error);
+                showToast(error.message, 'error');
+            } finally {
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        }
+
+        // Close scheduling modal
+        function closeSchedulingModal() {
+            document.getElementById('schedulingModal').classList.add('hidden');
+            currentAppointmentId = null;
+            selectedTimeSlot = null;
         }
 
         // Filter appointments
@@ -572,7 +896,7 @@ async function loadAppointments() {
                 <!-- Actions -->
                 <div class="mt-6 flex flex-wrap gap-3">
                     ${appointment.status === 'pending' ? `
-                        <button onclick="confirmAppointment('${appointment.appointment_id}')" 
+                        <button onclick="confirmAppointmentWithSchedule('${appointment.appointment_id}')" 
                                 class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                             <i class="fas fa-check mr-2"></i>Confirm Appointment
                         </button>
@@ -612,7 +936,7 @@ async function loadAppointments() {
             document.getElementById('appointmentModal').classList.add('hidden');
         }
 
-        // Confirm appointment
+        // Simple confirmation (fallback)
         async function confirmAppointment(appointmentId) {
             if (!confirm('Are you sure you want to confirm this appointment?')) return;
             
@@ -846,6 +1170,7 @@ async function loadAppointments() {
 
         // Utility functions
         function formatDateTime(dateString) {
+            if (!dateString) return 'Not scheduled';
             const date = new Date(dateString);
             return date.toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -857,6 +1182,7 @@ async function loadAppointments() {
         }
 
         function formatRelativeTime(dateString) {
+            if (!dateString) return 'Not scheduled';
             const date = new Date(dateString);
             const now = new Date();
             const diffTime = date - now;
@@ -867,6 +1193,15 @@ async function loadAppointments() {
             if (diffDays === -1) return 'Yesterday';
             if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
             return `In ${diffDays} days`;
+        }
+
+        function formatTimeDisplay(timeStr) {
+            if (!timeStr) return 'Invalid time';
+            const [hours, minutes] = timeStr.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const formattedHour = hour % 12 || 12;
+            return `${formattedHour}:${minutes} ${ampm}`;
         }
 
         function showLoadingState() {
@@ -898,28 +1233,35 @@ async function loadAppointments() {
         }
 
         function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastIcon = document.getElementById('toastIcon');
-            const toastMessage = document.getElementById('toastMessage');
+            // Remove existing toasts
+            const existingToasts = document.querySelectorAll('.toast');
+            existingToasts.forEach(toast => toast.remove());
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                type === 'warning' ? 'bg-yellow-500' :
+                'bg-blue-500'
+            }`;
             
-            // Set toast style based on type
-            const styles = {
-                success: { bg: 'bg-green-500', icon: 'fa-check-circle' },
-                error: { bg: 'bg-red-500', icon: 'fa-exclamation-triangle' },
-                warning: { bg: 'bg-yellow-500', icon: 'fa-exclamation-circle' },
-                info: { bg: 'bg-blue-500', icon: 'fa-info-circle' }
-            };
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${
+                        type === 'success' ? 'fa-check-circle' :
+                        type === 'error' ? 'fa-exclamation-triangle' :
+                        type === 'warning' ? 'fa-exclamation-circle' :
+                        'fa-info-circle'
+                    } mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
             
-            const style = styles[type] || styles.info;
+            document.body.appendChild(toast);
             
-            toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 text-white ${style.bg} flex items-center space-x-3`;
-            toastIcon.className = `fas ${style.icon}`;
-            toastMessage.textContent = message;
-            
-            toast.classList.remove('hidden');
-            
+            // Auto remove after 5 seconds
             setTimeout(() => {
-                toast.classList.add('hidden');
+                toast.remove();
             }, 5000);
         }
 

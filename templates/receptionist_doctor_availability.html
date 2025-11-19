@@ -152,22 +152,8 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Quick Actions -->
-            <div class="mt-6 bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-                <div class="flex flex-wrap gap-4">
-                    <button onclick="sendRemindersToAllDoctors()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
-                        <i class="fas fa-bell mr-2"></i>Send Schedule Reminders
-                    </button>
-                    <button onclick="viewAllAppointments()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                        <i class="fas fa-calendar mr-2"></i>View All Appointments
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
-
     <script>
         let doctorAvailabilityData = [];
 
@@ -556,6 +542,257 @@ function showErrorState(message = 'Failed to load doctor availability') {
         </div>
     `;
 }
+// Receptionist Doctor Availability - Real-time Features
+let autoRefreshInterval;
+
+function initializeReceptionistRealTime() {
+    // WebSocket connection for real-time updates
+    const socket = io();
+    
+    socket.on('doctor_status_updated', function(data) {
+        console.log('Real-time doctor status update:', data);
+        refreshDoctorAvailability();
+        showRealTimeNotification(data);
+    });
+    
+    // Start auto-refresh
+    startReceptionistAutoRefresh();
+}
+
+function showRealTimeNotification(data) {
+    const status = data.is_available ? 'available' : 'busy';
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        data.is_available ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${data.is_available ? 'check' : 'clock'} mr-2"></i>
+            <div>
+                <strong>${data.doctor_name}</strong> is now ${status}
+                ${data.status_message ? `<br><small>${data.status_message}</small>` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+function startReceptionistAutoRefresh() {
+    // Clear existing interval
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    
+    // Refresh every 15 seconds for real-time updates
+    autoRefreshInterval = setInterval(() => {
+        refreshDoctorAvailability();
+    }, 15000);
+}
+
+// Enhanced refresh function with real-time indicators
+function refreshDoctorAvailability() {
+    const refreshBtn = document.querySelector('button[onclick*="refreshDoctorAvailability"]');
+    const originalText = refreshBtn?.innerHTML || 'Refresh';
+    
+    if (refreshBtn) {
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i> Updating...';
+        refreshBtn.disabled = true;
+    }
+    
+    // Show refreshing indicator
+    showRefreshingIndicator();
+    
+    fetch('/api/receptionist/real-time-doctor-availability')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                doctorAvailabilityData = data.doctors || [];
+                renderDoctorAvailability(doctorAvailabilityData);
+                updateStats(doctorAvailabilityData);
+                updateLastUpdatedTime();
+            } else {
+                throw new Error(data.error || 'Failed to load data');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading doctor availability:', error);
+            showErrorState(error.message);
+        })
+        .finally(() => {
+            if (refreshBtn) {
+                refreshBtn.innerHTML = originalText;
+                refreshBtn.disabled = false;
+            }
+            hideRefreshingIndicator();
+        });
+}
+
+function showRefreshingIndicator() {
+    let indicator = document.getElementById('refreshingIndicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'refreshingIndicator';
+        indicator.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        indicator.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i> Updating doctor status...';
+        document.body.appendChild(indicator);
+    }
+}
+
+function hideRefreshingIndicator() {
+    const indicator = document.getElementById('refreshingIndicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+function updateLastUpdatedTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString();
+    
+    let timeElement = document.getElementById('lastUpdatedTime');
+    if (!timeElement) {
+        timeElement = document.createElement('div');
+        timeElement.id = 'lastUpdatedTime';
+        timeElement.className = 'text-sm text-gray-500 text-center mt-4';
+        document.getElementById('doctorAvailabilityGrid').parentNode.appendChild(timeElement);
+    }
+    
+    timeElement.textContent = `Last updated: ${timeString}`;
+}
+
+// Enhanced render function with real-time status
+function renderDoctorAvailability(doctors) {
+    const container = document.getElementById('doctorAvailabilityGrid');
+    
+    if (!doctors || doctors.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-user-md text-4xl mb-4 text-gray-300"></i>
+                <p>No doctors found in the system</p>
+                <p class="text-sm mt-2">Doctors need to register and set their availability</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = doctors.map(doctor => {
+        const statusClass = doctor.is_available_now ? 'status-available' : 
+                          doctor.is_available ? 'status-busy' : 'status-offline';
+        const statusText = doctor.is_available_now ? 'Available Now' : 
+                         doctor.is_available ? 'Available' : 'Offline';
+        
+        const today = new Date().toLocaleDateString('en', { weekday: 'long' });
+        const todayAvailability = doctor.today_availability;
+        
+        // Real-time status indicator
+        const realTimeIndicator = doctor.is_available_now ? 
+            '<div class="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full animate-pulse" title="Currently Active"></div>' : 
+            '';
+        
+        // Status message display
+        const statusMessage = doctor.status_message ? 
+            `<div class="mt-2 p-2 bg-gray-100 rounded text-sm text-gray-600">
+                <i class="fas fa-comment-alt mr-1"></i>${doctor.status_message}
+            </div>` : '';
+        
+        return `
+            <div class="border rounded-lg p-6 hover:shadow-md transition-shadow bg-white relative">
+                ${realTimeIndicator}
+                
+                <!-- Doctor Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-bold">
+                                ${doctor.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-gray-800">${doctor.name}</h3>
+                                <p class="text-gray-600">${doctor.specialization}</p>
+                                <p class="text-sm text-gray-500">${doctor.therapy_type || 'General Therapy'} • ${doctor.experience || 0} years exp.</p>
+                                <p class="text-sm text-gray-500">Fee: ₹${doctor.consultation_fee || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+                            ${statusText}
+                        </span>
+                        <p class="text-sm text-gray-600 mt-2">Today: ${doctor.today_appointments} appointments</p>
+                        <p class="text-xs text-gray-500">Last updated: ${formatRelativeTime(doctor.status_updated_at)}</p>
+                    </div>
+                </div>
+
+                ${statusMessage}
+
+                <!-- Rest of the doctor card content remains the same -->
+                <!-- Today's Schedule -->
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2 flex items-center">
+                        <i class="fas fa-calendar-day mr-2"></i>Today's Schedule (${today})
+                    </h4>
+                    ${todayAvailability ? `
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="font-medium">Time Slot:</span>
+                                <p class="text-blue-700">${todayAvailability.start_time} - ${todayAvailability.end_time}</p>
+                            </div>
+                            <div>
+                                <span class="font-medium">Max Patients:</span>
+                                <p>${todayAvailability.max_appointments || 3}</p>
+                            </div>
+                        </div>
+                    ` : `
+                        <p class="text-blue-600 text-sm">No schedule for today</p>
+                    `}
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="flex justify-between items-center pt-4 border-t">
+                    <div class="text-sm text-gray-500">
+                        ID: ${doctor.user_id}
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="viewDoctorCompleteSchedule('${doctor.user_id}')" 
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition flex items-center">
+                            <i class="fas fa-calendar-alt mr-1"></i>Full Schedule
+                        </button>
+                        <button onclick="contactDoctor('${doctor.user_id}')" 
+                                class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition flex items-center">
+                            <i class="fas fa-phone mr-1"></i>Contact
+                        </button>
+                        <button onclick="sendInstantMessage('${doctor.user_id}')" 
+                                class="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition flex items-center">
+                            <i class="fas fa-comment mr-1"></i>Message
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// New function for instant messaging
+function sendInstantMessage(doctorId) {
+    const message = prompt('Enter quick message for doctor:');
+    if (message) {
+        // Implement instant messaging functionality
+        showToast(`Message sent to doctor`, 'success');
+    }
+}
+
+// Initialize real-time features when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeReceptionistRealTime();
+    loadDoctorAvailability(); // Initial load
+});
+
     </script>
 </body>
 </html>

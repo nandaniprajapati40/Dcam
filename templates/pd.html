@@ -259,6 +259,191 @@
             background-color: #d98220;
             transform: translateY(-2px);
         }
+
+        /* AI Assistant Styles */
+        .ai-assistant {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .ai-assistant-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #168E9A 0%, #EC932B 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .ai-assistant-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .ai-assistant-chat {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ai-assistant-chat.active {
+            display: flex;
+        }
+
+        .ai-chat-header {
+            background: linear-gradient(135deg, #168E9A 0%, #12606C 100%);
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ai-chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ai-chat-footer {
+            padding: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .ai-chat-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            outline: none;
+            resize: none;
+            font-size: 14px;
+        }
+
+        .ai-chat-input:focus {
+            border-color: #168E9A;
+        }
+
+        .ai-message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .ai-message.user {
+            align-self: flex-end;
+            background: #168E9A;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .ai-message.assistant {
+            align-self: flex-start;
+            background: #f3f4f6;
+            color: #374151;
+            border-bottom-left-radius: 5px;
+        }
+
+        .ai-quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .ai-quick-action {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-quick-action:hover {
+            background: #e5e7eb;
+        }
+
+        .ai-typing-indicator {
+            display: flex;
+            align-items: center;
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .ai-typing-dots {
+            display: flex;
+            margin-left: 5px;
+        }
+
+        .ai-typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #9ca3af;
+            margin: 0 1px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .ai-typing-dot:nth-child(1) { animation-delay: 0s; }
+        .ai-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .ai-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        .ai-suggestions {
+            margin-top: 10px;
+        }
+
+        .ai-suggestion {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ai-suggestion:hover {
+            background: #e2e8f0;
+        }
+
+        .ai-suggestion-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #168E9A;
+        }
+
+        .ai-suggestion-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -305,10 +490,6 @@
                         <i class="fas fa-calendar-plus mr-3"></i>
                         <span>Book Appointment</span>
                     </a>
-                    <a href="/ai-chat-assistant" class="sidebar-item">
-                        <i class="fas fa-robot mr-3"></i>
-                       <span>AI Health Assistant</span>
-                    </a>
                     <a href="/acupressure-info" class="sidebar-item">
                         <i class="fas fa-info-circle mr-3"></i>
                         <span>Therapies Information</span>
@@ -350,6 +531,21 @@
                 <p class="opacity-90">We're here to support your healing journey with comprehensive therapy services.</p>
             </div>
 
+            <!-- AI Assistant Health Tips Section -->
+            <div class="card mb-6">
+                <h2 class="section-header">
+                    <i class="fas fa-robot"></i>Health Assistant Tips
+                </h2>
+                <div id="healthTips" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- AI-generated health tips will appear here -->
+                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <i class="fas fa-heartbeat text-blue-500 mb-2"></i>
+                        <h3 class="font-semibold text-blue-700">Daily Wellness</h3>
+                        <p class="text-sm text-gray-600 mt-1">Loading health tips...</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Enhanced Appointments History Section -->
             <div class="card">
                 <h2 class="section-header">
@@ -388,6 +584,46 @@
         </div>
     </div>
 
+    <!-- AI Assistant -->
+    <div class="ai-assistant">
+        <div class="ai-assistant-chat" id="aiChat">
+            <div class="ai-chat-header">
+                <div class="flex items-center">
+                    <i class="fas fa-robot mr-2"></i>
+                    <span>Health Assistant</span>
+                </div>
+                <button id="closeChat" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ai-chat-body" id="aiChatBody">
+                <div class="ai-message assistant">
+                    Hello! I'm your DCAM Health Assistant. How can I help you today?
+                    <div class="ai-quick-actions">
+                        <div class="ai-quick-action" onclick="sendQuickMessage('therapy recommendations')">Therapy Advice</div>
+                        <div class="ai-quick-action" onclick="sendQuickMessage('health education')">Health Info</div>
+                        <div class="ai-quick-action" onclick="sendQuickMessage('appointment guidance')">Appointments</div>
+                        <div class="ai-quick-action" onclick="sendQuickMessage('medication reminders')">Medication Help</div>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-chat-footer">
+                <div class="ai-suggestions" id="aiSuggestions">
+                    <!-- Suggestions will appear here -->
+                </div>
+                <div class="flex gap-2">
+                    <textarea id="aiChatInput" class="ai-chat-input" placeholder="Type your message..." rows="1"></textarea>
+                    <button id="sendAiMessage" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="ai-assistant-toggle" id="aiAssistantToggle">
+            <i class="fas fa-robot"></i>
+        </div>
+    </div>
+
     <!-- Scroll to Top Button -->
     <div id="scrollToTop" class="scroll-indicator">
         <i class="fas fa-chevron-up"></i>
@@ -400,6 +636,7 @@
         let currentFilter = 'all';
         let currentAppointmentId = null;
         let currentTherapyType = null;
+        let aiChatHistory = [];
 
         // Mobile menu toggle
         const menuToggle = document.getElementById('menuToggle');
@@ -425,8 +662,9 @@
             // Load data with error handling
             try {
                 loadAllAppointments();
-                
+                loadHealthTips();
                 setupEventListeners();
+                setupAiAssistant();
                 
                 // Auto-refresh every 30 seconds
                 setInterval(() => {
@@ -461,6 +699,225 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
+        }
+
+        // AI Assistant Functions
+        function setupAiAssistant() {
+            const aiToggle = document.getElementById('aiAssistantToggle');
+            const aiChat = document.getElementById('aiChat');
+            const closeChat = document.getElementById('closeChat');
+            const sendButton = document.getElementById('sendAiMessage');
+            const chatInput = document.getElementById('aiChatInput');
+            
+            // Toggle chat window
+            aiToggle.addEventListener('click', () => {
+                aiChat.classList.toggle('active');
+            });
+            
+            // Close chat
+            closeChat.addEventListener('click', () => {
+                aiChat.classList.remove('active');
+            });
+            
+            // Send message on button click
+            sendButton.addEventListener('click', sendAiMessage);
+            
+            // Send message on Enter key (but allow Shift+Enter for new line)
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendAiMessage();
+                }
+            });
+            
+            // Auto-resize textarea
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+        
+        function sendAiMessage() {
+            const chatInput = document.getElementById('aiChatInput');
+            const message = chatInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addAiMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Send to backend API
+            fetch('/api/ai-assistant', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    user_id: '{{ session.user_id }}',
+                    context: {
+                        appointments: allAppointments,
+                        user_info: {
+                            name: '{{ session.first_name }} {{ session.last_name }}'
+                        }
+                    }
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                if (data.success) {
+                    // Add assistant response
+                    addAiMessage(data.response, 'assistant');
+                    
+                    // Add any suggestions
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        showAiSuggestions(data.suggestions);
+                    }
+                    
+                    // Store in history
+                    aiChatHistory.push({
+                        user: message,
+                        assistant: data.response,
+                        timestamp: new Date().toISOString()
+                    });
+                } else {
+                    addAiMessage("I'm sorry, I encountered an error. Please try again.", 'assistant');
+                }
+            })
+            .catch(error => {
+                console.error('Error with AI assistant:', error);
+                removeTypingIndicator();
+                addAiMessage("I'm having trouble connecting right now. Please try again later.", 'assistant');
+            });
+        }
+        
+        function sendQuickMessage(message) {
+            const chatInput = document.getElementById('aiChatInput');
+            chatInput.value = message;
+            sendAiMessage();
+        }
+        
+        function addAiMessage(message, sender) {
+            const chatBody = document.getElementById('aiChatBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `ai-message ${sender}`;
+            messageDiv.textContent = message;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        
+        function showTypingIndicator() {
+            const chatBody = document.getElementById('aiChatBody');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'ai-typing-indicator';
+            typingDiv.innerHTML = `
+                Health Assistant is typing
+                <div class="ai-typing-dots">
+                    <div class="ai-typing-dot"></div>
+                    <div class="ai-typing-dot"></div>
+                    <div class="ai-typing-dot"></div>
+                </div>
+            `;
+            chatBody.appendChild(typingDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        function showAiSuggestions(suggestions) {
+            const suggestionsContainer = document.getElementById('aiSuggestions');
+            suggestionsContainer.innerHTML = '';
+            
+            suggestions.forEach(suggestion => {
+                const suggestionDiv = document.createElement('div');
+                suggestionDiv.className = 'ai-suggestion';
+                suggestionDiv.innerHTML = `
+                    <div class="ai-suggestion-title">${suggestion.title}</div>
+                    <div class="ai-suggestion-desc">${suggestion.description}</div>
+                `;
+                suggestionDiv.addEventListener('click', () => {
+                    sendQuickMessage(suggestion.prompt);
+                });
+                suggestionsContainer.appendChild(suggestionDiv);
+            });
+        }
+
+        // Load health tips from AI
+        function loadHealthTips() {
+            fetch('/api/health-tips')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.tips) {
+                        displayHealthTips(data.tips);
+                    } else {
+                        displayDefaultHealthTips();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading health tips:', error);
+                    displayDefaultHealthTips();
+                });
+        }
+        
+        function displayHealthTips(tips) {
+            const container = document.getElementById('healthTips');
+            if (!container) return;
+            
+            container.innerHTML = tips.map(tip => `
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <i class="fas ${tip.icon || 'fa-heartbeat'} text-blue-500 mb-2"></i>
+                    <h3 class="font-semibold text-blue-700">${tip.title}</h3>
+                    <p class="text-sm text-gray-600 mt-1">${tip.content}</p>
+                    ${tip.action ? `<button onclick="${tip.action}" class="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium">${tip.actionText || 'Learn More'}</button>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function displayDefaultHealthTips() {
+            const container = document.getElementById('healthTips');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <i class="fas fa-heartbeat text-blue-500 mb-2"></i>
+                    <h3 class="font-semibold text-blue-700">Stay Hydrated</h3>
+                    <p class="text-sm text-gray-600 mt-1">Drink at least 8 glasses of water daily to support your therapy outcomes.</p>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg border border-green-100">
+                    <i class="fas fa-walking text-green-500 mb-2"></i>
+                    <h3 class="font-semibold text-green-700">Daily Movement</h3>
+                    <p class="text-sm text-gray-600 mt-1">Gentle walks can improve circulation and complement your therapy sessions.</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-lg border border-purple-100">
+                    <i class="fas fa-bed text-purple-500 mb-2"></i>
+                    <h3 class="font-semibold text-purple-700">Quality Sleep</h3>
+                    <p class="text-sm text-gray-600 mt-1">Aim for 7-9 hours of sleep to support your body's healing processes.</p>
+                </div>
+            `;
         }
         
         // Safe data fetching and processing functions
