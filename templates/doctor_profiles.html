@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Profiles - DCAM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #FAFCFB; color: #2c3e50; }
+        
+        .sidebar-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar { 
+            background: linear-gradient(180deg, #168E9A 0%, #12606C 100%); 
+            color: white; 
+            width: 280px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .sidebar-content {
+            padding: 1rem;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-item { 
+            padding: 14px 20px; 
+            border-radius: 8px; 
+            margin-bottom: 6px; 
+            transition: all 0.3s ease; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .sidebar-item:hover { 
+            background-color: rgba(255, 255, 255, 0.15); 
+            transform: translateX(5px); 
+        }
+        
+        .sidebar-item.active { 
+            background-color: rgba(255, 255, 255, 0.25); 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); 
+            transition: all 0.3s ease; 
+            padding: 1.5rem;
+        }
+        
+        .card:hover { 
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08); 
+            transform: translateY(-2px); 
+        }
+        
+        .avatar { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            background-color: #168E9A; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+        }
+        
+        .mobile-menu-btn { display: none; }
+        
+        @media (max-width: 768px) {
+            .sidebar { 
+                position: fixed; 
+                left: -100%; 
+                z-index: 100; 
+                width: 280px; 
+                transition: all 0.3s ease; 
+            }
+            
+            .sidebar.active { left: 0; }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+            
+            .mobile-menu-btn { display: block; }
+            
+            .overlay { 
+                display: none; 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                right: 0; 
+                bottom: 0; 
+                background: rgba(0, 0, 0, 0.5); 
+                z-index: 99; 
+            }
+            
+            .overlay.active { display: block; }
+        }
+        
+        .status-badge { 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.75rem; 
+            font-weight: 500; 
+        }
+        
+        .status-available { background: #d1fae5; color: #065f46; }
+        .status-busy { background: #fef3c7; color: #d97706; }
+        .status-offline { background: #f3f4f6; color: #6b7280; }
+        
+        .doctor-card {
+            border-left: 4px solid #168E9A;
+            transition: all 0.3s;
+        }
+        
+        .schedule-day {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .schedule-slot {
+            background: #e0f2fe;
+            border-radius: 6px;
+            padding: 0.5rem;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d1d5db;
+        }
+
+        .therapy-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .availability-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .available { background: #10b981; }
+        .busy { background: #f59e0b; }
+        .offline { background: #6b7280; }
+
+        .filter-tag {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            margin: 2px;
+        }
+
+        .doctor-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            transition: all 0.3s ease;
+        }
+
+        .toast-success { background: #10b981; }
+        .toast-error { background: #ef4444; }
+        .toast-info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="sidebar-container">
+        <!-- Mobile Menu Button -->
+        <div class="mobile-menu-btn fixed top-4 left-4 z-50 lg:hidden">
+            <button id="menuToggle" class="p-2 bg-teal-600 text-white rounded-lg shadow-lg">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Overlay for mobile -->
+        <div id="overlay" class="overlay"></div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-content">
+                <div class="flex items-center mb-8">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-teal-600 font-bold mr-3">
+                        <i class="fas fa-user-injured"></i>
+                    </div>
+                    <span class="text-xl font-bold">DCAM Patient</span>
+                </div>
+                
+                <div class="mb-8 p-4 bg-white/10 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="avatar mr-3">
+                            {{ session.first_name[0] }}{{ session.last_name[0] }}
+                        </div>
+                        <div>
+                            <p class="font-semibold">{{ session.first_name }} {{ session.last_name }}</p>
+                            <p class="text-sm opacity-80">Patient</p>
+                            <p class="text-sm opacity-80">ID: {{ session.user_id }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav class="space-y-2">
+                    <a href="/patient-dashboard" class="sidebar-item">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/book-appointment" class="sidebar-item">
+                        <i class="fas fa-calendar-plus mr-3"></i>
+                        <span>Book Appointment</span>
+                    </a>
+                    <a href="/acupressure-info" class="sidebar-item">
+                        <i class="fas fa-info-circle mr-3"></i>
+                        <span>Therapies Information</span>
+                    </a>
+                    <a href="/doctor-profiles" class="sidebar-item">
+                        <i class="fas fa-user-md mr-3"></i>
+                        <span>Doctor Profiles</span>
+                        </a>
+                    <a href="/patient-info" class="sidebar-item">
+                        <i class="fas fa-user mr-3"></i>
+                        <span>My Information</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Doctor Profiles & Availability</h1>
+                    <p class="text-gray-600">Find and book appointments with our specialist doctors</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div class="avatar mr-3">{{ session.first_name[0] }}{{ session.last_name[0] }}</div>
+                        <div>
+                            <p class="font-semibold">{{ session.first_name }} {{ session.last_name }}</p>
+                            <p class="text-sm text-gray-600">Patient</p>
+                        </div>
+                    </div>
+                    <a href="/logout" class="px-4 py-2 text-red-600 font-medium hover:text-red-800 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Search and Filter Section -->
+            <div class="card mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <input type="text" id="searchDoctors" placeholder="Search doctors by name, specialization..." 
+                                   class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="specializationFilter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            <option value="all">All Specializations</option>
+                            <option value="Acupressure Specialist">Acupressure</option>
+                            <option value="Ayurveda Expert">Ayurveda</option>
+                            <option value="Homeopathy Specialist">Homeopathy</option>
+                            <option value="Naturopathy Doctor">Naturopathy</option>
+                            <option value="Yoga Master">Yoga</option>
+                            <option value="Physiotherapist">Physiotherapy</option>
+                            <option value="Sound Healing Therapist">Sound Therapy</option>
+                             <option value="Psycho Therapy">Psycho Therapy</option>
+                        </select>
+                        <select id="availabilityFilter" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            <option value="all">All Status</option>
+                            <option value="available">Available Now</option>
+                            <option value="busy">Busy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Active Filters Display -->
+                <div id="activeFilters" class="mt-4 flex flex-wrap gap-2 hidden">
+                    <span class="text-sm text-gray-600">Active filters:</span>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="card text-center">
+                    <div class="p-3 bg-blue-100 rounded-lg inline-block mb-2">
+                        <i class="fas fa-user-md text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800" id="totalDoctors">0</h3>
+                    <p class="text-gray-600 text-sm">Total Doctors</p>
+                </div>
+                <div class="card text-center">
+                    <div class="p-3 bg-green-100 rounded-lg inline-block mb-2">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800" id="availableDoctors">0</h3>
+                    <p class="text-gray-600 text-sm">Available Now</p>
+                </div>
+                <div class="card text-center">
+                    <div class="p-3 bg-purple-100 rounded-lg inline-block mb-2">
+                        <i class="fas fa-clock text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800" id="busyDoctors">0</h3>
+                    <p class="text-gray-600 text-sm">Currently Busy</p>
+                </div>
+                <div class="card text-center">
+                    <div class="p-3 bg-orange-100 rounded-lg inline-block mb-2">
+                        <i class="fas fa-stethoscope text-orange-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800" id="specializationsCount">0</h3>
+                    <p class="text-gray-600 text-sm">Specializations</p>
+                </div>
+            </div>
+
+            <!-- Doctors Grid -->
+            <div id="doctorsGrid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div class="text-center py-8 col-span-full">
+                    <div class="loading-spinner mx-auto mb-2"></div>
+                    <p class="text-gray-500">Loading doctor profiles...</p>
+                </div>
+            </div>
+
+            <!-- No Results State -->
+            <div id="noDoctors" class="hidden">
+                <div class="empty-state">
+                    <i class="fas fa-user-md"></i>
+                    <p class="text-gray-500">No doctors found matching your criteria</p>
+                    <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                        Reset Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Load More Button -->
+            <div id="loadMoreContainer" class="text-center mt-8 hidden">
+                <button id="loadMoreBtn" class="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
+                    <i class="fas fa-plus mr-2"></i>Load More Doctors
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor Details Modal -->
+    <div id="doctorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800" id="modalDoctorName">Doctor Details</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="modalContent">
+                <!-- Doctor details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allDoctors = [];
+        let currentFilters = {
+            search: '',
+            specialization: 'all',
+            availability: 'all'
+        };
+        let displayedDoctors = 9; // Initial number of doctors to show
+        const doctorsPerLoad = 6; // Number of doctors to load each time
+
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        if (menuToggle && sidebar && overlay) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+
+        // Load doctor profiles when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDoctorProfiles();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchDoctors').addEventListener('input', function(e) {
+                currentFilters.search = e.target.value.toLowerCase();
+                filterDoctors();
+            });
+
+            // Filter functionality
+            document.getElementById('specializationFilter').addEventListener('change', function(e) {
+                currentFilters.specialization = e.target.value;
+                filterDoctors();
+            });
+
+            document.getElementById('availabilityFilter').addEventListener('change', function(e) {
+                currentFilters.availability = e.target.value;
+                filterDoctors();
+            });
+
+            // Modal close
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+
+            // Load more functionality
+            document.getElementById('loadMoreBtn').addEventListener('click', loadMoreDoctors);
+
+            // Close modal on overlay click
+            document.getElementById('doctorModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        }
+
+        function loadDoctorProfiles() {
+            fetch('/api/doctor-profiles/complete')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('API Response:', data);
+                    if (data.doctors && data.doctors.length > 0) {
+                        allDoctors = data.doctors;
+                        updateStatsOverview(allDoctors);
+                        renderDoctors(allDoctors.slice(0, displayedDoctors));
+                        updateLoadMoreButton();
+                    } else {
+                        showNoDoctorsState();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading doctor profiles:', error);
+                    showNoDoctorsState();
+                    showToast('Failed to load doctor profiles', 'error');
+                });
+        }
+
+        function updateStatsOverview(doctors) {
+            const totalDoctors = doctors.length;
+            const availableDoctors = doctors.filter(d => d.is_available_now).length;
+            const busyDoctors = doctors.filter(d => d.is_available && !d.is_available_now).length;
+            const specializations = [...new Set(doctors.map(d => d.specialization))].length;
+
+            document.getElementById('totalDoctors').textContent = totalDoctors;
+            document.getElementById('availableDoctors').textContent = availableDoctors;
+            document.getElementById('busyDoctors').textContent = busyDoctors;
+            document.getElementById('specializationsCount').textContent = specializations;
+        }
+
+        function renderDoctors(doctors) {
+            const container = document.getElementById('doctorsGrid');
+            const noDoctors = document.getElementById('noDoctors');
+            
+            if (doctors.length === 0) {
+                container.innerHTML = '';
+                noDoctors.classList.remove('hidden');
+                return;
+            }
+            
+            noDoctors.classList.add('hidden');
+            
+            container.innerHTML = doctors.map(doctor => {
+                const statusClass = doctor.is_available_now ? 'status-available' : 
+                                  doctor.is_available ? 'status-busy' : 'status-offline';
+                const statusText = doctor.is_available_now ? 'Available Now' : 
+                                 doctor.is_available ? 'Available' : 'Offline';
+                const statusIndicator = doctor.is_available_now ? 'available' : 
+                                      doctor.is_available ? 'busy' : 'offline';
+                
+                // Get today's schedule
+                const today = new Date().toLocaleDateString('en', { weekday: 'long' });
+                const todaySchedule = doctor.weekly_schedule && doctor.weekly_schedule[today] ? doctor.weekly_schedule[today] : [];
+                
+                // Get next available slot
+                const nextAvailable = getNextAvailableSlot(doctor);
+                
+                return `
+                    <div class="doctor-card card hover:shadow-lg transition-all duration-300">
+                        <!-- Doctor Header -->
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="doctor-avatar">
+                                    ${doctor.name ? doctor.name.split(' ').map(n => n[0]).join('') : 'DR'}
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">${doctor.name || 'Unknown Doctor'}</h3>
+                                    <p class="text-gray-600">${doctor.specialization || 'General Practitioner'}</p>
+                                    <div class="flex items-center mt-1">
+                                        <span class="availability-indicator ${statusIndicator}"></span>
+                                        <span class="text-sm text-gray-500">${statusText}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <!-- Therapy Type -->
+                        <div class="mb-4">
+                            <span class="therapy-badge">${doctor.therapy_type || 'General Therapy'}</span>
+                        </div>
+                        
+                        <!-- Basic Info -->
+                        <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                            <div>
+                                <p class="text-gray-500">Experience</p>
+                                <p class="font-semibold">${doctor.experience || 0} years</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Fee</p>
+                                <p class="font-semibold">₹${doctor.consultation_fee || 0}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Languages</p>
+                                <p class="font-semibold">${doctor.languages || 'English, Hindi'}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Next Available</p>
+                                <p class="font-semibold text-green-600">${nextAvailable}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Today's Schedule -->
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                                <i class="fas fa-calendar-day mr-2 text-teal-600"></i>
+                                Today's Schedule (${today})
+                            </h4>
+                            ${todaySchedule.length > 0 ? 
+                                todaySchedule.map(slot => `
+                                    <div class="schedule-slot">
+                                        <i class="fas fa-clock mr-2 text-teal-600"></i>
+                                        ${formatTimeSlot(slot.start_time, slot.end_time)}
+                                        <span class="text-xs text-gray-500 ml-2">(Max: ${slot.max_appointments || 3})</span>
+                                    </div>
+                                `).join('') : 
+                                '<p class="text-gray-500 text-sm">No schedule for today</p>'
+                            }
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="flex justify-between items-center pt-4 border-t">
+                            <button onclick="viewDoctorDetails('${doctor.user_id}')" 
+                                    class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition flex items-center">
+                                <i class="fas fa-eye mr-2"></i>View Profile
+                            </button>
+                            <a href="/book-appointment?doctor=${doctor.user_id}" 
+                               class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition flex items-center">
+                                <i class="fas fa-calendar-plus mr-2"></i>Book Now
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getNextAvailableSlot(doctor) {
+            if (doctor.is_available_now) return 'Now';
+            
+            const today = new Date().toLocaleDateString('en', { weekday: 'long' });
+            const weeklySchedule = doctor.weekly_schedule || {};
+            const todaySchedule = weeklySchedule[today] || [];
+            
+            // Handle both array and object formats
+            let scheduleSlots = [];
+            if (Array.isArray(todaySchedule)) {
+                scheduleSlots = todaySchedule;
+            } else if (typeof todaySchedule === 'object' && todaySchedule !== null) {
+                scheduleSlots = [todaySchedule];
+            }
+            
+            if (scheduleSlots.length > 0) {
+                const now = new Date();
+                const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                for (let slot of scheduleSlots) {
+                    const startTime = slot.start_time || slot.startTime;
+                    if (startTime && startTime > currentTime) {
+                        return `Today ${formatTimeTo12Hour(startTime)}`;
+                    }
+                }
+            }
+            
+            // Find next available day
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const todayIndex = days.indexOf(today);
+            
+            for (let i = 1; i <= 7; i++) {
+                const nextDayIndex = (todayIndex + i) % 7;
+                const nextDay = days[nextDayIndex];
+                const nextDaySchedule = weeklySchedule[nextDay] || [];
+                
+                let nextDaySlots = [];
+                if (Array.isArray(nextDaySchedule)) {
+                    nextDaySlots = nextDaySchedule;
+                } else if (typeof nextDaySchedule === 'object' && nextDaySchedule !== null) {
+                    nextDaySlots = [nextDaySchedule];
+                }
+                
+                if (nextDaySlots.length > 0) {
+                    const firstSlot = nextDaySlots[0];
+                    const startTime = firstSlot.start_time || firstSlot.startTime;
+                    return `${nextDay} ${formatTimeTo12Hour(startTime || '09:00')}`;
+                }
+            }
+            
+            return 'Not available';
+        }
+
+        function formatTimeSlot(startTime, endTime) {
+            return `${formatTimeTo12Hour(startTime)} - ${formatTimeTo12Hour(endTime)}`;
+        }
+
+        function formatTimeTo12Hour(time) {
+            if (!time) return '';
+            
+            const [hours, minutes] = time.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const formattedHour = hour % 12 || 12;
+            return `${formattedHour}:${minutes} ${ampm}`;
+        }
+
+        function viewDoctorDetails(doctorId) {
+            // First try to find the doctor in our already loaded data
+            const existingDoctor = allDoctors.find(d => d.user_id === doctorId);
+            if (existingDoctor) {
+                renderDoctorModal(existingDoctor);
+                return;
+            }
+
+            // If not found, fetch from API
+            fetch(`/api/doctor-profiles/${doctorId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Doctor not found');
+                    }
+                    return response.json();
+                })
+                .then(doctor => {
+                    renderDoctorModal(doctor);
+                })
+                .catch(error => {
+                    console.error('Error loading doctor details:', error);
+                    showToast('Failed to load doctor details', 'error');
+                });
+        }
+
+        function renderDoctorModal(doctor) {
+            if (!doctor) {
+                showToast('Doctor information not available', 'error');
+                return;
+            }
+
+            const modal = document.getElementById('doctorModal');
+            const content = document.getElementById('modalContent');
+            const nameElement = document.getElementById('modalDoctorName');
+            
+            nameElement.textContent = doctor.name || 'Unknown Doctor';
+            
+            // Safely handle weekly schedule - check if it exists and has the expected structure
+            const weeklySchedule = doctor.weekly_schedule || {};
+            
+            // Organize weekly schedule with proper error handling
+            const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const weeklyScheduleHtml = daysOrder.map(day => {
+                const daySchedule = weeklySchedule[day] || [];
+                
+                // Handle both array and object formats
+                let scheduleSlots = [];
+                if (Array.isArray(daySchedule)) {
+                    scheduleSlots = daySchedule;
+                } else if (typeof daySchedule === 'object' && daySchedule !== null) {
+                    // Convert object to array if needed
+                    scheduleSlots = [daySchedule];
+                }
+                
+                return `
+                    <div class="mb-4">
+                        <h5 class="font-semibold text-gray-800 mb-2">${day}</h5>
+                        ${scheduleSlots.length > 0 ? 
+                            scheduleSlots.map(slot => {
+                                const startTime = slot.start_time || slot.startTime || '09:00';
+                                const endTime = slot.end_time || slot.endTime || '17:00';
+                                const maxAppointments = slot.max_appointments || slot.maxAppointments || 3;
+                                
+                                return `
+                                    <div class="schedule-day">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium text-teal-700">
+                                                <i class="fas fa-clock mr-2"></i>
+                                                ${formatTimeSlot(startTime, endTime)}
+                                            </span>
+                                            <span class="text-sm text-gray-600">
+                                                Max: ${maxAppointments} appointments
+                                            </span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') : 
+                            '<p class="text-gray-500 text-sm">Not available</p>'
+                        }
+                    </div>
+                `;
+            }).join('');
+            
+            content.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Doctor Information -->
+                    <div class="lg:col-span-1">
+                        <div class="text-center mb-6">
+                            <div class="w-24 h-24 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 text-2xl font-bold mx-auto mb-4">
+                                ${doctor.name ? doctor.name.split(' ').map(n => n[0]).join('') : 'DR'}
+                            </div>
+                            <h4 class="text-xl font-bold text-gray-800">${doctor.name || 'Unknown Doctor'}</h4>
+                            <p class="text-gray-600">${doctor.specialization || 'General Practitioner'}</p>
+                            <div class="mt-2">
+                                <span class="status-badge ${doctor.is_available_now ? 'status-available' : doctor.is_available ? 'status-busy' : 'status-offline'}">
+                                    ${doctor.is_available_now ? 'Available Now' : doctor.is_available ? 'Available' : 'Offline'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Experience:</span>
+                                <span class="font-semibold">${doctor.experience || 0} years</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Consultation Fee:</span>
+                                <span class="font-semibold">₹${doctor.consultation_fee || 0}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Therapy Type:</span>
+                                <span class="font-semibold">${doctor.therapy_type || 'General'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Languages:</span>
+                                <span class="font-semibold">${doctor.languages || 'English, Hindi'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <a href="/book-appointment?doctor=${doctor.user_id}" 
+                               class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg hover:bg-orange-600 transition flex items-center justify-center">
+                                <i class="fas fa-calendar-plus mr-2"></i>Book Appointment
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Detailed Information -->
+                    <div class="lg:col-span-2">
+                        <div class="mb-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">About Dr. ${doctor.name ? (doctor.name.split('Dr. ')[1] || doctor.name) : 'Unknown'}</h4>
+                            <p class="text-gray-700 leading-relaxed">${doctor.bio || 'No biography available.'}</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">Qualifications</h4>
+                            <p class="text-gray-700">${doctor.qualifications || 'No qualifications listed.'}</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">Weekly Schedule</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${weeklyScheduleHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('doctorModal').classList.add('hidden');
+        }
+
+        function filterDoctors() {
+            let filteredDoctors = allDoctors.filter(doctor => {
+                // Search filter
+                const matchesSearch = !currentFilters.search || 
+                    (doctor.name && doctor.name.toLowerCase().includes(currentFilters.search)) ||
+                    (doctor.specialization && doctor.specialization.toLowerCase().includes(currentFilters.search)) ||
+                    (doctor.therapy_type && doctor.therapy_type.toLowerCase().includes(currentFilters.search)) ||
+                    (doctor.qualifications && doctor.qualifications.toLowerCase().includes(currentFilters.search));
+                
+                // Specialization filter
+                const matchesSpecialization = currentFilters.specialization === 'all' || 
+                    doctor.specialization === currentFilters.specialization;
+                
+                // Availability filter
+                let matchesAvailability = true;
+                if (currentFilters.availability === 'available') {
+                    matchesAvailability = doctor.is_available_now;
+                } else if (currentFilters.availability === 'busy') {
+                    matchesAvailability = doctor.is_available && !doctor.is_available_now;
+                }
+                
+                return matchesSearch && matchesSpecialization && matchesAvailability;
+            });
+            
+            updateActiveFiltersDisplay();
+            displayedDoctors = 9; // Reset to initial count
+            renderDoctors(filteredDoctors.slice(0, displayedDoctors));
+            updateLoadMoreButton(filteredDoctors.length);
+        }
+
+        function updateActiveFiltersDisplay() {
+            const activeFiltersContainer = document.getElementById('activeFilters');
+            activeFiltersContainer.innerHTML = '<span class="text-sm text-gray-600">Active filters:</span>';
+            
+            if (currentFilters.search) {
+                const filterTag = document.createElement('span');
+                filterTag.className = 'filter-tag';
+                filterTag.innerHTML = `Search: "${currentFilters.search}" <button onclick="removeSearchFilter()" class="ml-1 text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>`;
+                activeFiltersContainer.appendChild(filterTag);
+            }
+            
+            if (currentFilters.specialization !== 'all') {
+                const filterTag = document.createElement('span');
+                filterTag.className = 'filter-tag';
+                filterTag.innerHTML = `Specialization: ${currentFilters.specialization} <button onclick="removeSpecializationFilter()" class="ml-1 text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>`;
+                activeFiltersContainer.appendChild(filterTag);
+            }
+            
+            if (currentFilters.availability !== 'all') {
+                const filterTag = document.createElement('span');
+                filterTag.className = 'filter-tag';
+                filterTag.innerHTML = `Status: ${currentFilters.availability} <button onclick="removeAvailabilityFilter()" class="ml-1 text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>`;
+                activeFiltersContainer.appendChild(filterTag);
+            }
+            
+            if (currentFilters.search || currentFilters.specialization !== 'all' || currentFilters.availability !== 'all') {
+                activeFiltersContainer.classList.remove('hidden');
+            } else {
+                activeFiltersContainer.classList.add('hidden');
+            }
+        }
+
+        function removeSearchFilter() {
+            document.getElementById('searchDoctors').value = '';
+            currentFilters.search = '';
+            filterDoctors();
+        }
+
+        function removeSpecializationFilter() {
+            document.getElementById('specializationFilter').value = 'all';
+            currentFilters.specialization = 'all';
+            filterDoctors();
+        }
+
+        function removeAvailabilityFilter() {
+            document.getElementById('availabilityFilter').value = 'all';
+            currentFilters.availability = 'all';
+            filterDoctors();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchDoctors').value = '';
+            document.getElementById('specializationFilter').value = 'all';
+            document.getElementById('availabilityFilter').value = 'all';
+            
+            currentFilters = {
+                search: '',
+                specialization: 'all',
+                availability: 'all'
+            };
+            
+            displayedDoctors = 9;
+            renderDoctors(allDoctors.slice(0, displayedDoctors));
+            updateLoadMoreButton(allDoctors.length);
+            updateActiveFiltersDisplay();
+        }
+
+        function loadMoreDoctors() {
+            displayedDoctors += doctorsPerLoad;
+            const filteredDoctors = getFilteredDoctors();
+            renderDoctors(filteredDoctors.slice(0, displayedDoctors));
+            updateLoadMoreButton(filteredDoctors.length);
+        }
+
+        function getFilteredDoctors() {
+            return allDoctors.filter(doctor => {
+                const matchesSearch = !currentFilters.search || 
+                    (doctor.name && doctor.name.toLowerCase().includes(currentFilters.search)) ||
+                    (doctor.specialization && doctor.specialization.toLowerCase().includes(currentFilters.search));
+                
+                const matchesSpecialization = currentFilters.specialization === 'all' || 
+                    doctor.specialization === currentFilters.specialization;
+                
+                let matchesAvailability = true;
+                if (currentFilters.availability === 'available') {
+                    matchesAvailability = doctor.is_available_now;
+                } else if (currentFilters.availability === 'busy') {
+                    matchesAvailability = doctor.is_available && !doctor.is_available_now;
+                }
+                
+                return matchesSearch && matchesSpecialization && matchesAvailability;
+            });
+        }
+
+        function updateLoadMoreButton(totalFilteredDoctors) {
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            
+            if (displayedDoctors < totalFilteredDoctors) {
+                loadMoreContainer.classList.remove('hidden');
+                loadMoreBtn.textContent = `Load More (${totalFilteredDoctors - displayedDoctors} remaining)`;
+            } else {
+                loadMoreContainer.classList.add('hidden');
+            }
+        }
+
+        function showNoDoctorsState() {
+            const container = document.getElementById('doctorsGrid');
+            const noDoctors = document.getElementById('noDoctors');
+            
+            container.innerHTML = '';
+            noDoctors.classList.remove('hidden');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Escape key to close modal
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            
+            // Ctrl+F to focus search
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchDoctors').focus();
+            }
+        });
+    </script>
+</body>
+</html>

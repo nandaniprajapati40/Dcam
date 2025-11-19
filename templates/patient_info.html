@@ -178,83 +178,6 @@
             border-bottom: 2px solid #e5e7eb;
         }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #168E9A;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .appointment-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-        
-        .appointment-item:hover {
-            background-color: #f9fafb;
-        }
-        
-        .appointment-item:last-child {
-            border-bottom: none;
-        }
-        
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .status-confirmed {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .status-pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .status-completed {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .status-cancelled {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -351,6 +274,10 @@
                         <i class="fas fa-calendar-plus mr-3"></i>
                         <span>Book Appointment</span>
                     </a>
+                    <a href="/doctor-profiles" class="sidebar-item">
+                        <i class="fas fa-user-md mr-3"></i>
+                        <span>Doctor Profiles</span>
+                    </a>
                     <div class="sidebar-item active">
                         <i class="fas fa-user mr-3"></i>
                         <span>My Information</span>
@@ -383,26 +310,6 @@
                         </a>
                     </div>
                 </header>
-
-                <!-- Stats Cards -->
-                <div class="stats-grid mb-8">
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalAppointments">0</div>
-                        <div class="stat-label">Total Appointments</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="completedSessions">0</div>
-                        <div class="stat-label">Completed Sessions</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="upcomingAppointments">0</div>
-                        <div class="stat-label">Upcoming Appointments</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="therapyTypes">0</div>
-                        <div class="stat-label">Therapy Types Tried</div>
-                    </div>
-                </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Personal Information -->
@@ -449,65 +356,26 @@
                     </div>
 
                     <!-- Medical Information -->
-                    <!-- <div class="card p-6">
+                    <div class="card p-6">
                         <h2 class="section-title">Medical Information</h2>
                         <div class="space-y-4">
-                            <div class="info-item">
-                                <span class="info-label">Height:</span>
-                                <span class="info-value" id="patientHeight">Loading...</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Weight:</span>
-                                <span class="info-value" id="patientWeight">Loading...</span>
-                            </div>
                             <div class="info-item">
                                 <span class="info-label">Allergies:</span>
                                 <span class="info-value" id="patientAllergies">Loading...</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Medical Conditions:</span>
-                                <span class="info-value" id="medicalConditions">Loading...</span>
+                                <span class="info-value" id="patientMedicalConditions">Loading...</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Current Medications:</span>
-                                <span class="info-value" id="currentMedications">Loading...</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Previous Surgeries:</span>
-                                <span class="info-value" id="previousSurgeries">Loading...</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Family Medical History:</span>
-                                <span class="info-value" id="familyMedicalHistory">Loading...</span>
+                                <span class="info-value" id="patientMedications">Loading...</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Emergency Contact:</span>
-                                <span class="info-value" id="emergencyContact">Loading...</span>
+                                <span class="info-value" id="patientEmergencyContact">Loading...</span>
                             </div>
                         </div>
-                    </div>
-                </div> -->
-
-                <!-- Recent Appointments -->
-                <div class="card p-6 mt-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="section-title mb-0">Recent Appointments</h2>
-                        <button onclick="loadAppointments()" class="px-4 py-2 bg-teal-primary text-white rounded-lg hover:bg-teal-dark transition flex items-center">
-                            <i class="fas fa-refresh mr-2"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="recentAppointments">
-                        <div class="text-center py-8">
-                            <div class="loading-spinner mx-auto mb-4"></div>
-                            <p class="text-gray-600">Loading appointments...</p>
-                        </div>
-                    </div>
-                    <div id="noAppointments" class="text-center py-8 hidden">
-                        <i class="fas fa-calendar-times text-4xl text-gray-300 mb-4"></i>
-                        <p class="text-gray-500 mb-4">No appointments scheduled yet</p>
-                        <a href="/book-appointment" class="inline-block px-6 py-3 bg-orange text-white rounded-lg hover:bg-orange-600 transition">
-                            <i class="fas fa-calendar-plus mr-2"></i>Book Your First Appointment
-                        </a>
                     </div>
                 </div>
 
@@ -551,7 +419,7 @@
                             <option value="prefer_not_to_say">Prefer not to say</option>
                         </select>
                     </div>
-                    <!-- <div>
+                    <div>
                         <label class="block text-gray-700 font-medium mb-2">Blood Group</label>
                         <select id="updateBloodGroup" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition">
                             <option value="">Select blood group</option>
@@ -565,56 +433,37 @@
                             <option value="O-">O-</option>
                         </select>
                     </div>
-                </div> -->
+                </div>
                 
-                <!-- <div>
+                <div>
                     <label class="block text-gray-700 font-medium mb-2">Address</label>
-                    <textarea id="updateAddress" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="Enter your complete address"></textarea>
+                    <textarea id="updateAddress" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition"></textarea>
                 </div>
                 
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Height (cm)</label>
-                    <input type="number" id="updateHeight" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="Enter height in centimeters">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Weight (kg)</label>
-                    <input type="number" id="updateWeight" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="Enter weight in kilograms">
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Allergies</label>
-                    <textarea id="updateAllergies" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="List any known allergies (food, medicine, environmental, etc.)"></textarea>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Allergies</label>
+                        <input type="text" id="updateAllergies" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="List any allergies">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Emergency Contact</label>
+                        <input type="text" id="updateEmergencyContact" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="Emergency contact number">
+                    </div>
                 </div>
                 
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Medical Conditions</label>
-                    <textarea id="updateMedicalConditions" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="List any existing medical conditions (e.g., diabetes, hypertension, asthma, etc.)"></textarea>
+                    <textarea id="updateMedicalConditions" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="Any existing medical conditions"></textarea>
                 </div>
                 
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Current Medications</label>
-                    <textarea id="updateCurrentMedications" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="List any medications you are currently taking"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Previous Surgeries</label>
-                    <textarea id="updatePreviousSurgeries" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="List any previous surgeries with dates"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Family Medical History</label>
-                    <textarea id="updateFamilyMedicalHistory" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="Any significant medical conditions in your family"></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Emergency Contact</label>
-                    <input type="text" id="updateEmergencyContact" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="Emergency contact number">
+                    <textarea id="updateMedications" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition" placeholder="List current medications"></textarea>
                 </div>
                 
                 <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" onclick="closeUpdateModal()" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
-                        Cancel -->
+                    <button type="button" onclick="closeUpdateModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                        Cancel
                     </button>
                     <button type="submit" class="px-6 py-3 bg-teal-primary text-white rounded-lg hover:bg-teal-dark transition flex items-center">
                         <i class="fas fa-save mr-2"></i> Save Changes
@@ -629,312 +478,219 @@
         <i class="fas fa-chevron-up"></i>
     </div>
 
-    <script>
-        // Mobile menu toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('overlay');
-        
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        });
-        
-        overlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-        });
+<script>
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('overlay');
+    
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    });
+    
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    });
 
-        // Scroll to top functionality
-        const scrollToTopBtn = document.getElementById('scrollToTop');
-        
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                scrollToTopBtn.classList.add('active');
-            } else {
-                scrollToTopBtn.classList.remove('active');
-            }
-        });
-        
-        scrollToTopBtn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        // Load patient data
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPatientData();
-            loadAppointments();
-            
-            // Sidebar navigation
-            document.querySelectorAll('.sidebar-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    // Close mobile menu if open
-                    if (window.innerWidth < 768) {
-                        sidebar.classList.remove('active');
-                        overlay.classList.remove('active');
-                    }
-                });
-            });
-        });
-
-        function loadPatientData() {
-            fetch('/api/patient-data')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Update personal information
-                    document.getElementById('patientPhone').textContent = data.phone || 'Not provided';
-                    document.getElementById('patientDob').textContent = data.date_of_birth || 'Not provided';
-                    document.getElementById('patientGender').textContent = data.gender ? data.gender.charAt(0).toUpperCase() + data.gender.slice(1) : 'Not provided';
-                    document.getElementById('patientBloodGroup').textContent = data.blood_group || 'Not provided';
-                    document.getElementById('patientAddress').textContent = data.address || 'Not provided';
-                    
-                    // // Update medical information
-                    // document.getElementById('patientHeight').textContent = data.patient_height ? data.patient_height + ' cm' : 'Not provided';
-                    // document.getElementById('patientWeight').textContent = data.patient_weight ? data.patient_weight + ' kg' : 'Not provided';
-                    // document.getElementById('patientAllergies').textContent = data.allergies || 'None reported';
-                    // document.getElementById('medicalConditions').textContent = data.medical_conditions || 'None reported';
-                    // document.getElementById('currentMedications').textContent = data.current_medications || 'None reported';
-                    // document.getElementById('previousSurgeries').textContent = data.previous_surgeries || 'None reported';
-                    // document.getElementById('familyMedicalHistory').textContent = data.family_medical_history || 'None reported';
-                    // document.getElementById('emergencyContact').textContent = data.emergency_contact || 'Not provided';
-                    
-                    // Populate update form
-                    document.getElementById('updatePhone').value = data.phone || '';
-                    document.getElementById('updateDob').value = data.date_of_birth || '';
-                    document.getElementById('updateGender').value = data.gender || '';
-                    document.getElementById('updateBloodGroup').value = data.blood_group || '';
-                    document.getElementById('updateAddress').value = data.address || '';
-                    document.getElementById('updateHeight').value = data.patient_height || '';
-                    document.getElementById('updateWeight').value = data.patient_weight || '';
-                    document.getElementById('updateAllergies').value = data.allergies || '';
-                    document.getElementById('updateMedicalConditions').value = data.medical_conditions || '';
-                    document.getElementById('updateCurrentMedications').value = data.current_medications || '';
-                    document.getElementById('updatePreviousSurgeries').value = data.previous_surgeries || '';
-                    document.getElementById('updateFamilyMedicalHistory').value = data.family_medical_history || '';
-                    document.getElementById('updateEmergencyContact').value = data.emergency_contact || '';
-                    
-                })
-                .catch(error => {
-                    console.error('Error loading patient data:', error);
-                    // Set default values if error
-                    document.querySelectorAll('.info-value').forEach(el => {
-                        if (el.textContent === 'Loading...') {
-                            el.textContent = 'Not available';
-                        }
-                    });
-                });
+    // Scroll to top functionality
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            scrollToTopBtn.classList.add('active');
+        } else {
+            scrollToTopBtn.classList.remove('active');
         }
+    });
+    
+    scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
-        function loadAppointments() {
-            const container = document.getElementById('recentAppointments');
-            const noAppointments = document.getElementById('noAppointments');
-            
-            container.innerHTML = `
-                <div class="text-center py-8">
-                    <div class="loading-spinner mx-auto mb-4"></div>
-                    <p class="text-gray-600">Loading appointments...</p>
-                </div>
-            `;
-            
-            fetch('/api/patient-appointments')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(appointments => {
-                    if (!appointments || appointments.length === 0) {
-                        container.innerHTML = '';
-                        noAppointments.classList.remove('hidden');
-                        updateStats(0, 0, 0, 0);
-                        return;
-                    }
-                    
-                    noAppointments.classList.add('hidden');
-                    
-                    let html = '<div class="space-y-4">';
-                    appointments.forEach(appt => {
-                        const date = new Date(appt.date);
-                        const dateString = date.toLocaleDateString('en-IN', { 
-                            weekday: 'short', 
-                            year: 'numeric', 
-                            month: 'short', 
-                            day: 'numeric' 
-                        });
-                        const timeString = date.toLocaleTimeString('en-IN', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                        });
-                        
-                        const statusClass = getStatusClass(appt.status);
-                        
-                        html += `
-                            <div class="appointment-item">
-                                <div class="flex-1">
-                                    <h4 class="font-semibold text-gray-800">${appt.therapy_name || appt.therapy_type || 'Therapy Session'}</h4>
-                                    <p class="text-sm text-gray-600">${appt.doctor_name || 'Therapist'}</p>
-                                    <p class="text-xs text-gray-500">${dateString} at ${timeString}</p>
-                                    <p class="text-sm text-gray-700 mt-1">${appt.reason || 'General consultation'}</p>
-                                </div>
-                                <div class="text-right">
-                                    <span class="status-badge ${statusClass}">${appt.status || 'Scheduled'}</span>
-                                    <p class="text-xs text-gray-500 mt-2">ID: ${appt.appointment_id}</p>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
-                    
-                    // Update stats
-                    const total = appointments.length;
-                    const completed = appointments.filter(a => a.status === 'completed').length;
-                    const upcoming = appointments.filter(a => a.status === 'confirmed' || a.status === 'scheduled').length;
-                    const therapyTypes = new Set(appointments.map(a => a.therapy_type)).size;
-                    
-                    updateStats(total, completed, upcoming, therapyTypes);
-                })
-                .catch(error => {
-                    console.error('Error loading appointments:', error);
-                    container.innerHTML = `
-                        <div class="text-center py-8">
-                            <i class="fas fa-exclamation-triangle text-2xl text-red-500 mb-4"></i>
-                            <p class="text-red-500">Failed to load appointments</p>
-                            <button onclick="loadAppointments()" class="mt-4 px-4 py-2 bg-teal-primary text-white rounded hover:bg-teal-dark transition">
-                                Try Again
-                            </button>
-                        </div>
-                    `;
-                });
-        }
+    // Load patient data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 Loading patient data...');
+        loadPatientData();
+    });
 
-        function getStatusClass(status) {
-            switch(status?.toLowerCase()) {
-                case 'confirmed':
-                case 'scheduled':
-                    return 'status-confirmed';
-                case 'completed':
-                    return 'status-completed';
-                case 'cancelled':
-                    return 'status-cancelled';
-                case 'pending':
-                    return 'status-pending';
-                default:
-                    return 'status-pending';
-            }
-        }
-
-        function updateStats(total, completed, upcoming, therapyTypes) {
-            document.getElementById('totalAppointments').textContent = total;
-            document.getElementById('completedSessions').textContent = completed;
-            document.getElementById('upcomingAppointments').textContent = upcoming;
-            document.getElementById('therapyTypes').textContent = therapyTypes;
-        }
-
-        // Modal functions
-        function openUpdateModal() {
-            document.getElementById('updateModal').classList.remove('hidden');
-        }
-
-        function closeUpdateModal() {
-            document.getElementById('updateModal').classList.add('hidden');
-        }
-
-        // Handle form submission
-        document.getElementById('updateForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                phone: document.getElementById('updatePhone').value,
-                date_of_birth: document.getElementById('updateDob').value,
-                gender: document.getElementById('updateGender').value,
-                blood_group: document.getElementById('updateBloodGroup').value,
-                address: document.getElementById('updateAddress').value,
-                patient_height: document.getElementById('updateHeight').value,
-                patient_weight: document.getElementById('updateWeight').value,
-                allergies: document.getElementById('updateAllergies').value,
-                medical_conditions: document.getElementById('updateMedicalConditions').value,
-                current_medications: document.getElementById('updateCurrentMedications').value,
-                previous_surgeries: document.getElementById('updatePreviousSurgeries').value,
-                family_medical_history: document.getElementById('updateFamilyMedicalHistory').value,
-                emergency_contact: document.getElementById('updateEmergencyContact').value
-            };
-            
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<div class="loading-spinner mr-2"></div> Saving...';
-            submitBtn.disabled = true;
-            
-            fetch('/api/update-patient-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            })
+    function loadPatientData() {
+        console.log('📥 Fetching patient data from API...');
+        fetch('/api/patient-data')
             .then(response => {
+                console.log('📊 API Response status:', response.status);
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`Network response was not ok: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                if (data.success) {
-                    // Reload patient data to show updated information
-                    loadPatientData();
-                    closeUpdateModal();
-                    
-                    // Show success message
-                    showNotification('Information updated successfully!', 'success');
-                } else {
-                    throw new Error(data.message || 'Failed to update information');
-                }
+                console.log('✅ Patient data loaded successfully:', data);
+                
+                // Update personal information
+                updateField('patientPhone', data.phone, 'Not provided');
+                updateField('patientDob', data.date_of_birth, 'Not provided');
+                updateField('patientGender', data.gender, 'Not provided', true);
+                updateField('patientBloodGroup', data.blood_group, 'Not provided');
+                updateField('patientAddress', data.address, 'Not provided');
+                
+                // Update medical information
+                updateField('patientAllergies', data.allergies, 'None reported');
+                updateField('patientMedicalConditions', data.medical_conditions, 'None reported');
+                updateField('patientMedications', data.current_medications, 'None');
+                updateField('patientEmergencyContact', data.emergency_contact, 'Not provided');
+                
+                // Populate update form
+                populateFormField('updatePhone', data.phone);
+                populateFormField('updateDob', data.date_of_birth);
+                populateFormField('updateGender', data.gender);
+                populateFormField('updateBloodGroup', data.blood_group);
+                populateFormField('updateAddress', data.address);
+                populateFormField('updateAllergies', data.allergies);
+                populateFormField('updateMedicalConditions', data.medical_conditions);
+                populateFormField('updateMedications', data.current_medications);
+                populateFormField('updateEmergencyContact', data.emergency_contact);
+                
             })
             .catch(error => {
-                console.error('Error updating patient data:', error);
-                showNotification('Failed to update information. Please try again.', 'error');
-            })
-            .finally(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
-        });
-
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
-                type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            } text-white`;
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} mr-2"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 10);
-            
-            // Remove after 5 seconds
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
+                console.error('❌ Error loading patient data:', error);
+                // Set default values if error
+                document.querySelectorAll('.info-value').forEach(el => {
+                    if (el.textContent === 'Loading...') {
+                        el.textContent = 'Not available';
                     }
-                }, 300);
-            }, 5000);
+                });
+                showNotification('Failed to load patient information', 'error');
+            });
+    }
+
+    // Helper function to update display fields
+    function updateField(elementId, value, defaultValue, capitalize = false) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            if (value && value.trim() !== '') {
+                element.textContent = capitalize ? 
+                    value.charAt(0).toUpperCase() + value.slice(1) : value;
+            } else {
+                element.textContent = defaultValue;
+            }
         }
-    </script>
+    }
+
+    // Helper function to populate form fields
+    function populateFormField(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+        } else {
+            element.value = '';
+        }
+    }
+
+    // Modal functions
+    function openUpdateModal() {
+        console.log('📝 Opening update modal...');
+        document.getElementById('updateModal').classList.remove('hidden');
+    }
+
+    function closeUpdateModal() {
+        console.log('❌ Closing update modal...');
+        document.getElementById('updateModal').classList.add('hidden');
+    }
+
+    // Handle form submission
+    document.getElementById('updateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            phone: document.getElementById('updatePhone').value,
+            date_of_birth: document.getElementById('updateDob').value,
+            gender: document.getElementById('updateGender').value,
+            blood_group: document.getElementById('updateBloodGroup').value,
+            address: document.getElementById('updateAddress').value,
+            allergies: document.getElementById('updateAllergies').value,
+            medical_conditions: document.getElementById('updateMedicalConditions').value,
+            current_medications: document.getElementById('updateMedications').value,
+            emergency_contact: document.getElementById('updateEmergencyContact').value
+        };
+        
+        console.log('📤 Submitting form data:', formData);
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<div class="loading-spinner mr-2"></div> Saving...';
+        submitBtn.disabled = true;
+        
+        fetch('/api/update-patient-info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            console.log('📨 Update API response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Update API response data:', data);
+            if (data.message) {
+                // Reload patient data to show updated information
+                loadPatientData();
+                closeUpdateModal();
+                
+                // Show success message
+                showNotification('Information updated successfully!', 'success');
+            } else if (data.error) {
+                throw new Error(data.error);
+            } else {
+                throw new Error('Unexpected response from server');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error updating patient data:', error);
+            showNotification(`Failed to update information: ${error.message}`, 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+            type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        } text-white`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 10);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+    }
+</script>
+       
 </body>
 </html>

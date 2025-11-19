@@ -476,10 +476,14 @@
                         <i class="fas fa-calendar-plus mr-3"></i>
                         <span>Book Appointment</span>
                     </a>
-                     <div class="sidebar-item active">
+                    <div class="sidebar-item active" class="sidebar-item">
                         <i class="fas fa-info-circle mr-3"></i>
                         <span>Therapies Info</span>
                     </div>
+                     <a href="/doctor-profiles" class="sidebar-item">
+                        <i class="fas fa-user-md mr-3"></i>
+                        <span>Doctor Profiles</span>
+                        </a>  
                     <a href="/patient-info" class="sidebar-item">
                         <i class="fas fa-user mr-3"></i>
                         <span>My Information</span>
@@ -529,13 +533,10 @@
                 <div class="therapy-nav-item" data-therapy="ayurveda">Ayurveda</div>
                 <div class="therapy-nav-item" data-therapy="homeopathy">Homeopathy</div>
                 <div class="therapy-nav-item" data-therapy="naturopathy">Naturopathy</div>
-                <div class="therapy-nav-item" data-therapy="yoga">Yoga & Meditation</div>
-                <div class="therapy-nav-item" data-therapy="unani">Unani Medicine</div>
-                <div class="therapy-nav-item" data-therapy="chiropractic">Chiropractic</div>
                 <div class="therapy-nav-item" data-therapy="physiotherapy">Physiotherapy</div>
-                <div class="therapy-nav-item" data-therapy="diet">Diet & Nutrition</div>
-                <div class="therapy-nav-item" data-therapy="herbal">Herbal Medicine</div>
                 <div class="therapy-nav-item" data-therapy="sound">Sound Healing</div>
+                <div class="therapy-nav-item" data-therapy="psychotherapy">Psychotherapy</div>
+                <div class="therapy-nav-item" data-therapy="yoga">Yoga & Meditation</div>   
             </div>
 
             <!-- Acupressure/Acupuncture Section -->
@@ -1273,6 +1274,188 @@
                     </div>
                 </div>
             </div>
+            <!-- Psychotherapy Section -->
+<div id="psychotherapy" class="therapy-detail-section">
+    <div class="therapy-section-header">
+        <div class="flex items-center mb-4">
+            <div class="therapy-icon indigo mr-4">
+                <i class="fas fa-brain"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold">Psychotherapy</h2>
+                <p class="opacity-90">Mental Health and Emotional Well-being</p>
+            </div>
+        </div>
+        <div class="therapy-tags">
+            <span class="therapy-tag">Mental Health</span>
+            <span class="therapy-tag">Emotional Healing</span>
+            <span class="therapy-tag">Behavioral Change</span>
+        </div>
+    </div>
+    
+    <div class="therapy-quick-info">
+        <div class="quick-info-card">
+            <div class="quick-info-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 class="font-semibold">Session Duration</h3>
+            <p class="text-gray-600">50-60 minutes</p>
+        </div>
+        <div class="quick-info-card">
+            <div class="quick-info-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h3 class="font-semibold">Recommended Sessions</h3>
+            <p class="text-gray-600">Varies by condition</p>
+        </div>
+        <div class="quick-info-card">
+            <div class="quick-info-icon">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <h3 class="font-semibold">Practitioner Type</h3>
+            <p class="text-gray-600">Clinical Psychologist</p>
+        </div>
+        <div class="quick-info-card">
+            <div class="quick-info-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <h3 class="font-semibold">Effectiveness</h3>
+            <p class="text-gray-600">High for mental health issues</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="card p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">What is Psychotherapy?</h2>
+            <p class="text-gray-600 mb-4">
+                Psychotherapy is a collaborative treatment based on the relationship between an individual and a psychologist. It provides a supportive environment to talk openly.
+            </p>
+            <p class="text-gray-600">
+                Grounded in dialogue, it provides a supportive environment that allows you to talk openly with someone who's objective, neutral, and nonjudgmental.
+            </p>
+        </div>
+
+        <div class="card p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Benefits</h2>
+            <div class="therapy-benefits-grid">
+                <div class="benefit-item">
+                    <i class="fas fa-check benefit-icon"></i>
+                    <span>Improved mental health and well-being</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check benefit-icon"></i>
+                    <span>Better coping strategies for stress</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check benefit-icon"></i>
+                    <span>Resolution of traumatic experiences</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check benefit-icon"></i>
+                    <span>Improved relationships and communication</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check benefit-icon"></i>
+                    <span>Management of mental health conditions</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Common Conditions Treated</h2>
+        <div class="condition-list">
+            <ul class="text-gray-600 space-y-2">
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Depression and anxiety disorders</li>
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Trauma and PTSD</li>
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Relationship issues</li>
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Grief and loss</li>
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Stress management</li>
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Eating disorders</li>
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Addiction and substance abuse</li>
+                <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Personality disorders</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Treatment Process</h2>
+        <div class="treatment-process">
+            <div class="process-step">
+                <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h3 class="font-semibold">1. Assessment</h3>
+                <p class="text-sm text-gray-600 mt-2">Comprehensive evaluation of mental health and history</p>
+            </div>
+            <div class="process-step">
+                <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h3 class="font-semibold">2. Goal Setting</h3>
+                <p class="text-sm text-gray-600 mt-2">Establishing treatment objectives and approach</p>
+            </div>
+            <div class="process-step">
+                <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3 class="font-semibold">3. Therapy Sessions</h3>
+                <p class="text-sm text-gray-600 mt-2">Regular sessions using evidence-based techniques</p>
+            </div>
+            <div class="process-step">
+                <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="font-semibold">4. Progress Evaluation</h3>
+                <p class="text-sm text-gray-600 mt-2">Monitoring improvement and adjusting treatment</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="therapy-testimonial">
+        <p class="italic text-gray-700">"Psychotherapy helped me understand my thought patterns and develop healthier coping mechanisms. I feel more in control of my emotions and life."</p>
+        <div class="testimonial-author">
+            <div class="testimonial-avatar">AK</div>
+            <div>
+                <p class="font-semibold">Anjali Kumar</p>
+                <p class="text-sm text-gray-600">Patient since 2021</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">How to Access Therapy</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="font-semibold text-gray-700 mb-2">At DSVV Clinic</h3>
+                <ul class="text-gray-600 space-y-2">
+                    <li class="flex items-start"><i class="fas fa-map-marker-alt text-indigo-500 mt-1 mr-2"></i> Confidential counseling center at DSVV</li>
+                    <li class="flex items-start"><i class="fas fa-phone text-indigo-500 mt-1 mr-2"></i> Schedule appointment: +91-XXXX-XXXXXX</li>
+                    <li class="flex items-start"><i class="fas fa-envelope text-indigo-500 mt-1 mr-2"></i> Email: psychotherapy@dsvv.ac.in</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-700 mb-2">Therapy Options</h3>
+                <ul class="text-gray-600 space-y-2">
+                    <li class="flex items-start"><i class="fas fa-user text-indigo-500 mt-1 mr-2"></i> Individual therapy sessions</li>
+                    <li class="flex items-start"><i class="fas fa-users text-indigo-500 mt-1 mr-2"></i> Group therapy programs</li>
+                    <li class="flex items-start"><i class="fas fa-video text-indigo-500 mt-1 mr-2"></i> Online counseling sessions</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="therapy-actions">
+            <a href="/book-appointment?therapy=psychotherapy" class="action-btn primary">
+                <i class="fas fa-calendar-plus mr-2"></i>
+                Book Appointment
+            </a>
+            <a href="#" class="action-btn secondary">
+                <i class="fas fa-book mr-2"></i>
+                Learn More
+            </a>
+        </div>
+    </div>
+</div>
 
             <!-- Yoga & Meditation Section -->
             <div id="yoga" class="therapy-detail-section">
@@ -1456,373 +1639,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Unani Medicine Section -->
-            <div id="unani" class="therapy-detail-section">
-                <div class="therapy-section-header">
-                    <div class="flex items-center mb-4">
-                        <div class="therapy-icon info mr-4">
-                            <i class="fas fa-mortar-pestle"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold">Unani Medicine</h2>
-                            <p class="opacity-90">Traditional Healing System</p>
-                        </div>
-                    </div>
-                    <div class="therapy-tags">
-                        <span class="therapy-tag">Humoral Balance</span>
-                        <span class="therapy-tag">Natural Remedies</span>
-                        <span class="therapy-tag">Diet Therapy</span>
-                    </div>
-                </div>
-                
-                <div class="therapy-quick-info">
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3 class="font-semibold">Session Duration</h3>
-                        <p class="text-gray-600">45-60 minutes</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <h3 class="font-semibold">Treatment Duration</h3>
-                        <p class="text-gray-600">Varies by condition</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-                        <h3 class="font-semibold">Practitioner Type</h3>
-                        <p class="text-gray-600">Unani Physician</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h3 class="font-semibold">Effectiveness</h3>
-                        <p class="text-gray-600">High for chronic conditions</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">What is Unani Medicine?</h2>
-                        <p class="text-gray-600 mb-4">
-                            Unani Medicine is a traditional healing system based on the teachings of Hippocrates, focusing on balancing bodily humors for health and wellness.
-                        </p>
-                        <p class="text-gray-600">
-                            It emphasizes the balance of four humors: blood, phlegm, yellow bile, and black bile for maintaining health.
-                        </p>
-                    </div>
-
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Benefits</h2>
-                        <div class="therapy-benefits-grid">
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Humoral balance restoration</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Natural remedies with minimal side effects</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Diet therapy and lifestyle management</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Holistic approach to health</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Preventive healthcare focus</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Common Conditions Treated</h2>
-                    <div class="condition-list">
-                        <ul class="text-gray-600 space-y-2">
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Digestive disorders</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Respiratory conditions (asthma, bronchitis)</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Skin diseases (eczema, psoriasis)</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Joint and musculoskeletal disorders</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Liver and gallbladder disorders</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Metabolic disorders</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Gynecological issues</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-blue-500 text-xs mt-1 mr-2"></i> Neurological conditions</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Treatment Process</h2>
-                    <div class="treatment-process">
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
-                                <i class="fas fa-stethoscope"></i>
-                            </div>
-                            <h3 class="font-semibold">1. Diagnosis</h3>
-                            <p class="text-sm text-gray-600 mt-2">Pulse examination and humor assessment</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
-                                <i class="fas fa-prescription"></i>
-                            </div>
-                            <h3 class="font-semibold">2. Treatment Plan</h3>
-                            <p class="text-sm text-gray-600 mt-2">Personalized regimen including diet and medications</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
-                                <i class="fas fa-leaf"></i>
-                            </div>
-                            <h3 class="font-semibold">3. Herbal Therapy</h3>
-                            <p class="text-sm text-gray-600 mt-2">Natural medicines and dietary recommendations</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(59, 130, 246, 0.1); color: #3B82F6;">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
-                            <h3 class="font-semibold">4. Follow-up</h3>
-                            <p class="text-sm text-gray-600 mt-2">Regular monitoring and regimen adjustments</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="therapy-testimonial">
-                    <p class="italic text-gray-700">"Unani medicine provided a comprehensive approach to my chronic skin condition. The herbal treatments and dietary changes made a significant difference."</p>
-                    <div class="testimonial-author">
-                        <div class="testimonial-avatar">NK</div>
-                        <div>
-                            <p class="font-semibold">Naveen Kumar</p>
-                            <p class="text-sm text-gray-600">Patient since 2021</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">How to Access Therapy</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">At DSVV Clinic</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-map-marker-alt text-blue-500 mt-1 mr-2"></i> Unani Medicine department at DSVV</li>
-                                <li class="flex items-start"><i class="fas fa-phone text-blue-500 mt-1 mr-2"></i> Consultation appointments: +91-XXXX-XXXXXX</li>
-                                <li class="flex items-start"><i class="fas fa-envelope text-blue-500 mt-1 mr-2"></i> Email: unani@dsvv.ac.in</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">Treatment Options</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-user-md text-blue-500 mt-1 mr-2"></i> Outpatient consultations</li>
-                                <li class="flex items-start"><i class="fas fa-prescription-bottle text-blue-500 mt-1 mr-2"></i> Custom herbal formulations</li>
-                                <li class="flex items-start"><i class="fas fa-utensils text-blue-500 mt-1 mr-2"></i> Dietary counseling sessions</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="therapy-actions">
-                        <a href="/book-appointment?therapy=unani" class="action-btn primary">
-                            <i class="fas fa-calendar-plus mr-2"></i>
-                            Book Appointment
-                        </a>
-                        <a href="#" class="action-btn secondary">
-                            <i class="fas fa-book mr-2"></i>
-                            Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chiropractic Therapy Section -->
-            <div id="chiropractic" class="therapy-detail-section">
-                <div class="therapy-section-header">
-                    <div class="flex items-center mb-4">
-                        <div class="therapy-icon purple mr-4">
-                            <i class="fas fa-bone"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold">Chiropractic Therapy</h2>
-                            <p class="opacity-90">Musculoskeletal System Care</p>
-                        </div>
-                    </div>
-                    <div class="therapy-tags">
-                        <span class="therapy-tag">Spinal Alignment</span>
-                        <span class="therapy-tag">Pain Relief</span>
-                        <span class="therapy-tag">Mobility Improvement</span>
-                    </div>
-                </div>
-                
-                <div class="therapy-quick-info">
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3 class="font-semibold">Session Duration</h3>
-                        <p class="text-gray-600">15-30 minutes</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <h3 class="font-semibold">Recommended Sessions</h3>
-                        <p class="text-gray-600">Varies by condition</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-                        <h3 class="font-semibold">Practitioner Type</h3>
-                        <p class="text-gray-600">Chiropractor</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h3 class="font-semibold">Effectiveness</h3>
-                        <p class="text-gray-600">High for back pain</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">What is Chiropractic Therapy?</h2>
-                        <p class="text-gray-600 mb-4">
-                            Chiropractic Therapy focuses on diagnosis and treatment of mechanical disorders of the musculoskeletal system, especially the spine.
-                        </p>
-                        <p class="text-gray-600">
-                            It emphasizes manual adjustment and manipulation of the spine to improve function and support natural healing.
-                        </p>
-                    </div>
-
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Benefits</h2>
-                        <div class="therapy-benefits-grid">
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Spinal alignment and posture correction</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Effective pain relief without medication</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Improved mobility and flexibility</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Enhanced nervous system function</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Better overall body function</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Common Conditions Treated</h2>
-                    <div class="condition-list">
-                        <ul class="text-gray-600 space-y-2">
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Back pain and neck pain</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Sciatica and nerve pain</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Headaches and migraines</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Joint pain and arthritis</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Sports injuries</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Postural problems</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Carpal tunnel syndrome</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-purple-500 text-xs mt-1 mr-2"></i> Whiplash injuries</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Treatment Process</h2>
-                    <div class="treatment-process">
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(147, 51, 234, 0.1); color: #9333EA;">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <h3 class="font-semibold">1. Assessment</h3>
-                            <p class="text-sm text-gray-600 mt-2">Physical examination and spinal analysis</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(147, 51, 234, 0.1); color: #9333EA;">
-                                <i class="fas fa-x-ray"></i>
-                            </div>
-                            <h3 class="font-semibold">2. Diagnosis</h3>
-                            <p class="text-sm text-gray-600 mt-2">Identification of misalignments and issues</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(147, 51, 234, 0.1); color: #9333EA;">
-                                <i class="fas fa-hands-helping"></i>
-                            </div>
-                            <h3 class="font-semibold">3. Adjustment</h3>
-                            <p class="text-sm text-gray-600 mt-2">Manual spinal manipulation and correction</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(147, 51, 234, 0.1); color: #9333EA;">
-                                <i class="fas fa-dumbbell"></i>
-                            </div>
-                            <h3 class="font-semibold">4. Rehabilitation</h3>
-                            <p class="text-sm text-gray-600 mt-2">Exercises and lifestyle recommendations</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="therapy-testimonial">
-                    <p class="italic text-gray-700">"After years of chronic back pain, chiropractic adjustments provided immediate relief. I can now move freely without constant discomfort."</p>
-                    <div class="testimonial-author">
-                        <div class="testimonial-avatar">RS</div>
-                        <div>
-                            <p class="font-semibold">Robert Singh</p>
-                            <p class="text-sm text-gray-600">Patient since 2019</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">How to Access Therapy</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">At DSVV Clinic</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-map-marker-alt text-purple-500 mt-1 mr-2"></i> Chiropractic center with modern equipment</li>
-                                <li class="flex items-start"><i class="fas fa-phone text-purple-500 mt-1 mr-2"></i> Schedule adjustment: +91-XXXX-XXXXXX</li>
-                                <li class="flex items-start"><i class="fas fa-envelope text-purple-500 mt-1 mr-2"></i> Email: chiropractic@dsvv.ac.in</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">Services Available</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-user-md text-purple-500 mt-1 mr-2"></i> Initial consultation and assessment</li>
-                                <li class="flex items-start"><i class="fas fa-calendar text-purple-500 mt-1 mr-2"></i> Regular adjustment sessions</li>
-                                <li class="flex items-start"><i class="fas fa-dumbbell text-purple-500 mt-1 mr-2"></i> Rehabilitation exercise programs</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="therapy-actions">
-                        <a href="/book-appointment?therapy=chiropractic" class="action-btn primary">
-                            <i class="fas fa-calendar-plus mr-2"></i>
-                            Book Appointment
-                        </a>
-                        <a href="#" class="action-btn secondary">
-                            <i class="fas fa-book mr-2"></i>
-                            Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
-
             <!-- Physiotherapy Section -->
             <div id="physiotherapy" class="therapy-detail-section">
                 <div class="therapy-section-header">
@@ -2006,371 +1822,6 @@
                 </div>
             </div>
 
-            <!-- Diet & Nutrition Therapy Section -->
-            <div id="diet" class="therapy-detail-section">
-                <div class="therapy-section-header">
-                    <div class="flex items-center mb-4">
-                        <div class="therapy-icon indigo mr-4">
-                            <i class="fas fa-apple-alt"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold">Diet & Nutrition Therapy</h2>
-                            <p class="opacity-90">Food as Medicine Approach</p>
-                        </div>
-                    </div>
-                    <div class="therapy-tags">
-                        <span class="therapy-tag">Weight Management</span>
-                        <span class="therapy-tag">Disease Prevention</span>
-                        <span class="therapy-tag">Optimal Health</span>
-                    </div>
-                </div>
-                
-                <div class="therapy-quick-info">
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3 class="font-semibold">Session Duration</h3>
-                        <p class="text-gray-600">45-60 minutes</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <h3 class="font-semibold">Recommended Sessions</h3>
-                        <p class="text-gray-600">Varies by goals</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-                        <h3 class="font-semibold">Practitioner Type</h3>
-                        <p class="text-gray-600">Nutritionist/Dietitian</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h3 class="font-semibold">Effectiveness</h3>
-                        <p class="text-gray-600">High for metabolic conditions</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">What is Diet & Nutrition Therapy?</h2>
-                        <p class="text-gray-600 mb-4">
-                            Diet and Nutrition Therapy uses food and nutritional planning as a means to prevent or treat disease and promote optimal health.
-                        </p>
-                        <p class="text-gray-600">
-                            It focuses on creating personalized eating plans based on individual health needs and goals.
-                        </p>
-                    </div>
-
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Benefits</h2>
-                        <div class="therapy-benefits-grid">
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Effective weight management</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Disease prevention and management</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Optimal health and vitality</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Improved energy levels</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Enhanced immune function</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Common Conditions Treated</h2>
-                    <div class="condition-list">
-                        <ul class="text-gray-600 space-y-2">
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Obesity and weight issues</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Diabetes and metabolic syndrome</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Heart disease and hypertension</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Digestive disorders (IBS, Crohn's)</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Food allergies and intolerances</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Eating disorders</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Sports nutrition needs</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-indigo-500 text-xs mt-1 mr-2"></i> Pregnancy and lactation nutrition</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Treatment Process</h2>
-                    <div class="treatment-process">
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
-                                <i class="fas fa-clipboard-list"></i>
-                            </div>
-                            <h3 class="font-semibold">1. Assessment</h3>
-                            <p class="text-sm text-gray-600 mt-2">Comprehensive dietary and health evaluation</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
-                                <i class="fas fa-utensils"></i>
-                            </div>
-                            <h3 class="font-semibold">2. Meal Planning</h3>
-                            <p class="text-sm text-gray-600 mt-2">Personalized eating plans and recipes</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
-                                <i class="fas fa-graduation-cap"></i>
-                            </div>
-                            <h3 class="font-semibold">3. Education</h3>
-                            <p class="text-sm text-gray-600 mt-2">Nutrition knowledge and cooking guidance</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(79, 70, 229, 0.1); color: #4F46E5;">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <h3 class="font-semibold">4. Monitoring</h3>
-                            <p class="text-sm text-gray-600 mt-2">Progress tracking and plan adjustments</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="therapy-testimonial">
-                    <p class="italic text-gray-700">"Nutrition therapy helped me manage my diabetes effectively. The personalized meal plan made it easy to maintain healthy blood sugar levels."</p>
-                    <div class="testimonial-author">
-                        <div class="testimonial-avatar">AG</div>
-                        <div>
-                            <p class="font-semibold">Anjali Gupta</p>
-                            <p class="text-sm text-gray-600">Patient since 2021</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">How to Access Therapy</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">At DSVV Clinic</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-map-marker-alt text-indigo-500 mt-1 mr-2"></i> Nutrition and dietetics department</li>
-                                <li class="flex items-start"><i class="fas fa-phone text-indigo-500 mt-1 mr-2"></i> Consultation appointments: +91-XXXX-XXXXXX</li>
-                                <li class="flex items-start"><i class="fas fa-envelope text-indigo-500 mt-1 mr-2"></i> Email: nutrition@dsvv.ac.in</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">Services Available</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-user text-indigo-500 mt-1 mr-2"></i> Individual nutrition counseling</li>
-                                <li class="flex items-start"><i class="fas fa-utensils text-indigo-500 mt-1 mr-2"></i> Meal planning and preparation guidance</li>
-                                <li class="flex items-start"><i class="fas fa-chart-pie text-indigo-500 mt-1 mr-2"></i> Body composition analysis</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="therapy-actions">
-                        <a href="/book-appointment?therapy=diet" class="action-btn primary">
-                            <i class="fas fa-calendar-plus mr-2"></i>
-                            Book Appointment
-                        </a>
-                        <a href="#" class="action-btn secondary">
-                            <i class="fas fa-book mr-2"></i>
-                            Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Herbal/Botanical Medicine Section -->
-            <div id="herbal" class="therapy-detail-section">
-                <div class="therapy-section-header">
-                    <div class="flex items-center mb-4">
-                        <div class="therapy-icon teal mr-4">
-                            <i class="fas fa-seedling"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold">Herbal/Botanical Medicine</h2>
-                            <p class="opacity-90">Plant-Based Healing System</p>
-                        </div>
-                    </div>
-                    <div class="therapy-tags">
-                        <span class="therapy-tag">Natural Remedies</span>
-                        <span class="therapy-tag">Minimal Side Effects</span>
-                        <span class="therapy-tag">Holistic Healing</span>
-                    </div>
-                </div>
-                
-                <div class="therapy-quick-info">
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h3 class="font-semibold">Session Duration</h3>
-                        <p class="text-gray-600">30-45 minutes</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <h3 class="font-semibold">Treatment Duration</h3>
-                        <p class="text-gray-600">Varies by condition</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-                        <h3 class="font-semibold">Practitioner Type</h3>
-                        <p class="text-gray-600">Herbalist</p>
-                    </div>
-                    <div class="quick-info-card">
-                        <div class="quick-info-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h3 class="font-semibold">Effectiveness</h3>
-                        <p class="text-gray-600">High for chronic conditions</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">What is Herbal/Botanical Medicine?</h2>
-                        <p class="text-gray-600 mb-4">
-                            Herbal/Botanical Medicine uses plants or plant extracts to treat illness and promote health, representing one of the oldest forms of medicine.
-                        </p>
-                        <p class="text-gray-600">
-                            It draws on traditional knowledge combined with modern scientific research on plant-based remedies.
-                        </p>
-                    </div>
-
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Benefits</h2>
-                        <div class="therapy-benefits-grid">
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Natural remedies from plant sources</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Minimal side effects compared to synthetic drugs</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Holistic approach to healing</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Supports body's natural healing processes</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="fas fa-check benefit-icon"></i>
-                                <span>Sustainable and environmentally friendly</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Common Conditions Treated</h2>
-                    <div class="condition-list">
-                        <ul class="text-gray-600 space-y-2">
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Respiratory infections and allergies</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Digestive disorders</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Skin conditions (eczema, acne)</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Stress and anxiety disorders</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Sleep disorders and insomnia</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Women's health issues</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Immune system support</li>
-                            <li class="flex items-start"><i class="fas fa-circle text-teal-500 text-xs mt-1 mr-2"></i> Chronic fatigue and low energy</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card p-6 mb-8">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Treatment Process</h2>
-                    <div class="treatment-process">
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(20, 184, 166, 0.1); color: #14B8A6;">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <h3 class="font-semibold">1. Assessment</h3>
-                            <p class="text-sm text-gray-600 mt-2">Evaluation of health condition and constitution</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(20, 184, 166, 0.1); color: #14B8A6;">
-                                <i class="fas fa-prescription"></i>
-                            </div>
-                            <h3 class="font-semibold">2. Formulation</h3>
-                            <p class="text-sm text-gray-600 mt-2">Custom herbal preparations and dosages</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(20, 184, 166, 0.1); color: #14B8A6;">
-                                <i class="fas fa-capsules"></i>
-                            </div>
-                            <h3 class="font-semibold">3. Administration</h3>
-                            <p class="text-sm text-gray-600 mt-2">Teas, tinctures, capsules, or topical applications</p>
-                        </div>
-                        <div class="process-step">
-                            <div class="process-icon" style="background: rgba(20, 184, 166, 0.1); color: #14B8A6;">
-                                <i class="fas fa-calendar-alt"></i>
-                            </div>
-                            <h3 class="font-semibold">4. Follow-up</h3>
-                            <p class="text-sm text-gray-600 mt-2">Progress evaluation and formula adjustments</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="therapy-testimonial">
-                    <p class="italic text-gray-700">"Herbal medicine provided gentle yet effective relief for my chronic digestive issues. The natural approach worked where conventional medicine had failed."</p>
-                    <div class="testimonial-author">
-                        <div class="testimonial-avatar">SP</div>
-                        <div>
-                            <p class="font-semibold">Sunita Patel</p>
-                            <p class="text-sm text-gray-600">Patient since 2020</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">How to Access Therapy</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">At DSVV Clinic</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-map-marker-alt text-teal-500 mt-1 mr-2"></i> Herbal medicine department with pharmacy</li>
-                                <li class="flex items-start"><i class="fas fa-phone text-teal-500 mt-1 mr-2"></i> Consultation: +91-XXXX-XXXXXX</li>
-                                <li class="flex items-start"><i class="fas fa-envelope text-teal-500 mt-1 mr-2"></i> Email: herbal@dsvv.ac.in</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">Services Available</h3>
-                            <ul class="text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-user-md text-teal-500 mt-1 mr-2"></i> Herbal consultations</li>
-                                <li class="flex items-start"><i class="fas fa-mortar-pestle text-teal-500 mt-1 mr-2"></i> Custom herbal formulations</li>
-                                <li class="flex items-start"><i class="fas fa-book text-teal-500 mt-1 mr-2"></i> Educational workshops on herbal use</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="therapy-actions">
-                        <a href="/book-appointment?therapy=herbal" class="action-btn primary">
-                            <i class="fas fa-calendar-plus mr-2"></i>
-                            Book Appointment
-                        </a>
-                        <a href="#" class="action-btn secondary">
-                            <i class="fas fa-book mr-2"></i>
-                            Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
 
             <!-- Sound Healing Therapy Section -->
             <div id="sound" class="therapy-detail-section">

@@ -1705,7 +1705,7 @@
             loadRecentAppointments();
         }
 
-// doctor_dashboard.html में
+
 function confirmAppointment(appointmentId) {
     fetch(`/api/receptionist/appointments/${appointmentId}/confirm`, {
         method: 'POST'
@@ -1714,7 +1714,7 @@ function confirmAppointment(appointmentId) {
     .then(data => {
         if (data.success) {
             showToast('Appointment confirmed successfully!', 'success');
-            loadDashboardData(); // सिर्फ receptionist dashboard refresh हो रहा
+            loadDashboardData(); // 
         }
     })
 }        

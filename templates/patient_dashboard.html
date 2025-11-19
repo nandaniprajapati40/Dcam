@@ -148,135 +148,10 @@
         .status-completed { background: #dbeafe; color: #1e40af; }
         .status-payment-pending { background: #fef3c7; color: #d97706; }
         
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
-        }
-        
-        .stat-icon.blue { background: rgba(70, 180, 191, 0.1); color: #46B4BF; }
-        .stat-icon.green { background: rgba(22, 142, 154, 0.1); color: #168E9A; }
-        .stat-icon.yellow { background: rgba(236, 147, 43, 0.1); color: #EC932B; }
-        .stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
-        
-        .stat-value { 
-            font-size: 1.875rem; 
-            font-weight: 700; 
-            margin-bottom: 0.25rem; 
-            color: #1f2937;
-        }
-        
-        .stat-label { 
-            color: #6B7280; 
-            font-size: 0.875rem; 
-        }
-        
-        /* Quick Actions */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .action-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .action-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-            border-color: #168E9A;
-        }
-        
-        .action-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.25rem;
-        }
-        
-        .action-icon.blue { background: rgba(70, 180, 191, 0.1); color: #46B4BF; }
-        .action-icon.green { background: rgba(22, 142, 154, 0.1); color: #168E9A; }
-        .action-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
-        
-        .action-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #1f2937;
-        }
-        
-        .action-description {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-        
-        /* Welcome Banner */
-        .welcome-banner {
-            background: linear-gradient(135deg, #168E9A 0%, #12606C 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .welcome-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(30%, -30%);
-        }
-        
         /* Content Grid */
         .content-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 2rem;
         }
         
@@ -434,6 +309,10 @@
                         <i class="fas fa-info-circle mr-3"></i>
                         <span>Therapies Information</span>
                     </a>
+                    <a href="/doctor-profiles" class="sidebar-item">
+                        <i class="fas fa-user-md mr-3"></i>
+                        <span>Doctor Profiles</span>
+                        </a>
                     <a href="/patient-info" class="sidebar-item">
                         <i class="fas fa-user mr-3"></i>
                         <span>My Information</span>
@@ -467,139 +346,41 @@
                 <p class="opacity-90">We're here to support your healing journey with comprehensive therapy services.</p>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-gray-500">Upcoming Appointments</p>
-                            <h3 class="text-2xl font-bold mt-2" id="upcomingAppointmentsCount">0</h3>
-                        </div>
-                        <div class="stat-icon blue">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-gray-500">Completed Sessions</p>
-                            <h3 class="text-2xl font-bold mt-2" id="completedSessionsCount">0</h3>
-                        </div>
-                        <div class="stat-icon green">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-gray-500">Pending Payments</p>
-                            <h3 class="text-2xl font-bold mt-2" id="pendingPaymentsCount">0</h3>
-                        </div>
-                        <div class="stat-icon yellow">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-gray-500">Therapies Tried</p>
-                            <h3 class="text-2xl font-bold mt-2" id="therapiesTriedCount">0</h3>
-                        </div>
-                        <div class="stat-icon purple">
-                            <i class="fas fa-spa"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions & Recent Appointments -->
-            <div class="content-grid">
-                <!-- Quick Actions -->
-                <div class="card">
-                    <h2 class="section-header">
-                        <i class="fas fa-bolt"></i>Quick Actions
-                    </h2>
-                    <div class="quick-actions">
-                        <a href="/book-appointment" class="action-card">
-                            <div class="action-icon blue">
-                                <i class="fas fa-calendar-plus"></i>
-                            </div>
-                            <div class="action-title">Book Appointment</div>
-                            <div class="action-description">Schedule a new therapy session</div>
-                        </a>
-                        <a href="/acupressure-info" class="action-card">
-                            <div class="action-icon green">
-                                <i class="fas fa-info-circle"></i>
-                            </div>
-                            <div class="action-title">Explore Therapies</div>
-                            <div class="action-description">Learn about available treatments</div>
-                        </a>
-                        <a href="/patient-info" class="action-card">
-                            <div class="action-icon purple">
-                                <i class="fas fa-user-edit"></i>
-                            </div>
-                            <div class="action-title">Update Profile</div>
-                            <div class="action-description">Manage your information</div>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Enhanced Appointments History Section -->
-                <div class="card">
-                    <h2 class="section-header">
-                        <i class="fas fa-history"></i>My Appointments History
-                    </h2>
-                    
-                    <!-- Filter Buttons -->
-                    <div class="mb-4">
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="filterAppointments('all')" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition filter-btn active" data-filter="all">
-                                <i class="fas fa-list mr-1"></i>All
-                            </button>
-                            <button onclick="filterAppointments('upcoming')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition filter-btn" data-filter="upcoming">
-                                <i class="fas fa-clock mr-1"></i>Upcoming
-                            </button>
-                            <button onclick="filterAppointments('completed')" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 transition filter-btn" data-filter="completed">
-                                <i class="fas fa-check-circle mr-1"></i>Completed
-                            </button>
-                            <button onclick="filterAppointments('cancelled')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition filter-btn" data-filter="cancelled">
-                                <i class="fas fa-times-circle mr-1"></i>Cancelled
-                            </button>
-                            <button onclick="filterAppointments('payment_pending')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700 transition filter-btn" data-filter="payment_pending">
-                                <i class="fas fa-credit-card mr-1"></i>Payment Pending
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Appointments List -->
-                    <div id="recentAppointments">
-                        <div class="empty-state">
-                            <i class="fas fa-calendar-times"></i>
-                            <p class="text-gray-500">Loading your appointments...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Doctors Section
-            <div class="card mt-6">
+            <!-- Enhanced Appointments History Section -->
+            <div class="card">
                 <h2 class="section-header">
-                    <i class="fas fa-user-md"></i>Our Expert Doctors
+                    <i class="fas fa-history"></i>My Appointments History
                 </h2>
-                 -->
-                <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="doctorsGrid">
-                     Doctors will be loaded here -->
-                <!-- </div>  -->
                 
-                <!-- <div class="text-center mt-4">
-                    <button onclick="loadAllDoctors()" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
-                        <i class="fas fa-users mr-2"></i>View All Doctors
-                    </button>
+                <!-- Filter Buttons -->
+                <div class="mb-4">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="filterAppointments('all')" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700 transition filter-btn active" data-filter="all">
+                            <i class="fas fa-list mr-1"></i>All
+                        </button>
+                        <button onclick="filterAppointments('upcoming')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition filter-btn" data-filter="upcoming">
+                            <i class="fas fa-clock mr-1"></i>Upcoming
+                        </button>
+                        <button onclick="filterAppointments('completed')" class="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 transition filter-btn" data-filter="completed">
+                            <i class="fas fa-check-circle mr-1"></i>Completed
+                        </button>
+                        <button onclick="filterAppointments('cancelled')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition filter-btn" data-filter="cancelled">
+                            <i class="fas fa-times-circle mr-1"></i>Cancelled
+                        </button>
+                        <button onclick="filterAppointments('payment_pending')" class="px-4 py-2 bg-yellow-600 text-white rounded-lg text-sm hover:bg-yellow-700 transition filter-btn" data-filter="payment_pending">
+                            <i class="fas fa-credit-card mr-1"></i>Payment Pending
+                        </button>
+                    </div>
                 </div>
-            </div> -->
+                
+                <!-- Appointments List -->
+                <div id="recentAppointments">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p class="text-gray-500">Loading your appointments...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -639,15 +420,12 @@
             
             // Load data with error handling
             try {
-                loadPatientStats();
                 loadAllAppointments();
-                loadDoctorsForPatients();
                 
                 setupEventListeners();
                 
                 // Auto-refresh every 30 seconds
                 setInterval(() => {
-                    loadPatientStats();
                     loadAllAppointments();
                 }, 30000);
             } catch (error) {
@@ -706,7 +484,6 @@
                     const appointments = safeArray(data);
                     allAppointments = appointments;
                     renderAppointments(appointments, currentFilter);
-                    updateStatsFromAppointments(appointments);
                 })
                 .catch(error => {
                     console.error('Error loading appointments:', error);
@@ -907,155 +684,6 @@
             renderAppointments(allAppointments, filterType);
         }
 
-        function loadPatientStats() {
-            fetch('/api/patient-dashboard-stats')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load stats');
-                    }
-                    return response.json();
-                })
-                .then(stats => {
-                    updatePatientStats(stats);
-                })
-                .catch(error => {
-                    console.error('Error loading patient stats:', error);
-                    // Set default stats
-                    updatePatientStats({
-                        upcoming_appointments: 0,
-                        completed_sessions: 0,
-                        pending_payments: 0,
-                        therapies_tried: 0
-                    });
-                });
-        }
-
-        function updatePatientStats(stats) {
-            // Safely update stats with fallbacks
-            const upcomingEl = document.getElementById('upcomingAppointmentsCount');
-            const completedEl = document.getElementById('completedSessionsCount');
-            const pendingEl = document.getElementById('pendingPaymentsCount');
-            const therapiesEl = document.getElementById('therapiesTriedCount');
-            
-            if (upcomingEl) upcomingEl.textContent = stats.upcoming_appointments || 0;
-            if (completedEl) completedEl.textContent = stats.completed_sessions || 0;
-            if (pendingEl) pendingEl.textContent = stats.pending_payments || 0;
-            if (therapiesEl) therapiesEl.textContent = stats.therapies_tried || 0;
-        }
-
-        function updateStatsFromAppointments(appointments) {
-            // Safely calculate stats from appointments
-            const safeAppointments = safeArray(appointments);
-            
-            const upcoming = safeAppointments.filter(apt => 
-                apt && ['pending', 'confirmed', 'scheduled'].includes(apt.status)
-            ).length;
-            
-            const completed = safeAppointments.filter(apt => apt && apt.status === 'completed').length;
-            const paymentPending = safeAppointments.filter(apt => 
-                apt && (apt.status === 'payment_pending' || apt.payment_status === 'unpaid')
-            ).length;
-            
-            // Count unique therapy types
-            const therapyTypes = new Set();
-            safeAppointments.forEach(apt => {
-                if (apt && apt.therapy_type) {
-                    therapyTypes.add(apt.therapy_type);
-                }
-            });
-            
-            // Update stats
-            const upcomingEl = document.getElementById('upcomingAppointmentsCount');
-            const completedEl = document.getElementById('completedSessionsCount');
-            const pendingEl = document.getElementById('pendingPaymentsCount');
-            const therapiesEl = document.getElementById('therapiesTriedCount');
-            
-            if (upcomingEl) upcomingEl.textContent = upcoming;
-            if (completedEl) completedEl.textContent = completed;
-            if (pendingEl) pendingEl.textContent = paymentPending;
-            if (therapiesEl) therapiesEl.textContent = therapyTypes.size;
-        }
-
-        // Load doctors for patient view
-        function loadDoctorsForPatients() {
-            fetch('/api/doctors')
-                .then(response => response.json())
-                .then(doctors => {
-                    renderDoctorsForPatients(doctors.slice(0, 6)); // Show first 6 doctors
-                })
-                .catch(error => {
-                    console.error('Error loading doctors:', error);
-                });
-        }
-
-        function renderDoctorsForPatients(doctors) {
-            const container = document.getElementById('doctorsGrid');
-            
-            if (!container) {
-                console.error('Doctors grid container not found');
-                return;
-            }
-            
-            if (!doctors || doctors.length === 0) {
-                container.innerHTML = '<div class="col-span-3 text-center py-8 text-gray-500">No doctors available</div>';
-                return;
-            }
-            
-            container.innerHTML = doctors.map(doctor => {
-                if (!doctor) return '';
-                
-                const statusClass = doctor.is_available ? 
-                    'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                const initials = doctor.name ? 
-                    doctor.name.split(' ').map(n => n[0]).join('') : 'DR';
-                
-                return `
-                    <div class="bg-white rounded-lg shadow-sm border p-4">
-                        <div class="text-center mb-3">
-                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-bold mx-auto mb-2">
-                                ${initials}
-                            </div>
-                            <h4 class="font-semibold text-gray-800">${doctor.name || 'Doctor'}</h4>
-                            <p class="text-sm text-gray-600">${doctor.specialization || 'General Practitioner'}</p>
-                            <span class="inline-block px-2 py-1 ${statusClass} rounded-full text-xs font-medium mt-1">
-                                ${doctor.is_available ? 'Available' : 'Busy'}
-                            </span>
-                        </div>
-                        
-                        <div class="text-sm text-gray-600 space-y-1">
-                            <p><i class="fas fa-graduation-cap mr-2"></i>${doctor.qualifications || 'MD'}</p>
-                            <p><i class="fas fa-briefcase mr-2"></i>${doctor.experience || '0'} years experience</p>
-                            <p><i class="fas fa-rupee-sign mr-2"></i>₹${doctor.consultation_fee || '0'} consultation</p>
-                        </div>
-                        
-                        <div class="mt-4 flex justify-between">
-                            <button onclick="viewDoctorProfile('${doctor.user_id || ''}')" class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition">
-                                <i class="fas fa-eye mr-1"></i>View Profile
-                            </button>
-                            <button onclick="bookWithDoctor('${doctor.user_id || ''}')" class="px-3 py-1 bg-teal-600 text-white rounded text-sm hover:bg-teal-700 transition">
-                                <i class="fas fa-calendar-plus mr-1"></i>Book Appointment
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function viewDoctorProfile(doctorId) {
-            // Open doctor profile in modal or new page
-            alert('Viewing doctor profile: ' + doctorId);
-        }
-
-        function bookWithDoctor(doctorId) {
-            // Redirect to booking page with doctor pre-selected
-            window.location.href = `/book-appointment?doctor=${doctorId}`;
-        }
-
-        function loadAllDoctors() {
-            // Redirect to all doctors page
-            window.location.href = '/all-doctors';
-        }
-
         function completePayment(appointmentId, therapyType) {
             currentAppointmentId = appointmentId;
             currentTherapyType = therapyType;
@@ -1183,7 +811,6 @@
                     
                     // Refresh data
                     loadAllAppointments();
-                    loadPatientStats();
                     
                     // Show confetti effect (optional)
                     showConfetti();
@@ -1227,7 +854,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    },
+                        },
                     body: JSON.stringify({
                         appointment_id: appointmentId
                     })
@@ -1238,7 +865,6 @@
                         alert('Appointment cancelled successfully.');
                         // Refresh appointments to reflect changes
                         loadAllAppointments();
-                        loadPatientStats();
                     } else {
                         alert('Failed to cancel appointment: ' + (data.error || 'Unknown error'));
                         // Reset button

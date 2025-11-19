@@ -6,13 +6,556 @@
     <title>Doctor Availability - Receptionist Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .status-available { background: #d1fae5; color: #065f46; }
+        .status-busy { background: #fef3c7; color: #d97706; }
+        .status-offline { background: #f3f4f6; color: #6b7280; }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Doctor Availability</h1>
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <p class="text-gray-600">Doctor availability management interface will be implemented here.</p>
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <a href="/receptionist-dashboard" class="text-white hover:text-blue-200">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-xl font-bold">DCAM Therapy Center</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm">Receptionist: {{ user.first_name }} {{ user.last_name }}</span>
+                    <a href="/logout" class="text-white hover:text-blue-200">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="flex">
+        <div class="sidebar bg-white w-64 min-h-screen shadow-lg">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-6">Receptionist Panel</h2>
+                <nav class="space-y-2">
+                    <a href="/receptionist-dashboard" class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-3 font-medium">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/manage-appointments" class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-3 font-medium">
+                        <i class="fas fa-calendar-check w-5"></i>
+                        <span>Manage Appointments</span>
+                    </a>
+                    <a href="/receptionist/doctor-availability" class="flex items-center space-x-3 text-blue-600 bg-blue-50 rounded-lg px-4 py-3 font-medium">
+                        <i class="fas fa-user-md w-5"></i>
+                        <span>Doctor Availability</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Doctor Availability Management</h1>
+                <button onclick="refreshDoctorAvailability()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500">Total Doctors</p>
+                            <h3 class="text-2xl font-bold" id="totalDoctors">0</h3>
+                        </div>
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <i class="fas fa-user-md text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500">Available Now</p>
+                            <h3 class="text-2xl font-bold" id="availableNow">0</h3>
+                        </div>
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500">Busy</p>
+                            <h3 class="text-2xl font-bold" id="busyDoctors">0</h3>
+                        </div>
+                        <div class="p-3 bg-yellow-100 rounded-lg">
+                            <i class="fas fa-clock text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-gray-500">Offline</p>
+                            <h3 class="text-2xl font-bold" id="offlineDoctors">0</h3>
+                        </div>
+                        <div class="p-3 bg-gray-100 rounded-lg">
+                            <i class="fas fa-moon text-gray-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doctor Availability Grid -->
+            <div class="bg-white rounded-lg shadow-lg">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-bold text-gray-800">Doctor Schedules & Availability</h2>
+                    <p class="text-gray-600">Real-time availability and weekly schedules of all doctors</p>
+                </div>
+                
+                <div class="p-6">
+                    <div id="doctorAvailabilityGrid" class="space-y-6">
+                        <div class="text-center py-8">
+                            <div class="loading-spinner mx-auto mb-2"></div>
+                            <p class="text-gray-500">Loading doctor availability...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-6 bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="sendRemindersToAllDoctors()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+                        <i class="fas fa-bell mr-2"></i>Send Schedule Reminders
+                    </button>
+                    <button onclick="viewAllAppointments()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-calendar mr-2"></i>View All Appointments
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        let doctorAvailabilityData = [];
+
+// Load doctor availability when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadDoctorAvailability();
+    
+    // Auto-refresh every 2 minutes
+    setInterval(loadDoctorAvailability, 120000);
+});
+
+function loadDoctorAvailability() {
+    console.log('Loading REAL doctor availability...');
+    
+    fetch('/api/receptionist/doctor-availability-data')
+
+        .then(response => {
+            if (!response.ok) {
+                // Get more details about the error
+                return response.text().then(text => {
+                    throw new Error(`Server error: ${response.status} - ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                doctorAvailabilityData = data.doctors || [];
+                renderDoctorAvailability(doctorAvailabilityData);
+                updateStats(doctorAvailabilityData);
+            } else {
+                throw new Error(data.error || 'Failed to load data');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading doctor availability:', error);
+            showErrorState(error.message);
+            
+            // Add more detailed error information
+            console.log('Full error details:', {
+                message: error.message,
+                timestamp: new Date().toISOString(),
+                endpoint: '/api/receptionist/doctor-availability'
+            });
+        });
+}
+
+function renderDoctorAvailability(doctors) {
+    const container = document.getElementById('doctorAvailabilityGrid');
+    
+    if (!doctors || doctors.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-user-md text-4xl mb-4 text-gray-300"></i>
+                <p>No doctors found in the system</p>
+                <p class="text-sm mt-2">Doctors need to register and set their availability</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = doctors.map(doctor => {
+        const statusClass = doctor.is_available_now ? 'status-available' : 
+                          doctor.is_available ? 'status-busy' : 'status-offline';
+        const statusText = doctor.is_available_now ? 'Available Now' : 
+                         doctor.is_available ? 'Available' : 'Offline';
+        
+        const today = new Date().toLocaleDateString('en', { weekday: 'long' });
+        const todayAvailability = doctor.today_availability;
+        
+        // Format weekly schedule for display
+        const weeklySchedule = doctor.weekly_schedule || {};
+        const scheduleDays = Object.keys(weeklySchedule).slice(0, 3); // Show first 3 days
+        
+        return `
+            <div class="border rounded-lg p-6 hover:shadow-md transition-shadow bg-white">
+                <!-- Doctor Header -->
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-bold">
+                                ${doctor.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-gray-800">${doctor.name}</h3>
+                                <p class="text-gray-600">${doctor.specialization}</p>
+                                <p class="text-sm text-gray-500">${doctor.therapy_type || 'General Therapy'} • ${doctor.experience || 0} years exp.</p>
+                                <p class="text-sm text-gray-500">Fee: ₹${doctor.consultation_fee || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusClass}">
+                            ${statusText}
+                        </span>
+                        <p class="text-sm text-gray-600 mt-2">Today: ${doctor.today_appointments} appointments</p>
+                        <p class="text-xs text-gray-500">Last updated: ${formatRelativeTime(doctor.status_updated_at)}</p>
+                    </div>
+                </div>
+
+                <!-- Today's Schedule -->
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2 flex items-center">
+                        <i class="fas fa-calendar-day mr-2"></i>Today's Schedule (${today})
+                    </h4>
+                    ${todayAvailability ? `
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                                <span class="font-medium">Time Slot:</span>
+                                <p class="text-blue-700">${todayAvailability.start_time} - ${todayAvailability.end_time}</p>
+                            </div>
+                            <div>
+                                <span class="font-medium">Max Patients:</span>
+                                <p>${todayAvailability.max_appointments || 3}</p>
+                            </div>
+                        </div>
+                    ` : `
+                        <p class="text-blue-600 text-sm">No schedule for today</p>
+                    `}
+                </div>
+
+                <!-- Weekly Schedule Preview -->
+                <div class="mb-4">
+                    <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                        <i class="fas fa-calendar-week mr-2"></i>Weekly Schedule
+                    </h4>
+                    <div class="grid grid-cols-3 gap-2 text-sm">
+                        ${scheduleDays.map(day => {
+                            const slots = weeklySchedule[day];
+                            return `
+                                <div class="bg-gray-50 p-2 rounded text-center">
+                                    <div class="font-medium text-gray-800">${day.substring(0, 3)}</div>
+                                    ${slots && slots.length > 0 ? 
+                                        `<div class="text-green-600 text-xs">${slots[0].start_time}-${slots[0].end_time}</div>` : 
+                                        `<div class="text-gray-400 text-xs">Off</div>`
+                                    }
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    ${Object.keys(weeklySchedule).length > 3 ? 
+                        `<p class="text-xs text-gray-500 mt-2">+${Object.keys(weeklySchedule).length - 3} more days</p>` : ''
+                    }
+                </div>
+
+                <!-- Next Available Slot -->
+                <div class="mb-4">
+                    <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                        <i class="fas fa-clock mr-2"></i>Next Available
+                    </h4>
+                    <p class="text-gray-600 text-sm">${doctor.next_available || 'Not available'}</p>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="flex justify-between items-center pt-4 border-t">
+                    <div class="text-sm text-gray-500">
+                        ID: ${doctor.user_id}
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="viewDoctorCompleteSchedule('${doctor.user_id}')" 
+                                class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition flex items-center">
+                            <i class="fas fa-calendar-alt mr-1"></i>Full Schedule
+                        </button>
+                        <button onclick="contactDoctor('${doctor.user_id}')" 
+                                class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition flex items-center">
+                            <i class="fas fa-phone mr-1"></i>Contact
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function viewDoctorCompleteSchedule(doctorId) {
+    // Show detailed schedule in a modal or new page
+    fetch(`/api/doctor/${doctorId}/complete-schedule`)
+        .then(response => response.json())
+        .then(schedule => {
+            showScheduleModal(schedule);
+        })
+        .catch(error => {
+            console.error('Error loading schedule:', error);
+            alert('Failed to load doctor schedule');
+        });
+}
+
+function showScheduleModal(schedule) {
+    // Create and show a modal with the complete schedule
+    const modalHtml = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Complete Schedule - ${schedule.doctor_name}</h3>
+                    <button onclick="closeScheduleModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-gray-600">${schedule.specialization} • ${schedule.total_upcoming_appointments} upcoming appointments</p>
+                    <p class="text-sm text-gray-500">Status: ${schedule.is_available ? 'Available' : 'Not Available'}</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${Object.entries(schedule.weekly_schedule || {}).map(([day, data]) => `
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-3">${day}</h4>
+                            
+                            <!-- Availability -->
+                            <div class="mb-3">
+                                <h5 class="text-sm font-medium text-gray-700 mb-2">Availability:</h5>
+                                ${data.availability && data.availability.length > 0 ? 
+                                    data.availability.map(slot => `
+                                        <div class="text-xs text-green-600 bg-green-50 p-2 rounded mb-1">
+                                            ${slot.start_time} - ${slot.end_time} (Max: ${slot.max_appointments})
+                                        </div>
+                                    `).join('') : 
+                                    '<p class="text-xs text-gray-500">Not available</p>'
+                                }
+                            </div>
+                            
+                            <!-- Appointments -->
+                            <div>
+                                <h5 class="text-sm font-medium text-gray-700 mb-2">Appointments:</h5>
+                                ${data.appointments && data.appointments.length > 0 ? 
+                                    data.appointments.map(apt => `
+                                        <div class="text-xs bg-blue-50 p-2 rounded mb-1">
+                                            <div class="font-medium">${apt.time}</div>
+                                            <div>${apt.patient_name} - ${apt.therapy_type}</div>
+                                            <span class="status-badge status-${apt.status}">${apt.status}</span>
+                                        </div>
+                                    `).join('') : 
+                                    '<p class="text-xs text-gray-500">No appointments</p>'
+                                }
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="flex justify-end mt-6">
+                    <button onclick="closeScheduleModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const modalDiv = document.createElement('div');
+    modalDiv.innerHTML = modalHtml;
+    document.body.appendChild(modalDiv);
+}
+
+function closeScheduleModal() {
+    const modal = document.querySelector('.fixed.inset-0');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function updateStats(doctors) {
+    const totalDoctors = doctors.length;
+    const availableNow = doctors.filter(d => d.is_available_now).length;
+    const busyDoctors = doctors.filter(d => d.is_available && !d.is_available_now).length;
+    const offlineDoctors = doctors.filter(d => !d.is_available).length;
+
+    document.getElementById('totalDoctors').textContent = totalDoctors;
+    document.getElementById('availableNow').textContent = availableNow;
+    document.getElementById('busyDoctors').textContent = busyDoctors;
+    document.getElementById('offlineDoctors').textContent = offlineDoctors;
+}
+
+function formatRelativeTime(timestamp) {
+    if (!timestamp) return 'Never';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString();
+}
+
+function refreshDoctorAvailability() {
+    const refreshBtn = event?.target || document.querySelector('button[onclick*="refreshDoctorAvailability"]');
+    const originalText = refreshBtn?.innerHTML || 'Refresh';
+    
+    if (refreshBtn) {
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Refreshing...';
+        refreshBtn.disabled = true;
+    }
+
+    loadDoctorAvailability();
+
+    setTimeout(() => {
+        if (refreshBtn) {
+            refreshBtn.innerHTML = originalText;
+            refreshBtn.disabled = false;
+        }
+    }, 2000);
+}
+
+function sendScheduleReminder(doctorId) {
+    if (confirm('Send schedule reminder to this doctor?')) {
+        fetch(`/api/doctor/${doctorId}/remind-schedule`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Reminder sent successfully!');
+            } else {
+                alert('Failed to send reminder: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error sending reminder:', error);
+            alert('Error sending reminder');
+        });
+    }
+}
+
+function sendRemindersToAllDoctors() {
+    if (confirm('Send schedule reminders to all doctors?')) {
+        // Implementation for sending to all doctors
+        doctorAvailabilityData.forEach(doctor => {
+            sendScheduleReminder(doctor.user_id);
+        });
+    }
+}
+
+function viewDoctorAppointments(doctorId) {
+    window.location.href = `/receptionist/appointments?doctor=${doctorId}`;
+}
+
+function contactDoctor(doctorId) {
+    const doctor = doctorAvailabilityData.find(d => d.user_id === doctorId);
+    if (doctor && doctor.phone) {
+        window.open(`tel:${doctor.phone}`);
+    } else {
+        alert('Phone number not available for this doctor');
+    }
+}
+
+function exportAvailability() {
+    // Enhanced export functionality
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + "Doctor Name,Specialization,Status,Today Appointments,Next Available,Phone\n"
+        + doctorAvailabilityData.map(doctor => 
+            `"${doctor.name}","${doctor.specialization}","${doctor.is_available_now ? 'Available Now' : doctor.is_available ? 'Available' : 'Offline'}","${doctor.today_appointments}","${doctor.next_available || 'N/A'}","${doctor.phone || 'N/A'}"`
+        ).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "doctor_availability.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function viewAllAppointments() {
+    window.location.href = '/receptionist/appointments';
+}
+
+function showErrorState(message = 'Failed to load doctor availability') {
+    const container = document.getElementById('doctorAvailabilityGrid');
+    container.innerHTML = `
+        <div class="text-center py-8 text-red-500">
+            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+            <p>${message}</p>
+            <button onclick="loadDoctorAvailability()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                <i class="fas fa-sync-alt mr-2"></i>Try Again
+            </button>
+        </div>
+    `;
+}
+    </script>
 </body>
 </html>

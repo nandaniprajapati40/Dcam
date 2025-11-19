@@ -23,6 +23,7 @@ import razorpay
 import uuid
 from bson.objectid import ObjectId
 import razorpay.errors 
+import traceback
 load_dotenv()
 
 # Custom JSON encoder to handle ObjectId and datetime
@@ -195,14 +196,6 @@ def is_db_connected():
 
 # Enhanced predefined users with doctor specialization mapping
 PREDEFINED_USERS = {
-    'admin': {
-        'user_id': 'ADM001',
-        'email': 'admin@dsvv.ac.in',
-        'password': 'Admin@123',
-        'first_name': 'System',
-        'last_name': 'Administrator',
-        'role': 'admin'
-    },
     'receptionist': {
         'user_id': 'REC001',
         'email': 'reception@dsvv.ac.in',
@@ -262,26 +255,6 @@ PREDEFINED_USERS = {
         'specialization': 'Yoga Master',
         'therapy_type': 'yoga'
     },
-    'doctor_unani': {
-        'user_id': 'DOC006',
-        'email': 'dr.singh@dsvv.ac.in',
-        'password': 'Doctor@123',
-        'first_name': 'Anjali',
-        'last_name': 'Singh',
-        'role': 'doctor',
-        'specialization': 'Unani Specialist',
-        'therapy_type': 'unani'
-    },
-    'doctor_chiropractic': {
-        'user_id': 'DOC007',
-        'email': 'dr.joshi@dsvv.ac.in',
-        'password': 'Doctor@123',
-        'first_name': 'Deepak',
-        'last_name': 'Joshi',
-        'role': 'doctor',
-        'specialization': 'Chiropractic Expert',
-        'therapy_type': 'chiropractic'
-    },
     'doctor_physiotherapy': {
         'user_id': 'DOC008',
         'email': 'dr.sharma2@dsvv.ac.in',
@@ -291,26 +264,6 @@ PREDEFINED_USERS = {
         'role': 'doctor',
         'specialization': 'Physiotherapist',
         'therapy_type': 'physiotherapy'
-    },
-    'doctor_diet': {
-        'user_id': 'DOC009',
-        'email': 'dr.malhotra@dsvv.ac.in',
-        'password': 'Doctor@123',
-        'first_name': 'Sanjay',
-        'last_name': 'Malhotra',
-        'role': 'doctor',
-        'specialization': 'Nutritionist',
-        'therapy_type': 'diet'
-    },
-    'doctor_herbal': {
-        'user_id': 'DOC010',
-        'email': 'dr.reddy@dsvv.ac.in',
-        'password': 'Doctor@123',
-        'first_name': 'Meera',
-        'last_name': 'Reddy',
-        'role': 'doctor',
-        'specialization': 'Herbal Medicine Expert',
-        'therapy_type': 'herbal'
     },
     'doctor_sound': {
         'user_id': 'DOC011',
@@ -331,11 +284,11 @@ THERAPY_DOCTOR_MAPPING = {
     'homeopathy': 'DOC003',
     'naturopathy': 'DOC004',
     'yoga': 'DOC005',
-    'unani': 'DOC006',
-    'chiropractic': 'DOC007',
+    # 'unani': 'DOC006',
+    # 'chiropractic': 'DOC007',
     'physiotherapy': 'DOC008',
-    'diet': 'DOC009',
-    'herbal': 'DOC010',
+    # 'diet': 'DOC009',
+    # 'herbal': 'DOC010',
     'sound': 'DOC011'
 }
 
@@ -758,13 +711,6 @@ def get_dashboard_stats(role, user_id):
     
     current_db = get_db_safe()
     if current_db is None:
-        # Return demo stats if no database
-        # demo_stats = {
-        #     'admin': {'total_users': 12, 'total_patients': 0, 'total_doctors': 11, 'total_appointments': 0, 'today_appointments': 0},
-        #     'doctor': {'todays_appointments': 3, 'total_patients': 45, 'completed_sessions': 120, 'pending_followups': 8},
-        #     'patient': {'upcoming_appointments': 2, 'completed_sessions': 5, 'pending_appointments': 1, 'therapies_tried': 3},
-        #     'receptionist': {'todays_appointments': 5, 'pending_registrations': 2, 'total_patients': 150, 'total_doctors': 11}
-        # }
         return ("hello")
     
     try:
@@ -908,17 +854,10 @@ PAYMENT_CONFIG = {
         'homeopathy': 800,
         'naturopathy': 1000,
         'yoga': 600,
-        'unani': 900,
-        'chiropractic': 2000,
         'physiotherapy': 1500,
-        'diet': 700,
-        'herbal': 800,
         'sound': 1200
     }
 }
-
-
-
 @app.route('/api/appointment-receipt/<appointment_id>')
 @login_required
 def get_appointment_receipt(appointment_id):
@@ -1337,11 +1276,6 @@ def register():
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow()
         }
-        
-        # # Add specialization for doctors
-        # if data['role'] == 'doctor':
-        #     user_doc['specialization'] = data.get('specialization', 'Acupressure Therapy')
-        #     user_doc['therapy_type'] = data.get('therapy_type', 'acupressure')
 
         if data['role'] == 'patient':
             user_doc['patient_id'] = user_id
@@ -1365,16 +1299,16 @@ def register():
         if current_db is not None:
             try:
                 result = current_db.users.insert_one(user_doc)
-                logger.info(f"✅ Created user: {user_id} with ID: {result.inserted_id}")
+                logger.info(f"Created user: {user_id} with ID: {result.inserted_id}")
                 
                 # Verify the user was actually created
                 created_user = current_db.users.find_one({'user_id': user_id})
                 if not created_user:
-                    logger.error(f"❌ User creation failed: {user_id}")
+                    logger.error(f"User creation failed: {user_id}")
                     return jsonify({'error': 'User creation failed'}), 500
                     
             except Exception as e:
-                logger.error(f"❌ Database error creating user: {e}")
+                logger.error(f"Database error creating user: {e}")
                 return jsonify({'error': 'Failed to create user account'}), 500
 
         response_data = {
@@ -1384,11 +1318,11 @@ def register():
             'requires_verification': False
         }
         
-        logger.info(f"🎉 Registration successful for: {data['email']}")
+        logger.info(f" Registration successful for: {data['email']}")
         return jsonify(response_data), 201
         
     except Exception as e:
-        logger.error(f"🔥 Registration error: {e}")
+        logger.error(f" Registration error: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/login', methods=['POST'])
@@ -1399,25 +1333,25 @@ def login():
         if not data.get('email') or not data.get('password'):
             return jsonify({'error': 'Email and password are required'}), 400
         
-        logger.info(f"🔐 Login attempt for: {data['email']}")
+        logger.info(f"Login attempt for: {data['email']}")
 
         current_db = get_db_safe()
         user = None
 
         if current_db is not None:
-            logger.info(f"🔍 Searching for user in database: {data['email']}")
+            logger.info(f" Searching for user in database: {data['email']}")
             user = current_db.users.find_one({'email': data['email']})
         if user:
-            logger.info(f"📋 User found: {user['user_id']}")
+            logger.info(f" User found: {user['user_id']}")
             
             # Check if account is active
             if not user.get('is_active', True):
-                logger.warning(f"❌ Account deactivated: {data['email']}")
+                logger.warning(f" Account deactivated: {data['email']}")
                 return jsonify({'error': 'Account is deactivated'}), 401
             
             # Verify password
             if check_password_hash(user['password'], data['password']):
-                logger.info(f"✅ Password verified for: {data['email']}")
+                logger.info(f"Password verified for: {data['email']}")
         # First check predefined users (admin, receptionist, doctors)
         for user_key, user_data in PREDEFINED_USERS.items():
             if data['email'] == user_data['email'] and data['password'] == user_data['password']:
@@ -1534,14 +1468,14 @@ def login():
                     'redirect_url': redirect_url
                 }), 200
             else:
-                logger.warning(f"❌ Invalid password for: {data['email']}")
+                logger.warning(f"Invalid password for: {data['email']}")
                 return jsonify({'error': 'Invalid email or password'}), 401
         else:
-            logger.warning(f"❌ User not found: {data['email']}")
+            logger.warning(f" User not found: {data['email']}")
             return jsonify({'error': 'Invalid email or password'}), 401
         
     except Exception as e:
-        logger.error(f"🔥 Login error: {str(e)}")
+        logger.error(f" Login error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 def get_role_redirect_url(role):
@@ -2168,33 +2102,33 @@ def get_doctor_appointments():
         logger.error(f"Error getting doctor appointments: {e}")
         return jsonify({'error': 'Failed to load appointments'}), 500
 
-@app.route('/api/doctor/notifications')
-@login_required
-@role_required(['doctor'])
-def get_doctor_notifications():
-    """Get notifications for doctor"""
-    try:
-        current_db = get_db_safe()
-        doctor_id = session['user_id']
+# @app.route('/api/doctor/notifications')
+# @login_required
+# @role_required(['doctor'])
+# def get_doctor_notifications():
+#     """Get notifications for doctor"""
+#     try:
+#         current_db = get_db_safe()
+#         doctor_id = session['user_id']
         
-        notifications = []
+#         notifications = []
         
-        if current_db is not None:
-            notifications = list(current_db.notifications.find({
-                'user_id': doctor_id
-            }).sort('created_at', -1).limit(10))
+#         if current_db is not None:
+#             notifications = list(current_db.notifications.find({
+#                 'user_id': doctor_id
+#             }).sort('created_at', -1).limit(10))
             
-            # Convert ObjectId to string
-            for notification in notifications:
-                notification['_id'] = str(notification['_id'])
-        else:
-            print("hello")
+#             # Convert ObjectId to string
+#             for notification in notifications:
+#                 notification['_id'] = str(notification['_id'])
+#         else:
+#             print("hello")
         
-        return jsonify(notifications)
+#         return jsonify(notifications)
         
-    except Exception as e:
-        logger.error(f"Error getting doctor notifications: {e}")
-        return jsonify([])
+#     except Exception as e:
+#         logger.error(f"Error getting doctor notifications: {e}")
+#         return jsonify([])
 
 @app.route('/api/receptionist/notifications')
 @login_required
@@ -3414,80 +3348,7 @@ def get_appointments():
     elif request.method == 'POST':
         # Create new appointment with enhanced notification system
         return create_appointment()
-# @app.route('/api/doctor/profile', methods=['GET', 'POST'])
-# @login_required
-# @role_required(['doctor'])
-# def doctor_profile():
-#     """Get or update doctor profile"""
-#     try:
-#         current_db = get_db_safe()
-#         doctor_id = session['user_id']
-        
-#         if request.method == 'GET':
-#             # Get doctor profile
-#             doctor = current_db.users.find_one({'user_id': doctor_id})
-#             if not doctor:
-#                 return jsonify({'error': 'Doctor not found'}), 404
-            
-#             profile_data = {
-#                 'first_name': doctor.get('first_name'),
-#                 'last_name': doctor.get('last_name'),
-#                 'email': doctor.get('email'),
-#                 'phone': doctor.get('phone', ''),
-#                 'specialization': doctor.get('specialization', ''),
-#                 'qualifications': doctor.get('qualifications', ''),
-#                 'experience': doctor.get('experience', 0),
-#                 'bio': doctor.get('bio', ''),
-#                 'consultation_fee': doctor.get('consultation_fee', 0),
-#                 'languages': doctor.get('languages', ''),
-#                 'awards': doctor.get('awards', ''),
-#                 'profile_photo': doctor.get('profile_photo', ''),
-#                 'is_available': doctor.get('is_available', True)
-#             }
-            
-#             return jsonify(profile_data)
-            
-#         elif request.method == 'POST':
-#             # Update doctor profile
-#             data = request.get_json()
-            
-#             update_data = {}
-#             allowed_fields = [
-#                 'phone', 'specialization', 'qualifications', 'experience',
-#                 'bio', 'consultation_fee', 'languages', 'awards', 'profile_photo'
-#             ]
-            
-#             for field in allowed_fields:
-#                 if field in data:
-#                     update_data[field] = data[field]
-            
-#             update_data['updated_at'] = datetime.utcnow()
-            
-#             result = current_db.users.update_one(
-#                 {'user_id': doctor_id},
-#                 {'$set': update_data}
-#             )
-            
-#             if result.modified_count > 0:
-#                 # Update session data if needed
-#                 if 'specialization' in update_data:
-#                     session['specialization'] = update_data['specialization']
-                
-#                 # Create notification for receptionist
-#                 create_notification(
-#                     'REC001',
-#                     'Doctor Profile Updated',
-#                     f'Dr. {session.get("first_name")} {session.get("last_name")} updated their profile.',
-#                     'info'
-#                 )
-                
-#                 return jsonify({'success': True, 'message': 'Profile updated successfully'})
-#             else:
-#                 return jsonify({'error': 'No changes made'}), 400
-                
-#     except Exception as e:
-#         logger.error(f"Error handling doctor profile: {e}")
-#         return jsonify({'error': 'Failed to process request'}), 500
+
 
 @app.route('/api/doctor/status', methods=['POST'])
 @login_required
@@ -3639,10 +3500,12 @@ def get_doctor_profile(doctor_id):
 @login_required
 @role_required(['patient'])
 def patient_data():
-    """Get patient data for patient info page"""
+    """Get patient data for patient info page - FIXED VERSION"""
     try:
         current_db = get_db_safe()
         user_id = session['user_id']
+        
+        print(f"📋 Loading patient data for: {user_id}")  # Debug log
         
         if current_db is not None:
             patient = current_db.users.find_one({'user_id': user_id})
@@ -3656,11 +3519,17 @@ def patient_data():
                     'address': patient.get('address', ''),
                     'date_of_birth': patient.get('date_of_birth', ''),
                     'gender': patient.get('gender', ''),
+                    'blood_group': patient.get('blood_group', ''),
+                    'allergies': patient.get('allergies', ''),
+                    'medical_conditions': patient.get('medical_conditions', ''),
+                    'current_medications': patient.get('current_medications', ''),
+                    'emergency_contact': patient.get('emergency_contact', ''),
                     'created_at': patient.get('created_at')
                 }
+                print(f"✅ Patient data loaded: {patient_data}")  # Debug log
                 return jsonify(patient_data)
         
-        # Demo data
+        # Demo data with all fields
         demo_patient_data = {
             'user_id': session.get('user_id'),
             'first_name': session.get('first_name', 'Patient'),
@@ -3670,14 +3539,19 @@ def patient_data():
             'address': '123 Demo Street, Haridwar, Uttarakhand',
             'date_of_birth': '1990-01-01',
             'gender': 'Prefer not to say',
+            'blood_group': 'O+',
+            'allergies': 'None',
+            'medical_conditions': 'None',
+            'current_medications': 'None',
+            'emergency_contact': '+91-9876543210',
             'created_at': datetime.utcnow().isoformat()
         }
         return jsonify(demo_patient_data)
         
     except Exception as e:
+        print(f"❌ Error fetching patient data: {e}")
         logger.error(f"Error fetching patient data: {e}")
         return jsonify({'error': 'Failed to load patient data'}), 500
-
 @app.route('/api/therapists')
 @login_required
 def get_therapists():
@@ -3707,41 +3581,48 @@ def get_therapists():
 @login_required
 @role_required(['patient'])
 def update_patient_info():
-    """Update patient information"""
+    """Update patient information - FIXED VERSION"""
     try:
         data = request.get_json()
         user_id = session['user_id']
         
+        print(f"📝 Updating patient info for {user_id}:", data)  # Debug log
+        
         current_db = get_db_safe()
-        if current_db is not None:
-            update_data = {}
-            allowed_fields = [
-                'phone', 'address', 'date_of_birth', 'gender', 'blood_group',
-                'allergies', 'medical_conditions', 'current_medications', 
-                'emergency_contact'
-            ]
-            
-            for field in allowed_fields:
-                if field in data:
-                    update_data[field] = data[field]
-            
-            if update_data:
-                update_data['updated_at'] = datetime.utcnow()
-                result = current_db.users.update_one(
-                    {'user_id': user_id},
-                    {'$set': update_data}
-                )
-                
-                if result.modified_count > 0:
-                    return jsonify({'message': 'Patient information updated successfully'})
-                else:
-                    return jsonify({'error': 'No changes made or patient not found'}), 400
-            else:
-                return jsonify({'error': 'No valid fields to update'}), 400
-        else:
+        if current_db is None:
             return jsonify({'message': 'Patient information updated (demo mode)'})
+        
+        update_data = {}
+        allowed_fields = [
+            'phone', 'address', 'date_of_birth', 'gender', 'blood_group',
+            'allergies', 'medical_conditions', 'current_medications', 
+            'emergency_contact'
+        ]
+        
+        for field in allowed_fields:
+            if field in data:
+                update_data[field] = data[field]
+                print(f"✅ Setting {field} to: {data[field]}")  # Debug log
+        
+        if update_data:
+            update_data['updated_at'] = datetime.utcnow()
+            result = current_db.users.update_one(
+                {'user_id': user_id},
+                {'$set': update_data}
+            )
+            
+            if result.modified_count > 0:
+                print(f"✅ Successfully updated patient info for {user_id}")
+                return jsonify({'message': 'Patient information updated successfully'})
+            else:
+                print(f"❌ No changes made for patient {user_id}")
+                return jsonify({'error': 'No changes made or patient not found'}), 400
+        else:
+            print("❌ No valid fields to update")
+            return jsonify({'error': 'No valid fields to update'}), 400
             
     except Exception as e:
+        print(f"❌ Error updating patient info: {e}")
         logger.error(f"Error updating patient info: {e}")
         return jsonify({'error': 'Failed to update patient information'}), 500
 
@@ -4778,6 +4659,80 @@ def get_doctor_profiles():
     except Exception as e:
         logger.error(f"Error getting doctor profiles: {e}")
         return jsonify({'doctors': []})
+
+@app.route('/api/doctor-profiles/complete')
+@login_required
+@role_required(['patient', 'receptionist', 'admin'])  # Add receptionist
+def get_complete_doctor_profiles():
+    """Get complete doctor profiles with schedules for doctor profiles page"""
+    try:
+        current_db = get_db_safe()
+        
+        doctors = []
+        
+        if current_db is not None:
+            doctors_cursor = current_db.users.find({'role': 'doctor'})
+            
+            for doctor in doctors_cursor:
+                # Get weekly availability schedule
+                availability = list(current_db.doctor_availability.find({
+                    'doctor_id': doctor['user_id'],
+                    'is_active': True
+                }).sort('day_of_week', 1))
+                
+                # Organize schedule by day
+                weekly_schedule = {}
+                days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                
+                for day in days_order:
+                    day_slots = [slot for slot in availability if slot.get('day_of_week') == day]
+                    if day_slots:
+                        weekly_schedule[day.capitalize()] = [{
+                            'start_time': slot.get('start_time'),
+                            'end_time': slot.get('end_time'),
+                            'max_appointments': slot.get('max_appointments', 3)
+                        } for slot in day_slots]
+                
+                # Get today's appointments count
+                today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+                today_end = today_start + timedelta(days=1)
+                
+                today_appointments = current_db.appointments.count_documents({
+                    'therapist_id': doctor['user_id'],
+                    'date': {'$gte': today_start, '$lt': today_end},
+                    'status': {'$in': ['scheduled', 'confirmed', 'in-progress']}
+                })
+                
+                # Check current availability
+                is_available_now = check_doctor_availability_now(doctor['user_id'], current_db)
+                
+                doctor_data = {
+                    'user_id': doctor['user_id'],
+                    'name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}",
+                    'specialization': doctor.get('specialization', 'Therapy Specialist'),
+                    'qualifications': doctor.get('qualifications', ''),
+                    'experience': doctor.get('experience', 0),
+                    'bio': doctor.get('bio', ''),
+                    'consultation_fee': doctor.get('consultation_fee', 0),
+                    'languages': doctor.get('languages', ''),
+                    'therapy_type': doctor.get('therapy_type', 'general'),
+                    'email': doctor.get('email', ''),
+                    'phone': doctor.get('phone', ''),
+                    'is_available': doctor.get('is_available', True),
+                    'is_available_now': is_available_now,
+                    'weekly_schedule': weekly_schedule,
+                    'today_appointments': today_appointments,
+                    'profile_photo': doctor.get('profile_photo', '')
+                }
+                
+                doctors.append(doctor_data)
+        
+        return jsonify({'doctors': doctors})
+        
+    except Exception as e:
+        logger.error(f"Error getting complete doctor profiles: {e}")
+        return jsonify({'doctors': []})
+
 @app.route('/api/doctor/<doctor_id>/remind-schedule', methods=['POST'])
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -4808,66 +4763,6 @@ def remind_doctor_schedule(doctor_id):
     except Exception as e:
         logger.error(f"Error sending schedule reminder: {e}")
         return jsonify({'success': False, 'message': 'Failed to send reminder'}), 500
-# Enhanced doctor profile update endpoint
-# @app.route('/api/doctor/profile', methods=['POST'])
-# @login_required
-# @role_required(['doctor'])
-# def update_doctor_profile():
-#     """Update doctor profile - enhanced version"""
-#     try:
-#         current_db = get_db_safe()
-#         doctor_id = session['user_id']
-#         data = request.get_json()
-        
-#         if not data:
-#             return jsonify({'success': False, 'message': 'No data provided'})
-        
-#         update_data = {}
-#         allowed_fields = [
-#             'specialization', 'qualifications', 'experience', 'bio',
-#             'consultation_fee', 'languages', 'therapy_type', 'phone'
-#         ]
-        
-#         for field in allowed_fields:
-#             if field in data:
-#                 update_data[field] = data[field]
-        
-#         if update_data:
-#             update_data['updated_at'] = datetime.utcnow()
-            
-#             result = current_db.users.update_one(
-#                 {'user_id': doctor_id},
-#                 {'$set': update_data}
-#             )
-            
-#             if result.modified_count > 0:
-#                 # Update session data
-#                 if 'specialization' in update_data:
-#                     session['specialization'] = update_data['specialization']
-#                 if 'therapy_type' in update_data:
-#                     session['therapy_type'] = update_data['therapy_type']
-                
-#                 # Create notification for all receptionists
-#                 receptionists = current_db.users.find({'role': 'receptionist'})
-#                 for receptionist in receptionists:
-#                     create_notification(
-#                         receptionist['user_id'],
-#                         'Doctor Profile Updated',
-#                         f'Dr. {session.get("first_name")} {session.get("last_name")} has updated their profile.',
-#                         'info'
-#                     )
-                
-#                 logger.info(f"Doctor {doctor_id} updated profile")
-#                 return jsonify({'success': True, 'message': 'Profile updated successfully'})
-#             else:
-#                 return jsonify({'success': False, 'message': 'No changes made'})
-        
-#         return jsonify({'success': False, 'message': 'No valid fields to update'})
-        
-#     except Exception as e:
-#         logger.error(f"Error updating doctor profile: {e}")
-#         return jsonify({'success': False, 'message': 'Failed to update profile'}), 500
-
 
 # Enhanced availability management
 @app.route('/api/doctor/schedule', methods=['GET', 'POST'])
@@ -4961,57 +4856,6 @@ def manage_doctor_schedule():
         logger.error(f"Error managing doctor schedule: {e}")
         return jsonify({'success': False, 'message': 'Failed to manage schedule'}), 500
 
-# Route for patients to view available doctors and schedules
-# @app.route('/api/available-doctors')
-# @login_required
-# @role_required(['patient'])
-# def get_available_doctors_for_patients():
-#     """Get available doctors with their schedules for patients"""
-#     try:
-#         current_db = get_db_safe()
-        
-#         available_doctors = []
-        
-#         if current_db is not None:
-#             doctors_cursor = current_db.users.find({
-#                 'role': 'doctor',
-#                 'is_available': True
-#             })
-            
-#             for doctor in doctors_cursor:
-#                 # Get weekly schedule
-#                 availability = list(current_db.doctor_availability.find({
-#                     'doctor_id': doctor['user_id'],
-#                     'is_active': True
-#                 }))
-                
-#                 # Format schedule for display
-#                 schedule_summary = []
-#                 for slot in availability:
-#                     day = slot.get('day_of_week', '').capitalize()
-#                     time_slot = f"{slot.get('start_time')} - {slot.get('end_time')}"
-#                     schedule_summary.append(f"{day}: {time_slot}")
-                
-#                 doctor_data = {
-#                     'user_id': doctor['user_id'],
-#                     'name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}",
-#                     'specialization': doctor.get('specialization', 'Therapy Specialist'),
-#                     'therapy_type': doctor.get('therapy_type', 'general'),
-#                     'experience': doctor.get('experience', 0),
-#                     'qualifications': doctor.get('qualifications', ''),
-#                     'consultation_fee': doctor.get('consultation_fee', 0),
-#                     'schedule': schedule_summary,
-#                     'bio': doctor.get('bio', ''),
-#                     'is_available_now': check_doctor_availability_now(doctor['user_id'], current_db)
-#                 }
-                
-#                 available_doctors.append(doctor_data)
-        
-#         return jsonify({'doctors': available_doctors})
-        
-#     except Exception as e:
-#         logger.error(f"Error getting available doctors: {e}")
-#         return jsonify({'doctors': []})
 
 def check_doctor_availability_now(doctor_id, current_db):
     """Check if doctor is available at current moment"""
@@ -5081,7 +4925,7 @@ def get_doctor_schedules():
 @login_required
 @role_required(['receptionist', 'admin'])
 def get_receptionist_doctor_availability():
-    """Get doctor availability for receptionist dashboard"""
+    """Get comprehensive doctor availability data for receptionist"""
     try:
         current_db = get_db_safe()
         
@@ -5092,52 +4936,177 @@ def get_receptionist_doctor_availability():
             doctors_cursor = current_db.users.find({'role': 'doctor'})
             
             for doctor in doctors_cursor:
-                # Get today's day
-                today = datetime.now(timezone.utc).strftime('%A').lower()
+                doctor_id = doctor['user_id']
                 
-                # Get doctor's availability for today
-                today_availability = current_db.doctor_availability.find_one({
-                    'doctor_id': doctor['user_id'],
-                    'day_of_week': today,
+                # Get doctor's complete profile including schedule
+                doctor_profile = current_db.users.find_one({'user_id': doctor_id})
+                
+                # Get weekly availability schedule
+                availability = list(current_db.doctor_availability.find({
+                    'doctor_id': doctor_id,
                     'is_active': True
-                })
+                }).sort('day_of_week', 1))
                 
-                # Get today's appointments count
+                # Organize weekly schedule
+                weekly_schedule = {}
+                days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                for day in days_order:
+                    day_slots = [slot for slot in availability if slot.get('day_of_week') == day]
+                    if day_slots:
+                        weekly_schedule[day.capitalize()] = [{
+                            'start_time': slot.get('start_time'),
+                            'end_time': slot.get('end_time'),
+                            'max_appointments': slot.get('max_appointments', 3)
+                        } for slot in day_slots]
+                
+                # Get today's day and availability
+                today = datetime.now(timezone.utc).strftime('%A').lower()
+                today_availability = next((slot for slot in availability if slot.get('day_of_week') == today), None)
+                
+                # Get today's appointments
                 today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
                 today_end = today_start + timedelta(days=1)
                 
                 today_appointments = current_db.appointments.count_documents({
-                    'therapist_id': doctor['user_id'],
+                    'therapist_id': doctor_id,
                     'date': {'$gte': today_start, '$lt': today_end},
                     'status': {'$in': ['scheduled', 'confirmed', 'in-progress']}
                 })
                 
-                # Check if doctor is currently available
+                # Check current availability
                 is_available_now = False
                 if today_availability:
                     current_time = datetime.now(timezone.utc).strftime('%H:%M')
-                    if today_availability['start_time'] <= current_time <= today_availability['end_time']:
-                        is_available_now = doctor.get('is_available', True)
+                    if (today_availability['start_time'] <= current_time <= today_availability['end_time'] and 
+                        doctor_profile.get('is_available', True)):
+                        is_available_now = True
                 
+                # Build doctor data
                 doctor_data = {
-                    'user_id': doctor['user_id'],
+                    'user_id': doctor_id,
                     'name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}",
+                    'first_name': doctor.get('first_name', ''),
+                    'last_name': doctor.get('last_name', ''),
                     'specialization': doctor.get('specialization', 'Therapy Specialist'),
-                    'email': doctor.get('email'),
+                    'email': doctor.get('email', ''),
+                    'phone': doctor.get('phone', ''),
+                    'therapy_type': doctor.get('therapy_type', 'general'),
                     'is_available': doctor.get('is_available', True),
                     'is_available_now': is_available_now,
                     'today_availability': today_availability,
                     'today_appointments': today_appointments,
-                    'next_available': calculate_next_available_slot(doctor['user_id'], current_db)
+                    'weekly_schedule': weekly_schedule,
+                    'next_available': calculate_next_available_slot(doctor_id, current_db),
+                    'consultation_fee': doctor.get('consultation_fee', 0),
+                    'experience': doctor.get('experience', 0),
+                    'qualifications': doctor.get('qualifications', ''),
+                    'status_updated_at': doctor.get('status_updated_at')
                 }
                 
                 doctors.append(doctor_data)
         
-        return jsonify({'doctors': doctors})
+        return jsonify({
+            'success': True,
+            'doctors': doctors,
+            'last_updated': datetime.utcnow().isoformat()
+        })
         
     except Exception as e:
         logger.error(f"Error getting doctor availability: {e}")
-        return jsonify({'doctors': []})
+        return jsonify({
+            'success': False,
+            'doctors': [],
+            'error': 'Failed to load doctor availability'
+        }), 500
+
+@app.route('/api/doctor/<doctor_id>/complete-schedule')
+@login_required
+@role_required(['receptionist', 'admin'])
+def get_doctor_complete_schedule(doctor_id):
+    """Get complete schedule for a specific doctor"""
+    try:
+        current_db = get_db_safe()
+        
+        if current_db is None:
+            return jsonify({'error': 'Database not available'}), 500
+        
+        # Get doctor details
+        doctor = current_db.users.find_one({'user_id': doctor_id})
+        if not doctor:
+            return jsonify({'error': 'Doctor not found'}), 404
+        
+        # Get weekly availability
+        availability = list(current_db.doctor_availability.find({
+            'doctor_id': doctor_id,
+            'is_active': True
+        }).sort('day_of_week', 1))
+        
+        # Get upcoming appointments (next 7 days)
+        start_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=7)
+        
+        upcoming_appointments = list(current_db.appointments.find({
+            'therapist_id': doctor_id,
+            'date': {'$gte': start_date, '$lt': end_date},
+            'status': {'$in': ['scheduled', 'confirmed']}
+        }).sort('date', 1))
+        
+        # Organize schedule by day
+        weekly_schedule = {}
+        days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        
+        for day in days_order:
+            day_slots = [slot for slot in availability if slot.get('day_of_week') == day]
+            day_appointments = [appt for appt in upcoming_appointments 
+                              if appt.get('date').strftime('%A').lower() == day]
+            
+            weekly_schedule[day.capitalize()] = {
+                'availability': [{
+                    'start_time': slot.get('start_time'),
+                    'end_time': slot.get('end_time'),
+                    'max_appointments': slot.get('max_appointments', 3)
+                } for slot in day_slots],
+                'appointments': [{
+                    'appointment_id': appt.get('appointment_id'),
+                    'patient_name': appt.get('patient_name', 'Unknown Patient'),
+                    'time': appt.get('date').strftime('%H:%M'),
+                    'therapy_type': appt.get('therapy_type', '').title(),
+                    'status': appt.get('status', 'scheduled')
+                } for appt in day_appointments]
+            }
+        
+        schedule_data = {
+            'doctor_id': doctor_id,
+            'doctor_name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}",
+            'specialization': doctor.get('specialization', ''),
+            'weekly_schedule': weekly_schedule,
+            'is_available': doctor.get('is_available', True),
+            'total_upcoming_appointments': len(upcoming_appointments)
+        }
+        
+        return jsonify(schedule_data)
+        
+    except Exception as e:
+        logger.error(f"Error getting doctor schedule: {e}")
+        return jsonify({'error': 'Failed to load schedule'}), 500
+def format_relative_time(timestamp):
+    """Format timestamp as relative time"""
+    if not timestamp:
+        return "Never"
+    
+    now = datetime.now(timezone.utc)
+    diff = now - timestamp
+    
+    if diff.days > 0:
+        return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+    elif diff.seconds >= 3600:
+        hours = diff.seconds // 3600
+        return f"{hours} hour{'s' if hours > 1 else ''} ago"
+    elif diff.seconds >= 60:
+        minutes = diff.seconds // 60
+        return f"{minutes} minute{'s' if minutes > 1 else ''} ago"
+    else:
+        return "Just now"
 @app.route('/api/receptionist/available-doctors-now')
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -5187,13 +5156,15 @@ def get_available_doctors_now():
     except Exception as e:
         logger.error(f"Error getting available doctors: {e}")
         return jsonify({'doctors': []})
-
-# Helper function to calculate next available slot
+    
 def calculate_next_available_slot(doctor_id, current_db):
     """Calculate next available time slot for a doctor"""
     try:
+        if current_db is None:
+            return "Not available"
+            
         # Get current time and day
-        now = datetime.now(timezone.utc)
+        now = datetime.now()
         current_day = now.strftime('%A').lower()
         current_time = now.strftime('%H:%M')
         
@@ -5204,25 +5175,27 @@ def calculate_next_available_slot(doctor_id, current_db):
         }).sort('day_of_week', 1))
         
         if not availability:
-            return "Not available"
+            return "Not scheduled"
         
-        # Days of week in order
+        # Days of week in order starting from today
         days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
         
         # Find current day index
-        current_day_index = days_order.index(current_day) if current_day in days_order else -1
+        current_day_index = days_order.index(current_day) if current_day in days_order else 0
         
-        # Check availability for today first
+        # Check today first
         today_availability = next((slot for slot in availability if slot['day_of_week'] == current_day), None)
         
         if today_availability:
-            if today_availability['start_time'] <= current_time <= today_availability['end_time']:
-                return "Available now"
-            elif current_time < today_availability['start_time']:
-                return f"Today at {today_availability['start_time']}"
+            # Check if available later today
+            if current_time < today_availability['end_time']:
+                if current_time < today_availability['start_time']:
+                    return f"Today at {today_availability['start_time']}"
+                else:
+                    return "Available now"
         
-        # Check next available day
-        for i in range(1, 8):  # Check next 7 days
+        # Check next 7 days
+        for i in range(1, 8):
             check_day_index = (current_day_index + i) % len(days_order)
             check_day = days_order[check_day_index]
             
@@ -5232,75 +5205,159 @@ def calculate_next_available_slot(doctor_id, current_db):
                 day_name = check_day.capitalize()
                 return f"{day_name} at {day_availability['start_time']}"
         
-        return "Not available"
+        return "Not available this week"
         
     except Exception as e:
         logger.error(f"Error calculating next available slot: {e}")
         return "Not available"
 
-# ========== RECEPTIONIST PAGES ==========
-
-# @app.route('/receptionist/appointments')
-# @login_required
-# @role_required(['receptionist', 'admin'])
-# def view_appointment_details():
-#     """View appointment details - FIXED VERSION"""
-#     appointment_id = request.args.get('appointment')
-#     if not appointment_id:
-#         return render_template('receptionist_appointments.html')
-    
+def is_doctor_available_now(doctor_id, current_db):
+    """Check if doctor is available at current moment"""
+    try:
+        current_day = datetime.now().strftime("%A").lower()
+        current_time = datetime.now()
+        
+        # Get today's availability
+        today_availability = current_db.doctor_availability.find_one({
+            "doctor_id": doctor_id,
+            "day_of_week": current_day,
+            "is_active": True
+        })
+        
+        if not today_availability:
+            return False
+            
+        # Parse time strings to time objects for comparison
+        start_time_str = today_availability.get("start_time", "00:00")
+        end_time_str = today_availability.get("end_time", "00:00")
+        
+        # Convert to time objects
+        start_time = datetime.strptime(start_time_str, "%H:%M").time()
+        end_time = datetime.strptime(end_time_str, "%H:%M").time()
+        current_time_only = current_time.time()
+        
+        return start_time <= current_time_only <= end_time
+        
+    except Exception as e:
+        logger.error(f"Error checking doctor availability: {e}")
+        return False        
+# Helper function to calculate next available slot
+# def calculate_next_available_slot(doctor_id, current_db):
+#     """Calculate next available time slot for a doctor"""
 #     try:
-#         current_db = get_db_safe()
-#         appointment = None
+#         # Get current time and day
+#         now = datetime.now(timezone.utc)
+#         current_day = now.strftime('%A').lower()
+#         current_time = now.strftime('%H:%M')
         
-#         if current_db is not None:
-#             appointment = current_db.appointments.find_one({'appointment_id': appointment_id})
+#         # Get doctor's availability
+#         availability = list(current_db.doctor_availability.find({
+#             'doctor_id': doctor_id,
+#             'is_active': True
+#         }).sort('day_of_week', 1))
         
-#         return render_template('receptionist_appointments.html', 
-#                              appointment_id=appointment_id, 
-#                              appointment=appointment)
+#         if not availability:
+#             return "Not available"
+        
+#         # Days of week in order
+#         days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        
+#         # Find current day index
+#         current_day_index = days_order.index(current_day) if current_day in days_order else -1
+        
+#         # Check availability for today first
+#         today_availability = next((slot for slot in availability if slot['day_of_week'] == current_day), None)
+        
+#         if today_availability:
+#             if today_availability['start_time'] <= current_time <= today_availability['end_time']:
+#                 return "Available now"
+#             elif current_time < today_availability['start_time']:
+#                 return f"Today at {today_availability['start_time']}"
+        
+#         # Check next available day
+#         for i in range(1, 8):  # Check next 7 days
+#             check_day_index = (current_day_index + i) % len(days_order)
+#             check_day = days_order[check_day_index]
+            
+#             day_availability = next((slot for slot in availability if slot['day_of_week'] == check_day), None)
+            
+#             if day_availability:
+#                 day_name = check_day.capitalize()
+#                 return f"{day_name} at {day_availability['start_time']}"
+        
+#         return "Not available"
+        
 #     except Exception as e:
-#         logger.error(f"Error loading appointment details: {e}")
-#         return render_template('receptionist_appointments.html')
-
-# @app.route('/receptionist/appointments')
-# @login_required
-# @role_required(['receptionist'])
-# def receptionist_manage_appointments():
-#     return render_template('manage_appointments.html')
-
-# @app.route('/manage-appointments')
-# @login_required
-# @role_required(['receptionist'])
-# def manage_appointments_page():
-#     return render_template('manage_appointments.html')
-
+#         logger.error(f"Error calculating next available slot: {e}")
+#         return "Not available"
+@app.route('/api/debug/doctor-availability')
+@login_required
+@role_required(['receptionist', 'admin'])
+def debug_doctor_availability():
+    """Debug endpoint to check doctor availability data"""
+    try:
+        current_db = get_db_safe()
+        if current_db is None:
+            return jsonify({"error": "Database not connected"})
+        
+        # Check collections
+        collections = current_db.list_collection_names()
+        
+        # Check doctors
+        doctors = list(current_db.users.find({"role": "doctor"}))
+        doctor_ids = [d["user_id"] for d in doctors]
+        
+        # Check availability data
+        availability_data = {}
+        for doctor_id in doctor_ids:
+            availability = list(current_db.doctor_availability.find({"doctor_id": doctor_id}))
+            availability_data[doctor_id] = {
+                "slots_count": len(availability),
+                "slots": availability
+            }
+        
+        return jsonify({
+            "collections": collections,
+            "total_doctors": len(doctors),
+            "doctor_ids": doctor_ids,
+            "availability_data": availability_data,
+            "doctor_availability_collection_exists": "doctor_availability" in collections
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()})
 
 @app.route('/receptionist/doctor-availability')
 @login_required
 @role_required(['receptionist', 'admin'])
-def receptionist_doctor_availability_page():
-    """Receptionist doctor availability page"""
-    return render_template('receptionist_doctor_availability.html')    
-    
-@app.route('/api/doctor/attendance', methods=['POST'])
-@login_required
-@role_required(['doctor'])
-def mark_attendance():
-    current_db = get_db_safe()
-    doctor_id = session['user_id']
+def receptionist_doctor_availability():
+    """Doctor availability management page for receptionists"""
+    stats = get_dashboard_stats('receptionist', session['user_id'])
+    return render_template('receptionist_doctor_availability.html', user=session, stats=stats)
 
-    attendance_doc = {
-        'doctor_id': doctor_id,
-        'date': datetime.utcnow().date().isoformat(),
-        'timestamp': datetime.utcnow()
-    }
-
-    current_db.attendance.insert_one(attendance_doc)
-
-    return jsonify({"message": "Attendance marked successfully"})
-
-
+@app.route('/debug/doctor-availability')
+def debug_doctor_availability_page():  # Changed function name
+    """Debug route to check doctor availability functionality"""
+    try:
+        current_db = get_db_safe()
+        if current_db is None:
+            return jsonify({'error': 'Database not connected'})
+        
+        # Test the doctor availability query
+        doctors = list(current_db.users.find({'role': 'doctor'}))
+        
+        # Test doctor_availability collection
+        availability_count = current_db.doctor_availability.count_documents({})
+        
+        return jsonify({
+            'database_connected': True,
+            'total_doctors': len(doctors),
+            'availability_records': availability_count,
+            'doctors': [{'user_id': d.get('user_id'), 'name': d.get('first_name') + ' ' + d.get('last_name')} for d in doctors]
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()})
 
 # app.py में security checks add करें
 
@@ -5325,7 +5382,7 @@ def doctor_appointment_detail(appointment_id):
         })
         
         if not appointment:
-            print(f"❌ Appointment {appointment_id} not found or unauthorized for doctor {doctor_id}")
+            print(f" Appointment {appointment_id} not found or unauthorized for doctor {doctor_id}")
             return jsonify({'error': 'Appointment not found or unauthorized'}), 404
         
         # Get patient details
@@ -5926,76 +5983,43 @@ def update_doctor_profile_complete():
         logger.error(f"Error updating doctor profile: {e}")
         return jsonify({'success': False, 'message': 'Failed to update profile'}), 500
     
-
-
-@app.route('/api/doctors/complete-profiles')
+# @app.route('/api/doctor/<doctor_id>/remind-schedule', methods=['POST'])
+# @login_required
+# @role_required(['receptionist', 'admin'])
+# def remind_doctor_schedule(doctor_id):
+#     """Send schedule reminder to doctor"""
+#     try:
+#         current_db = get_db_safe()
+        
+#         if current_db is None:
+#             return jsonify({'success': False, 'message': 'Database not available'})
+        
+#         # Get doctor details
+#         doctor = current_db.users.find_one({'user_id': doctor_id})
+#         if not doctor:
+#             return jsonify({'success': False, 'message': 'Doctor not found'})
+        
+#         # Create notification for doctor
+#         create_notification(
+#             doctor_id,
+#             'Schedule Reminder',
+#             'Receptionist has requested you to review and update your weekly schedule if needed.',
+#             'warning'
+#         )
+        
+#         logger.info(f"Schedule reminder sent to doctor {doctor_id}")
+#         return jsonify({'success': True, 'message': 'Reminder sent successfully'})
+        
+#     except Exception as e:
+#         logger.error(f"Error sending schedule reminder: {e}")
+#         return jsonify({'success': False, 'message': 'Failed to send reminder'}), 500
+@app.route('/doctor-profiles')
 @login_required
-def get_complete_doctor_profiles():
-    """Get complete doctor profiles with schedules for patients and receptionists"""
-    try:
-        current_db = get_db_safe()
-        
-        doctors = []
-        
-        if current_db is not None:
-            doctors_cursor = current_db.users.find({'role': 'doctor'})
-            
-            for doctor in doctors_cursor:
-                # Get weekly availability schedule
-                availability = list(current_db.doctor_availability.find({
-                    'doctor_id': doctor['user_id'],
-                    'is_active': True
-                }).sort('day_of_week', 1))
-                
-                # Organize schedule by day
-                weekly_schedule = {}
-                days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-                
-                for day in days_order:
-                    day_slots = [slot for slot in availability if slot.get('day_of_week') == day]
-                    if day_slots:
-                        weekly_schedule[day.capitalize()] = [{
-                            'start_time': slot.get('start_time'),
-                            'end_time': slot.get('end_time'),
-                            'max_appointments': slot.get('max_appointments', 3)
-                        } for slot in day_slots]
-                
-                # Get today's appointments count
-                today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-                today_end = today_start + timedelta(days=1)
-                
-                today_appointments = current_db.appointments.count_documents({
-                    'therapist_id': doctor['user_id'],
-                    'date': {'$gte': today_start, '$lt': today_end},
-                    'status': {'$in': ['scheduled', 'confirmed', 'in-progress']}
-                })
-                
-                doctor_data = {
-                    'user_id': doctor['user_id'],
-                    'name': f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}",
-                    'specialization': doctor.get('specialization', 'Therapy Specialist'),
-                    'qualifications': doctor.get('qualifications', ''),
-                    'experience': doctor.get('experience', 0),
-                    'bio': doctor.get('bio', ''),
-                    'consultation_fee': doctor.get('consultation_fee', 0),
-                    'languages': doctor.get('languages', ''),
-                    'therapy_type': doctor.get('therapy_type', 'general'),
-                    'email': doctor.get('email', ''),
-                    'phone': doctor.get('phone', ''),
-                    'is_available': doctor.get('is_available', True),
-                    'weekly_schedule': weekly_schedule,
-                    'today_appointments': today_appointments,
-                    'profile_photo': doctor.get('profile_photo', ''),
-                    'next_available_slot': calculate_next_available_slot(doctor['user_id'], current_db)
-                }
-                
-                doctors.append(doctor_data)
-        
-        return jsonify({'doctors': doctors})
-        
-    except Exception as e:
-        logger.error(f"Error getting complete doctor profiles: {e}")
-        return jsonify({'doctors': []})    
+@role_required(['patient', 'receptionist', 'admin'])  # Add receptionist and admin
+def doctor_profiles():
+    """Doctor profiles page for patients and receptionists"""
+    return render_template('doctor_profiles.html')
+
 @app.route('/api/doctors/available-slots/<doctor_id>')
 @login_required
 @role_required(['patient'])
@@ -6096,6 +6120,189 @@ def get_doctor_available_slots(doctor_id):
         logger.error(f"Error getting available slots: {e}")
         return jsonify({'error': 'Failed to load available slots'}), 500
 
+
+@app.route('/api/get-doctor-availability', methods=['GET'])
+@login_required
+@role_required(['doctor'])
+def get_doctor_availability():
+    doctor_id = session['user_id']
+
+    current_db = get_db_safe()
+    if current_db is None:
+        return jsonify({'success': False, 'error': 'Database not connected'}), 500
+
+    availability = list(current_db.doctor_availability.find({'doctor_id': doctor_id}))
+
+    for item in availability:
+        item['_id'] = str(item['_id'])
+
+    return jsonify({'success': True, 'availability': availability})
+
+
+@app.route('/api/receptionist/doctor-availability-data')
+@login_required
+@role_required(['receptionist'])
+def get_doctor_availability_data():
+    """Get comprehensive doctor availability data for receptionist - FIXED VERSION"""
+    try:
+        current_db = get_db_safe()
+        if current_db is None:
+            logger.error("Database not available for doctor availability data")
+            return jsonify({
+                "success": False, 
+                "error": "Database not available",
+                "doctors": []
+            }), 500
+
+        logger.info("Fetching doctor availability data...")
+
+        # Get all doctors
+        doctors = list(current_db.users.find({"role": "doctor"}))
+        logger.info(f"Found {len(doctors)} doctors")
+        
+        output = []
+        
+        for doctor in doctors:
+            try:
+                doctor_id = doctor["user_id"]
+                
+                # Get doctor's availability
+                availability = list(current_db.doctor_availability.find({
+                    "doctor_id": doctor_id, 
+                    "is_active": True
+                }))
+                
+                logger.info(f"Doctor {doctor_id} has {len(availability)} availability slots")
+                
+                # Get today's day name
+                today = datetime.now().strftime("%A").lower()
+                today_availability = None
+                
+                # Find today's availability
+                for slot in availability:
+                    if slot.get('day_of_week') == today:
+                        today_availability = {
+                            'start_time': slot.get('start_time'),
+                            'end_time': slot.get('end_time'),
+                            'max_appointments': slot.get('max_appointments', 3)
+                        }
+                        break
+                
+                # Check current availability
+                is_available_now = is_doctor_available_now(doctor_id, current_db)
+                
+                # Count today's appointments
+                today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                today_end = today_start + timedelta(days=1)
+                
+                todays_appointments = current_db.appointments.count_documents({
+                    "therapist_id": doctor_id,
+                    "date": {"$gte": today_start, "$lt": today_end},
+                    "status": {"$in": ["scheduled", "confirmed", "in-progress"]}
+                })
+                
+                # Organize weekly schedule
+                weekly_schedule = {}
+                days_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                
+                for day in days_order:
+                    day_slots = [slot for slot in availability if slot.get('day_of_week') == day]
+                    if day_slots:
+                        weekly_schedule[day.capitalize()] = [{
+                            'start_time': slot.get('start_time'),
+                            'end_time': slot.get('end_time'),
+                            'max_appointments': slot.get('max_appointments', 3)
+                        } for slot in day_slots]
+                
+                # Calculate next available slot
+                next_available = calculate_next_available_slot(doctor_id, current_db)
+                
+                # Convert ObjectId to string for JSON serialization
+                status_updated_at = doctor.get("status_updated_at")
+                if status_updated_at:
+                    if isinstance(status_updated_at, datetime):
+                        status_updated_at = status_updated_at.isoformat()
+                    else:
+                        status_updated_at = str(status_updated_at)
+                
+                doctor_data = {
+                    "user_id": doctor_id,
+                    "name": f"Dr. {doctor.get('first_name', '')} {doctor.get('last_name', '')}",
+                    "therapy_type": doctor.get("therapy_type", "General Therapy"),
+                    "specialization": doctor.get("specialization", "Therapy Specialist"),
+                    "experience": doctor.get("experience", 0),
+                    "consultation_fee": doctor.get("consultation_fee", 0),
+                    "phone": doctor.get("phone", ""),
+                    "email": doctor.get("email", ""),
+                    "is_available_now": is_available_now,
+                    "is_available": doctor.get("is_available", True),
+                    "status_updated_at": status_updated_at,
+                    "today_appointments": todays_appointments,
+                    "today_availability": today_availability,
+                    "weekly_schedule": weekly_schedule,
+                    "next_available": next_available
+                }
+                
+                output.append(doctor_data)
+                
+            except Exception as doctor_error:
+                logger.error(f"Error processing doctor {doctor.get('user_id', 'unknown')}: {doctor_error}")
+                continue  # Continue with next doctor even if one fails
+
+        logger.info(f"Successfully processed {len(output)} doctors")
+        return jsonify({
+            "success": True, 
+            "doctors": output,
+            "last_updated": datetime.utcnow().isoformat(),
+            "total_doctors": len(output)
+        })
+
+    except Exception as e:
+        logger.error(f"Critical error in get_doctor_availability_data: {e}")
+        logger.error(traceback.format_exc())  # Add detailed traceback
+        return jsonify({
+            "success": False, 
+            "error": "Failed to load doctor availability data",
+            "doctors": [],
+            "debug_info": str(e)
+        }), 500
+@app.route('/api/debug/doctor-availability-check')
+@login_required
+@role_required(['receptionist'])
+def debug_doctor_availability_check():
+    
+    """Debug endpoint to check doctor availability data"""
+    try:
+        current_db = get_db_safe()
+        if current_db is None:
+            return jsonify({"error": "Database not connected"})
+        
+        # Check collections
+        collections = current_db.list_collection_names()
+        
+        # Check doctors
+        doctors = list(current_db.users.find({"role": "doctor"}))
+        doctor_ids = [d["user_id"] for d in doctors]
+        
+        # Check availability data
+        availability_data = {}
+        for doctor_id in doctor_ids:
+            availability = list(current_db.doctor_availability.find({"doctor_id": doctor_id}))
+            availability_data[doctor_id] = {
+                "slots_count": len(availability),
+                "slots": availability
+            }
+        
+        return jsonify({
+            "collections": collections,
+            "total_doctors": len(doctors),
+            "doctor_ids": doctor_ids,
+            "availability_data": availability_data,
+            "doctor_availability_collection_exists": "doctor_availability" in collections
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()})
 @app.route('/api/receptionist/doctors-management')
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -6337,6 +6544,85 @@ def health_check():
         'app': 'DCAM Therapy Management System',
         'version': '2.0.0'
     })
+
+def init_doctor_availability():
+    """Initialize doctor availability schedules"""
+    current_db = get_db_safe()
+    if current_db is None:
+        logger.warning("MongoDB not connected - cannot initialize doctor availability")
+        return False
+    
+    try:
+        # Check if doctor_availability collection exists
+        if 'doctor_availability' not in current_db.list_collection_names():
+            current_db.create_collection('doctor_availability')
+            logger.info("Created doctor_availability collection")
+        
+        # Get all doctors
+        doctors = current_db.users.find({'role': 'doctor'})
+        
+        # Default availability schedule (9 AM - 5 PM on weekdays)
+        default_schedule = [
+            {'day_of_week': 'monday', 'start_time': '09:00', 'end_time': '17:00', 'max_appointments': 8},
+            {'day_of_week': 'tuesday', 'start_time': '09:00', 'end_time': '17:00', 'max_appointments': 8},
+            {'day_of_week': 'wednesday', 'start_time': '09:00', 'end_time': '17:00', 'max_appointments': 8},
+            {'day_of_week': 'thursday', 'start_time': '09:00', 'end_time': '17:00', 'max_appointments': 8},
+            {'day_of_week': 'friday', 'start_time': '09:00', 'end_time': '17:00', 'max_appointments': 8},
+            {'day_of_week': 'saturday', 'start_time': '10:00', 'end_time': '14:00', 'max_appointments': 4},
+        ]
+        
+        availability_created = 0
+        for doctor in doctors:
+            doctor_id = doctor['user_id']
+            
+            # Check if doctor already has availability
+            existing_availability = current_db.doctor_availability.find_one({'doctor_id': doctor_id})
+            
+            if not existing_availability:
+                # Create default availability for this doctor
+                for day_schedule in default_schedule:
+                    availability_doc = {
+                        'doctor_id': doctor_id,
+                        'day_of_week': day_schedule['day_of_week'],
+                        'start_time': day_schedule['start_time'],
+                        'end_time': day_schedule['end_time'],
+                        'max_appointments': day_schedule['max_appointments'],
+                        'is_active': True,
+                        'created_at': datetime.utcnow(),
+                        'updated_at': datetime.utcnow()
+                    }
+                    current_db.doctor_availability.insert_one(availability_doc)
+                    availability_created += 1
+                
+                logger.info(f"Created default availability for doctor: {doctor_id}")
+        
+        logger.info(f"Doctor availability initialization completed! Created {availability_created} availability slots")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Doctor availability initialization error: {e}")
+        return False
+
+# Call this after database initialization
+if db_connected:
+    init_doctor_availability()
+
+
+# Add to app.py after SocketIO initialization
+@socketio.on('doctor_availability_update')
+def handle_doctor_availability_update(data):
+    # Broadcast to all receptionists and relevant patients
+    emit('availability_updated', data, broadcast=True, namespace='/')
+
+# Call this when a doctor updates their availability
+def notify_availability_update(doctor_id):
+    socketio.emit('availability_updated', {
+        'doctor_id': doctor_id,
+        'timestamp': datetime.utcnow().isoformat(),
+        'message': 'Doctor availability updated'
+    }, broadcast=True, namespace='/')    
+
+
 @app.errorhandler(404)
 def not_found_error(error):
     return jsonify({'error': 'Resource not found'}), 404
