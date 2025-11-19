@@ -8,3 +8,4 @@ authlib==1.2.1
 requests==2.31.0
 razorpay==2.0.0
 flask-socketio==5.5.1
+google-generativeai==0.3.0

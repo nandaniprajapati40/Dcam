@@ -287,11 +287,7 @@ THERAPY_DOCTOR_MAPPING = {
     'homeopathy': 'DOC003',
     'naturopathy': 'DOC004',
     'yoga': 'DOC005',
-    # 'unani': 'DOC006',
-    # 'chiropractic': 'DOC007',
     'physiotherapy': 'DOC008',
-    # 'diet': 'DOC009',
-    # 'herbal': 'DOC010',
     'sound': 'DOC011'
 }
 
@@ -300,10 +296,10 @@ EMAIL_CONFIG = {
     'smtp_server': os.environ.get('EMAIL_SMTP_SERVER', 'smtp.gmail.com'),
     'smtp_port': int(os.environ.get('EMAIL_SMTP_PORT', 587)),
     'sender_email': os.environ.get('EMAIL_SENDER', ''),
-    'sender_password': os.environ.get('EMAIL_PASSWORD', '')
+    'sender_password': os.environ.get('EMAIL_PASSWORD', ''),
+    'use_tls': True
 }
 
-DEMO_AUTO_VERIFY = os.environ.get('DEMO_AUTO_VERIFY', 'true').lower() in ('1', 'true', 'yes')
 
 EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
