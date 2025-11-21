@@ -72,7 +72,9 @@ google = oauth.register(
         'scope': 'openid email profile',
         'prompt': 'select_account',
     },
+    authorize_params={'redirect_uri': os.environ.get('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:5000/google-callback')}
 )
+
 
 # MongoDB configuration from .env
 MONGODB_URI = os.environ.get('MONGODB_URI')
@@ -780,7 +782,7 @@ def create_notification(user_id, title, message, notification_type='info'):
     """Create a notification for a user"""
     current_db = get_db_safe()
     if current_db is None:
-        logger.info(f"📢 [DEMO] Notification for {user_id}: {title} - {message}")
+        logger.info(f" [DEMO] Notification for {user_id}: {title} - {message}")
         return None
     
     try:
@@ -945,7 +947,8 @@ def index():
 @app.route('/google-login')
 def google_login():
     try:
-        redirect_uri = url_for('google_callback', _external=True)
+        # Use the environment variable or fallback to localhost
+        redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:5000/google-callback')
         return google.authorize_redirect(redirect_uri)
     except Exception as e:
         logger.error(f"Google OAuth error: {e}")

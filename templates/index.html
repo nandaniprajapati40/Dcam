@@ -1081,7 +1081,7 @@
         <div class="container mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
                 <div class="flex items-center">
-                    <img src="/static/images__1_-removebg-preview.png" alt="DSVV Logo" class="dsvv-logo mr-3">
+                    <img src="/static/images(1).png" alt="DSVV Logo" class="dsvv-logo mr-3">
                     <span class="text-xl font-bold" style="color: var(--primary);">DCAM</span>
                 </div>
                 
@@ -1219,7 +1219,7 @@
         <div class="therapy-grid">
             <!-- Acupressure/Acupuncture -->
             <div class="therapy-card card-modern">
-                <img src="static/ChatGPT Image Nov 13, 2025, 06_05_54 PM.jpg" alt="Acupressure/Acupuncture" class="therapy-image">
+                <img src="static/Acupuncture.jpg" alt="Acupressure/Acupuncture" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Acupressure/Acupuncture</h3>
                     <p class="therapy-description">Traditional Chinese medicine techniques that stimulate specific points on the body to promote healing and relieve pain.</p>
@@ -1239,7 +1239,7 @@
 
             <!-- Ayurveda Therapy -->
             <div class="therapy-card card-modern">
-                <img src="static/ChatGPT Image Nov 13, 2025, 06_30_44 PM.jpg" alt="Ayurveda Therapy" class="therapy-image">
+                <img src="static/Ayurveda.jpg" alt="Ayurveda Therapy" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Ayurveda Therapy</h3>
                     <p class="therapy-description">Ancient Indian healing system focusing on balancing body, mind, and spirit through natural remedies, diet, and lifestyle.</p>
@@ -1259,7 +1259,7 @@
 
             <!-- Homeopathy -->
             <div class="therapy-card card-modern">
-                <img src="static/Pasted image.png" alt="Homeopathy" class="therapy-image">
+                <img src="static/image.png" alt="Homeopathy" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Homeopathy</h3>
                     <p class="therapy-description">Natural system of medicine that uses highly diluted substances to trigger the body's own healing mechanisms.</p>
@@ -1279,7 +1279,7 @@
 
             <!-- Naturopathy -->
             <div class="therapy-card card-modern">
-                <img src="static/Pasted image (2).png" alt="Naturopathy" class="therapy-image">
+                <img src="static/image (2).png" alt="Naturopathy" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Naturopathy</h3>
                     <p class="therapy-description">Focuses on natural remedies and the body's ability to heal itself through lifestyle changes and natural therapies.</p>
@@ -1299,7 +1299,7 @@
 
             <!-- Yoga and Meditation Therapy -->
             <div class="therapy-card card-modern">
-                <img src="static/Pasted image (6).png" alt="Yoga and Meditation Therapy" class="therapy-image">
+                <img src="static/image (6).png" alt="Yoga and Meditation Therapy" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Yoga and Meditation Therapy</h3>
                     <p class="therapy-description">Combines physical postures, breathing techniques, and meditation to promote mental and physical well-being.</p>
@@ -1318,7 +1318,7 @@
             </div>
             <!-- Physiotherapy -->
             <div class="therapy-card card-modern">
-                <img src="static/Pasted image (5).png" alt="Physiotherapy" class="therapy-image">
+                <img src="static/image (5).png" alt="Physiotherapy" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Physiotherapy</h3>
                     <p class="therapy-description">Helps restore movement and function when someone is affected by injury, illness, or disability through physical methods.</p>
@@ -1337,7 +1337,7 @@
             </div>
             <!-- Sound Healing Therapy -->
             <div class="therapy-card card-modern">
-                <img src="static/Pasted image (4).png" alt="Sound Healing Therapy" class="therapy-image">
+                <img src="static/image (4).png" alt="Sound Healing Therapy" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Sound Healing Therapy</h3>
                     <p class="therapy-description">Uses vocal techniques and instruments to create therapeutic frequencies that promote healing and relaxation.</p>
@@ -1357,7 +1357,7 @@
 
             <!-- Psycho Therapy -->
             <div class="therapy-card card-modern">
-                <img src="static/Pasted image (3).png" alt="Psycho Therapy" class="therapy-image">
+                <img src="static/image (3).png" alt="Psycho Therapy" class="therapy-image">
                 <div class="therapy-content">
                     <h3 class="therapy-title">Psycho Therapy</h3>
                     <p class="therapy-description">Psychological treatment that helps individuals understand and work through emotional, behavioral, and mental health challenges.</p>
@@ -1606,9 +1606,6 @@
                     <select id="registerRole" class="form-input" required>
                         <option value="">Select your role</option>
                         <option value="patient">Patient</option>
-                        <!-- <option value="doctor">Doctor/Therapist</option>
-                        <option value="admin">Admin</option>
-                        <option value="receptionist">Receptionist</option> -->
                     </select>
                 </div>
                 
@@ -1748,7 +1745,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DCAM Therapy Center initialized');
+            console.log(' DCAM Therapy Center initialized');
             checkUserSession();
             setupEventListeners();
             setupScrollEffects();
@@ -1919,7 +1916,7 @@
                 });
             });
 
-            console.log('✅ Event listeners setup complete');
+            console.log(' Event listeners setup complete');
         }
 
         function handleGoogleLogin() {
@@ -1941,19 +1938,19 @@
                 throw new Error('Not logged in');
             })
             .then(data => {
-                console.log('✅ User is logged in:', data.user);
+                console.log('User is logged in:', data.user);
                 // User is logged in, update UI
                 updateUIForLoggedInUser();
             })
             .catch(error => {
-                console.log('❌ User is not logged in');
+                console.log(' User is not logged in');
                 // User is not logged in, show auth buttons
                 showAuthButtons();
             });
         }
 
         function updateUIForLoggedInUser() {
-            console.log('🔄 Updating UI for logged in user');
+            console.log(' Updating UI for logged in user');
             // Update navigation to show user-specific options
             authButtons.classList.add('hidden');
             userWelcome.classList.remove('hidden');
@@ -2108,7 +2105,7 @@
                     showAlert('registerAlert', data.error, 'error');
                 }
             } catch (error) {
-                console.error('❌ Registration error:', error);
+                console.error('Registration error:', error);
                 showAlert('registerAlert', 'Registration failed. Please try again.', 'error');
             } finally {
                 // Reset loading state
@@ -2120,7 +2117,7 @@
 
         async function handleAutoLogin(email, password) {
             try {
-                console.log('🔄 Attempting auto-login after registration');
+                console.log('Attempting auto-login after registration');
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: {
@@ -2266,7 +2263,7 @@
                     showAlert('forgotPasswordAlert', data.error, 'error');
                 }
             } catch (error) {
-                console.error('❌ Forgot password error:', error);
+                console.error('Forgot password error:', error);
                 showAlert('forgotPasswordAlert', 'Failed to process request. Please try again.', 'error');
             } finally {
                 // Reset loading state
@@ -2323,7 +2320,7 @@
                     showAlert('resetPasswordAlert', data.error, 'error');
                 }
             } catch (error) {
-                console.error('❌ Reset password error:', error);
+                console.error(' Reset password error:', error);
                 showAlert('resetPasswordAlert', 'Failed to reset password. Please try again.', 'error');
             } finally {
                 // Reset loading state
@@ -2357,7 +2354,7 @@
                     showAlert('resetPasswordAlert', data.error, 'error');
                 }
             } catch (error) {
-                console.error('❌ Resend reset OTP error:', error);
+                console.error(' Resend reset OTP error:', error);
                 showAlert('resetPasswordAlert', 'Failed to resend OTP. Please try again.', 'error');
             }
         }
@@ -2374,7 +2371,7 @@
                 showAuthButtons();
                 window.location.href = '/';
             } catch (error) {
-                console.error('❌ Logout error:', error);
+                console.error('Logout error:', error);
                 // Force logout by redirecting
                 window.location.href = '/?logout=true';
             }
@@ -2441,11 +2438,11 @@
 
         // Demo credentials info
         console.log('👥 Demo Credentials:');
-        console.log('   👑 Admin: admin@dsvv.ac.in / Admin@123');
-        console.log('   👨‍⚕️ Doctor: dr.sharma@dsvv.ac.in / Doctor@123');
-        console.log('   💁 Reception: reception@dsvv.ac.in / Reception@123');
-        console.log('   👤 Patient: patient@dsvv.com / Patient@123');
-        console.log('   🔐 Google OAuth: Available for quick patient registration');
+        console.log('   Admin: admin@dsvv.ac.in / Admin@123');
+        console.log('    Doctor: dr.sharma@dsvv.ac.in / Doctor@123');
+        console.log('    Reception: reception@dsvv.ac.in / Reception@123');
+        // console.log('  Patient: patient@dsvv.com / Patient@123');
+        console.log('    Google OAuth: Available for quick patient registration');
     </script>
 </body>
 </html>
