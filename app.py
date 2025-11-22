@@ -63,6 +63,14 @@ def add_security_headers(response):
 
 # OAuth Configuration
 oauth = OAuth(app)
+# Get the base URL dynamically
+def get_base_url():
+    if os.environ.get('RENDER'):
+        # Production on Render
+        return 'https://dcam.onrender.com'
+    else:
+        # Local development
+        return 'http://127.0.0.1:5000'
 google = oauth.register(
     name='google',
     client_id=os.environ.get('GOOGLE_CLIENT_ID'),
@@ -72,7 +80,7 @@ google = oauth.register(
         'scope': 'openid email profile',
         'prompt': 'select_account',
     },
-    authorize_params={'redirect_uri': os.environ.get('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:5000/google-callback')}
+    authorize_params={'redirect_uri': f"{get_base_url()}/google-callback"}
 )
 
 
@@ -295,8 +303,8 @@ THERAPY_DOCTOR_MAPPING = {
 
 # Email configuration
 EMAIL_CONFIG = {
-    'smtp_server': os.environ.get('EMAIL_SMTP_SERVER', 'smtp.gmail.com'),
-    'smtp_port': int(os.environ.get('EMAIL_SMTP_PORT', 587)),
+    'smtp_server': os.environ.get('EMAIL_SMTP_SERVER', 'dcam.dsvv.coms'),
+    'smtp_port': int(os.environ.get('EMAIL_SMTP_PORT','587')),
     'sender_email': os.environ.get('EMAIL_SENDER', ''),
     'sender_password': os.environ.get('EMAIL_PASSWORD', ''),
     'use_tls': True
@@ -604,7 +612,7 @@ def init_database():
     
     try:
         collections = current_db.list_collection_names()
-        logger.info(f"📊 Existing collections: {collections}")
+        logger.info(f" Existing collections: {collections}")
         
         # Define required collections and their indexes
         required_collections = {
@@ -797,7 +805,7 @@ def create_notification(user_id, title, message, notification_type='info'):
         result = current_db.notifications.insert_one(notification_doc)
         
         # Log notification for debugging
-        logger.info(f"📢 Notification sent to {user_id}: {title} - {message}")
+        logger.info(f" Notification sent to {user_id}: {title} - {message}")
         
         return str(result.inserted_id)
     except Exception as e:
@@ -952,16 +960,16 @@ def google_login():
         return google.authorize_redirect(redirect_uri)
     except Exception as e:
         logger.error(f"Google OAuth error: {e}")
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
 
 @app.route('/google-callback')
 def google_callback():
     try:
-        token = google.authorize_access_token()
+        redirect_uri = f"{get_base_url()}/google-callback"
+        token = google.authorize_access_token(redirect_uri=redirect_uri)
         user_info = token.get('userinfo')
-        
         if not user_info:
-            return redirect(url_for('index'))
+            return redirect(url_for('dashboard'))
         
         email = user_info['email']
         first_name = user_info.get('given_name', '')
@@ -1020,7 +1028,7 @@ def google_callback():
         session.permanent = True
         session.modified = True
         
-        logger.info(f"✅ Google OAuth login successful for {email}")
+        logger.info(f" Google OAuth login successful for {email}")
         return redirect(url_for('dashboard'))
         
     except Exception as e:
@@ -1085,7 +1093,7 @@ def forgot_password():
         # Send OTP email
         send_password_reset_otp_email(data['email'], otp)
         
-        logger.info(f"📧 Password reset OTP sent to: {data['email']}")
+        logger.info(f"Password reset OTP sent to: {data['email']}")
         
         return jsonify({
             'message': 'Password reset OTP sent to your email',
@@ -1688,7 +1696,7 @@ def confirm_payment():
                 'info'
             )
         
-        logger.info(f"✅ Payment confirmed for appointment: {appointment_id}")
+        logger.info(f" Payment confirmed for appointment: {appointment_id}")
         
         return jsonify({
             'success': True,
@@ -1772,7 +1780,7 @@ def cancel_appointment_api():
                 'info'
             )
         
-        logger.info(f"✅ Appointment {appointment_id} cancelled by {session['user_id']}")
+        logger.info(f" Appointment {appointment_id} cancelled by {session['user_id']}")
         
         return jsonify({
             'success': True,
@@ -2008,11 +2016,6 @@ def patient_receipt_page(appointment_id):
     """Legacy route - redirect to new appointment receipt page"""
     logger.info(f"Redirecting from legacy patient-receipt to appointment-receipt for {appointment_id}")
     return redirect(url_for('appointment_receipt_page', appointment_id=appointment_id))
-# @app.route('/appointment-receipt/<appointment_id>')
-# @login_required
-# def appointment_receipt_page(appointment_id):
-#     """Serve the appointment receipt HTML page"""
-#     return render_template('appointment_receipt.html', appointment_id=appointment_id)
 
 # ========== DOCTOR-SPECIFIC ROUTES ==========
 
@@ -2289,12 +2292,12 @@ RAZORPAY_CONFIG = {
 try:
     if RAZORPAY_CONFIG['key_id'] and RAZORPAY_CONFIG['key_secret']:
         razorpay_client = razorpay.Client(auth=(RAZORPAY_CONFIG['key_id'], RAZORPAY_CONFIG['key_secret']))
-        logger.info("✅ Razorpay client initialized successfully")
+        logger.info("Razorpay client initialized successfully")
     else:
         razorpay_client = None
-        logger.warning("⚠️ Razorpay keys not found - payment system disabled")
+        logger.warning(" Razorpay keys not found - payment system disabled")
 except Exception as e:
-    logger.error(f"❌ Razorpay initialization failed: {e}")
+    logger.error(f"Razorpay initialization failed: {e}")
     razorpay_client = None
 
 @app.route('/api/verify-payment', methods=['POST'])
@@ -2330,9 +2333,9 @@ def verify_payment():
         
         try:
             razorpay_client.utility.verify_payment_signature(params_dict)
-            logger.info(f"✅ Payment signature verified: {razorpay_payment_id}")
+            logger.info(f" Payment signature verified: {razorpay_payment_id}")
         except razorpay.errors.SignatureVerificationError as e:
-            logger.error(f"❌ Payment signature verification FAILED: {e}")
+            logger.error(f" Payment signature verification FAILED: {e}")
             return jsonify({
                 'success': False,
                 'error': 'Payment verification failed. Please contact support.'
@@ -2382,7 +2385,7 @@ def verify_payment():
                     # Create success notifications
                     create_notification(
                         session['user_id'],
-                        'Payment Successful! 🎉',
+                        'Payment Successful! ',
                         f'Payment of ₹{payment["amount"]} received for your {payment["therapy_type"]} appointment. Your appointment is now confirmed.',
                         'success'
                     )
@@ -2394,7 +2397,7 @@ def verify_payment():
                         'info'
                     )
                     
-                    logger.info(f"✅ REAL Payment completed: {razorpay_payment_id}, Appointment: {payment['appointment_id']}")
+                    logger.info(f" REAL Payment completed: {razorpay_payment_id}, Appointment: {payment['appointment_id']}")
         
         return jsonify({
             'success': True,
@@ -2435,7 +2438,7 @@ def create_payment():
         # Get therapy price (convert to paise)
         amount = RAZORPAY_CONFIG['therapy_prices'].get(therapy_type, 5000)
         
-        logger.info(f"💰 Creating payment order for {appointment_id}, Amount: {amount} paise")
+        logger.info(f"Creating payment order for {appointment_id}, Amount: {amount} paise")
         
         # Create Razorpay order
         order_data = {
@@ -2470,7 +2473,7 @@ def create_payment():
             }
             current_db.payments.insert_one(payment_doc)
         
-        logger.info(f"✅ Razorpay order created: {order['id']}")
+        logger.info(f"Razorpay order created: {order['id']}")
         
         return jsonify({
             'success': True,
@@ -2593,7 +2596,7 @@ def generate_appointment_receipt(appointment_id):
             'info'
         )
         
-        logger.info(f"✅ Receipt generated for appointment: {appointment_id}")
+        logger.info(f" Receipt generated for appointment: {appointment_id}")
         return receipt_data
         
     except Exception as e:
@@ -2665,7 +2668,7 @@ def confirm_appointment_with_time():
             # Create notification for patient
             create_notification(
                 patient['user_id'],
-                'Appointment Confirmed! 🎉',
+                'Appointment Confirmed! ',
                 f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed for {formatted_date}. Please arrive 10 minutes before your scheduled time.',
                 'success'
             )
@@ -2690,7 +2693,7 @@ def confirm_appointment_with_time():
         # Generate receipt automatically
         receipt_data = generate_appointment_receipt(appointment_id)
         
-        logger.info(f"✅ Appointment {appointment_id} confirmed with time slot by {session['user_id']}")
+        logger.info(f" Appointment {appointment_id} confirmed with time slot by {session['user_id']}")
         
         return jsonify({
             'success': True,
@@ -2810,7 +2813,7 @@ Dev Sanskriti Vishwavidyalaya
         """
         
         if sender is None or password is None:
-            logger.info(f"📧 (Console) Patient info for Dr. {doctor_first_name}:")
+            logger.info(f" (Console) Patient info for Dr. {doctor_first_name}:")
             logger.info(f"    Patient: {patient_info['name']}")
             logger.info(f"    Appointment: {patient_info['appointment_date']}")
             logger.info(f"    Therapy: {patient_info['therapy_type']}")
@@ -2822,7 +2825,7 @@ Dev Sanskriti Vishwavidyalaya
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
         
-        server = smtplib.SMTP(EMAIL_CONFIG.get('smtp_server', 'smtp.gmail.com'), EMAIL_CONFIG.get('smtp_port', 587))
+        server = smtplib.SMTP(EMAIL_CONFIG.get('smtp_server', 'dcam.dsvv.com'), EMAIL_CONFIG.get('smtp_port', 465))
         server.ehlo()
         server.starttls()
         server.ehlo()
@@ -2912,13 +2915,13 @@ def create_appointment():
         if current_db is not None:
             result = current_db.appointments.insert_one(appointment_data)
             
-            # ✅ ENHANCED: Send notification to ALL receptionists
+            #  ENHANCED: Send notification to ALL receptionists
             send_receptionist_appointment_notification(appointment_data)
             
             # Create notification for patient
             create_notification(
                 session['user_id'],
-                'Appointment Request Submitted ✅',
+                'Appointment Request Submitted ',
                 f'Your {therapy_type} appointment request has been submitted (ID: {appointment_id}). We will confirm shortly.',
                 'info'
             )
@@ -2929,12 +2932,12 @@ def create_appointment():
                 if doctor:
                     create_notification(
                         doctor['user_id'],
-                        'New Appointment Request 📋',
+                        'New Appointment Request ',
                         f'New {therapy_type} appointment request from {appointment_data["patient_name"]}. Waiting for receptionist confirmation.',
                         'info'
                     )
             
-            logger.info(f"✅ REAL Appointment {appointment_id} created - Notifications sent to receptionists")
+            logger.info(f"REAL Appointment {appointment_id} created - Notifications sent to receptionists")
             
         return jsonify({
             'message': 'Appointment requested successfully! Waiting for receptionist confirmation.',
@@ -2951,7 +2954,7 @@ def send_receptionist_appointment_notification(appointment_data):
     try:
         current_db = get_db_safe()
         if current_db is None:
-            logger.info("📢 Appointment notification - Database not available")
+            logger.info(" Appointment notification - Database not available")
             return
         
         # Find all active receptionists
@@ -2978,7 +2981,7 @@ def send_receptionist_appointment_notification(appointment_data):
             receptionist_name = receptionist.get('first_name', 'Receptionist')
             
             # Create detailed notification message
-            notification_title = "📋 New Appointment Request - Action Required"
+            notification_title = " New Appointment Request - Action Required"
             notification_message = f"""
  **New Appointment Booking**
 
@@ -3007,12 +3010,12 @@ Please review and confirm this appointment at the earliest.
             
             if notification_id:
                 notification_count += 1
-                logger.info(f"📢 REAL Notification sent to receptionist {receptionist_name} ({receptionist_id}) for appointment {appointment_id}")
+                logger.info(f" REAL Notification sent to receptionist {receptionist_name} ({receptionist_id}) for appointment {appointment_id}")
         
-        logger.info(f"✅ Successfully sent {notification_count} receptionist notifications for appointment {appointment_id}")
+        logger.info(f"Successfully sent {notification_count} receptionist notifications for appointment {appointment_id}")
             
     except Exception as e:
-        logger.error(f"❌ Error sending receptionist appointment notification: {e}")
+        logger.error(f"Error sending receptionist appointment notification: {e}")
 
 
 @app.route('/api/receptionist/appointments/<appointment_id>/confirm', methods=['POST'])
@@ -3059,7 +3062,7 @@ def confirm_appointment_api(appointment_id):
         if patient:
             create_notification(
                 patient['user_id'],
-                'Appointment Confirmed! 🎉',
+                'Appointment Confirmed! ',
                 f'Your {appointment.get("therapy_type", "therapy")} appointment has been confirmed for {formatted_date}. Please arrive 10 minutes before your scheduled time.',
                 'success'
             )
@@ -3073,7 +3076,7 @@ def confirm_appointment_api(appointment_id):
                 'info'
             )
         
-        logger.info(f"✅ Appointment {appointment_id} confirmed by {session['user_id']}")
+        logger.info(f"Appointment {appointment_id} confirmed by {session['user_id']}")
         
         return jsonify({
             'success': True,
@@ -3215,7 +3218,7 @@ def cancel_appointment_receptionist(appointment_id):
                 'warning'
             )
         
-        logger.info(f"✅ Appointment {appointment_id} cancelled by receptionist {session['user_id']}")
+        logger.info(f" Appointment {appointment_id} cancelled by receptionist {session['user_id']}")
         
         return jsonify({
             'message': 'Appointment cancelled successfully',
@@ -3331,7 +3334,7 @@ def request_refund(appointment_id):
             'info'
         )
         
-        logger.info(f"✅ Refund requested for appointment: {appointment_id}")
+        logger.info(f" Refund requested for appointment: {appointment_id}")
         
         return jsonify({
             'message': 'Refund request submitted successfully. It will be processed within 3-5 business days.',
@@ -3625,7 +3628,7 @@ def patient_data():
         current_db = get_db_safe()
         user_id = session['user_id']
         
-        print(f"📋 Loading patient data for: {user_id}")  # Debug log
+        print(f" Loading patient data for: {user_id}")  # Debug log
         
         if current_db is not None:
             patient = current_db.users.find_one({'user_id': user_id})
@@ -3646,7 +3649,7 @@ def patient_data():
                     'emergency_contact': patient.get('emergency_contact', ''),
                     'created_at': patient.get('created_at')
                 }
-                print(f"✅ Patient data loaded: {patient_data}")  # Debug log
+                print(f" Patient data loaded: {patient_data}")  # Debug log
                 return jsonify(patient_data)
         
         # Demo data with all fields
@@ -3669,7 +3672,7 @@ def patient_data():
         return jsonify(demo_patient_data)
         
     except Exception as e:
-        print(f"❌ Error fetching patient data: {e}")
+        print(f" Error fetching patient data: {e}")
         logger.error(f"Error fetching patient data: {e}")
         return jsonify({'error': 'Failed to load patient data'}), 500
 @app.route('/api/therapists')
@@ -3706,7 +3709,7 @@ def update_patient_info():
         data = request.get_json()
         user_id = session['user_id']
         
-        print(f"📝 Updating patient info for {user_id}:", data)  # Debug log
+        print(f" Updating patient info for {user_id}:", data)  # Debug log
         
         current_db = get_db_safe()
         if current_db is None:
@@ -3722,7 +3725,7 @@ def update_patient_info():
         for field in allowed_fields:
             if field in data:
                 update_data[field] = data[field]
-                print(f"✅ Setting {field} to: {data[field]}")  # Debug log
+                print(f"Setting {field} to: {data[field]}")  # Debug log
         
         if update_data:
             update_data['updated_at'] = datetime.utcnow()
@@ -3732,17 +3735,17 @@ def update_patient_info():
             )
             
             if result.modified_count > 0:
-                print(f"✅ Successfully updated patient info for {user_id}")
+                print(f" Successfully updated patient info for {user_id}")
                 return jsonify({'message': 'Patient information updated successfully'})
             else:
-                print(f"❌ No changes made for patient {user_id}")
+                print(f" No changes made for patient {user_id}")
                 return jsonify({'error': 'No changes made or patient not found'}), 400
         else:
-            print("❌ No valid fields to update")
+            print(" No valid fields to update")
             return jsonify({'error': 'No valid fields to update'}), 400
             
     except Exception as e:
-        print(f"❌ Error updating patient info: {e}")
+        print(f" Error updating patient info: {e}")
         logger.error(f"Error updating patient info: {e}")
         return jsonify({'error': 'Failed to update patient information'}), 500
 
@@ -4034,7 +4037,7 @@ def cancel_appointment(appointment_id):
                 'info'
             )
         
-        logger.info(f"✅ Appointment {appointment_id} cancelled by {session['user_id']}")
+        logger.info(f" Appointment {appointment_id} cancelled by {session['user_id']}")
         
         return jsonify({
             'message': 'Appointment cancelled successfully',
@@ -4144,7 +4147,7 @@ def check_in_appointment_api(appointment_id):
                 'success'
             )
         
-        logger.info(f"✅ Patient checked in for appointment: {appointment_id}")
+        logger.info(f" Patient checked in for appointment: {appointment_id}")
         
         return jsonify({
             'success': True,
@@ -4423,7 +4426,7 @@ def check_out_appointment_api(appointment_id):
                     'info'
                 )
         
-        logger.info(f"✅ Patient checked out and appointment completed: {appointment_id}")
+        logger.info(f" Patient checked out and appointment completed: {appointment_id}")
         
         return jsonify({
             'success': True,
@@ -4503,6 +4506,7 @@ def get_receptionist_stats():
     except Exception as e:
         logger.error(f"Error getting receptionist stats: {e}")
         return jsonify({'error': 'Failed to load statistics'}), 500
+    
 @app.route('/api/doctor/dashboard-stats')
 @login_required
 @role_required(['doctor'])
@@ -4512,7 +4516,7 @@ def doctor_dashboard_stats():
         current_db = get_db_safe()
         doctor_id = session['user_id']
         
-        print(f"📊 Loading dashboard stats for doctor: {doctor_id}")
+        print(f"Loading dashboard stats for doctor: {doctor_id}")
         
         stats = {
             'today_appointments': 0,
@@ -4551,11 +4555,11 @@ def doctor_dashboard_stats():
                 'date': {'$gt': datetime.now(timezone.utc)}
             })
         
-        print(f"✅ Dashboard stats loaded for doctor {doctor_id}: {stats}")
+        print(f"Dashboard stats loaded for doctor {doctor_id}: {stats}")
         return jsonify(stats)
         
     except Exception as e:
-        print(f"❌ Error loading dashboard stats for doctor {session['user_id']}: {e}")
+        print(f" Error loading dashboard stats for doctor {session['user_id']}: {e}")
         return jsonify({'error': 'Failed to load dashboard statistics'}), 500
 
 @app.route('/api/doctor/today-schedule')
@@ -4567,7 +4571,7 @@ def doctor_today_schedule():
         current_db = get_db_safe()
         doctor_id = session['user_id']
         
-        print(f"📅 Loading today's schedule for doctor: {doctor_id}")
+        print(f"Loading today's schedule for doctor: {doctor_id}")
         
         today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = today_start + timedelta(days=1)
@@ -4597,11 +4601,11 @@ def doctor_today_schedule():
                     'therapy_name': appt.get('therapy_type', '').title()
                 })
         
-        print(f"✅ Today's schedule loaded for doctor {doctor_id}: {len(appointments)} appointments")
+        print(f"Today's schedule loaded for doctor {doctor_id}: {len(appointments)} appointments")
         return jsonify(appointments)
         
     except Exception as e:
-        print(f"❌ Error loading today's schedule for doctor {session['user_id']}: {e}")
+        print(f" Error loading today's schedule for doctor {session['user_id']}: {e}")
         return jsonify({'error': 'Failed to load schedule'}), 500
 
 @app.route('/api/doctor/appointments')
@@ -4616,7 +4620,7 @@ def doctor_appointments():
         status_filter = request.args.get('status', 'all')
         limit = int(request.args.get('limit', 0))
         
-        print(f"📋 Loading appointments for doctor: {doctor_id}, filter: {status_filter}")
+        print(f"Loading appointments for doctor: {doctor_id}, filter: {status_filter}")
         
         # Build query - ensure only this doctor's appointments
         query = {'therapist_id': doctor_id}
@@ -4649,11 +4653,11 @@ def doctor_appointments():
                     'consultation_type': appt.get('consultation_type', 'general')
                 })
         
-        print(f"✅ Appointments loaded for doctor {doctor_id}: {len(appointments)} appointments")
+        print(f" Appointments loaded for doctor {doctor_id}: {len(appointments)} appointments")
         return jsonify({'appointments': appointments})
         
     except Exception as e:
-        print(f"❌ Error loading appointments for doctor {session['user_id']}: {e}")
+        print(f" Error loading appointments for doctor {session['user_id']}: {e}")
         return jsonify({'error': 'Failed to load appointments'}), 500
 
 @app.route('/api/doctor/patients')
@@ -4665,7 +4669,7 @@ def doctor_patients():
         current_db = get_db_safe()
         doctor_id = session['user_id']
         
-        print(f"👥 Loading patients for doctor: {doctor_id}")
+        print(f" Loading patients for doctor: {doctor_id}")
         
         patients = []
         
@@ -4675,7 +4679,7 @@ def doctor_patients():
                 'therapist_id': doctor_id
             })
             
-            print(f"🔍 Found {len(patient_ids)} unique patients for doctor {doctor_id}")
+            print(f" Found {len(patient_ids)} unique patients for doctor {doctor_id}")
             
             # Get patient details
             for patient_id in patient_ids:
@@ -5139,6 +5143,7 @@ def get_receptionist_doctor_availability():
             'error': 'Failed to load doctor availability'
         }), 500
 
+
 @app.route('/api/doctor/<doctor_id>/complete-schedule')
 @login_required
 @role_required(['receptionist', 'admin'])
@@ -5431,7 +5436,7 @@ def debug_doctor_availability_page():  # Changed function name
     except Exception as e:
         return jsonify({'error': str(e), 'traceback': traceback.format_exc()})
 
-# app.py में security checks add करें
+
 
 @app.route('/api/doctor/appointments/<appointment_id>')
 @login_required
@@ -5442,7 +5447,7 @@ def doctor_appointment_detail(appointment_id):
         current_db = get_db_safe()
         doctor_id = session['user_id']
         
-        print(f"👀 Loading appointment details: {appointment_id} for doctor: {doctor_id}")
+        print(f" Loading appointment details: {appointment_id} for doctor: {doctor_id}")
         
         if current_db is None:
             return jsonify({'error': 'Database not available'}), 500
@@ -5507,7 +5512,7 @@ def doctor_patient_detail(patient_id):
         })
         
         if not has_appointments:
-            print(f"❌ Patient {patient_id} not associated with doctor {doctor_id}")
+            print(f"Patient {patient_id} not associated with doctor {doctor_id}")
             return jsonify({'error': 'Patient not found or unauthorized'}), 404
         
         # Get patient details
@@ -5561,11 +5566,11 @@ def doctor_patient_detail(patient_id):
             } for appt in appointments[:10]]  # Last 10 appointments
         }
         
-        print(f"✅ Patient details loaded for doctor {doctor_id}")
+        print(f"Patient details loaded for doctor {doctor_id}")
         return jsonify(patient_data)
         
     except Exception as e:
-        print(f"❌ Error loading patient details for doctor {session['user_id']}: {e}")
+        print(f"Error loading patient details for doctor {session['user_id']}: {e}")
         return jsonify({'error': 'Failed to load patient details'}), 500
 
 @app.route('/api/doctor/appointments/<appointment_id>/start', methods=['POST'])
