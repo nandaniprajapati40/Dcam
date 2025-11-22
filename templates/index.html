@@ -1920,7 +1920,7 @@
         }
 
         function handleGoogleLogin() {
-            console.log('🔐 Google OAuth login initiated');
+            console.log('Google OAuth login initiated');
             window.location.href = '/google-login';
         }
 
@@ -1983,7 +1983,7 @@
         }
 
         function showAuthButtons() {
-            console.log('🔑 Showing authentication buttons');
+            console.log(' Showing authentication buttons');
             authButtons.classList.remove('hidden');
             userWelcome.classList.add('hidden');
             mobileAuth.classList.remove('hidden');
@@ -1992,7 +1992,7 @@
 
         async function handleLogin(e) {
             e.preventDefault();
-            console.log('🔐 Login form submitted');
+            console.log(' Login form submitted');
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -2000,8 +2000,8 @@
             const btnText = document.getElementById('loginBtnText');
             const spinner = document.getElementById('loginSpinner');
 
-            console.log('📧 Email:', email);
-            console.log('🔑 Password length:', password.length);
+            console.log(' Email:', email);
+            console.log(' Password length:', password.length);
 
             // Show loading state
             btnText.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
@@ -2009,7 +2009,7 @@
             submitBtn.disabled = true;
 
             try {
-                console.log('📡 Sending login request...');
+                console.log(' Sending login request...');
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: {
@@ -2024,7 +2024,7 @@
                 });
 
                 const data = await response.json();
-                console.log('📨 Login response:', data);
+                console.log('Login response:', data);
                 
                 if (response.ok) {
                     showAlert('loginAlert', data.message, 'success');
@@ -2039,7 +2039,7 @@
                     showAlert('loginAlert', data.error, 'error');
                 }
             } catch (error) {
-                console.error('❌ Login error:', error);
+                console.error(' Login error:', error);
                 showAlert('loginAlert', 'Login failed. Please try again.', 'error');
             } finally {
                 // Reset loading state
@@ -2051,7 +2051,7 @@
 
         async function handleRegister(e) {
             e.preventDefault();
-            console.log('📝 Register form submitted');
+            console.log(' Register form submitted');
             
             const formData = {
                 first_name: document.getElementById('registerFirstName').value,
@@ -2062,7 +2062,7 @@
                 role: document.getElementById('registerRole').value
             };
 
-            console.log('📋 Registration data:', formData);
+            console.log(' Registration data:', formData);
 
             const submitBtn = document.getElementById('registerSubmitBtn');
             const btnText = document.getElementById('registerBtnText');
@@ -2139,14 +2139,14 @@
                     window.location.href = data.redirect_url || '/dashboard';
                 }
             } catch (error) {
-                console.error('❌ Auto login error:', error);
+                console.error(' Auto login error:', error);
                 showAlert('registerAlert', 'Account created but login failed. Please login manually.', 'error');
             }
         }
 
         async function handleOtpVerification(e) {
             e.preventDefault();
-            console.log('🔢 OTP verification submitted');
+            console.log(' OTP verification submitted');
             
             const otp = document.getElementById('otpCode').value;
             const submitBtn = document.getElementById('otpSubmitBtn');
@@ -2186,7 +2186,7 @@
                     showAlert('otpAlert', data.error, 'error');
                 }
             } catch (error) {
-                console.error('❌ OTP verification error:', error);
+                console.error(' OTP verification error:', error);
                 showAlert('otpAlert', 'Verification failed. Please try again.', 'error');
             } finally {
                 // Reset loading state
@@ -2198,7 +2198,7 @@
 
         async function handleResendOtp(e) {
             e.preventDefault();
-            console.log('🔄 Resending OTP');
+            console.log('Resending OTP');
             
             try {
                 const response = await fetch('/resend-otp', {
@@ -2221,14 +2221,14 @@
                     showAlert('otpAlert', data.error, 'error');
                 }
             } catch (error) {
-                console.error('❌ Resend OTP error:', error);
+                console.error(' Resend OTP error:', error);
                 showAlert('otpAlert', 'Failed to resend OTP. Please try again.', 'error');
             }
         }
 
         async function handleForgotPassword(e) {
             e.preventDefault();
-            console.log('🔑 Forgot password submitted');
+            console.log(' Forgot password submitted');
             
             const email = document.getElementById('forgotPasswordEmail').value;
             const submitBtn = document.getElementById('forgotPasswordSubmitBtn');
@@ -2275,7 +2275,7 @@
 
         async function handleResetPassword(e) {
             e.preventDefault();
-            console.log('🔄 Reset password submitted');
+            console.log(' Reset password submitted');
             
             const email = document.getElementById('resetPasswordEmail').value;
             const otp = document.getElementById('resetPasswordOtp').value;
@@ -2332,7 +2332,7 @@
 
         async function handleResendResetOtp(e) {
             e.preventDefault();
-            console.log('🔄 Resending reset OTP');
+            console.log('Resending reset OTP');
             
             const email = document.getElementById('resetPasswordEmail').value;
             
@@ -2360,7 +2360,7 @@
         }
 
         async function handleLogout() {
-            console.log('🚪 Logging out...');
+            console.log(' Logging out...');
             try {
                 const response = await fetch('/logout', {
                     method: 'GET',
@@ -2386,7 +2386,7 @@
         }
 
         function showRegisterModal() {
-            console.log('📱 Showing register modal');
+            console.log(' Showing register modal');
             hideAllModals();
             registerModal.classList.remove('hidden');
             document.getElementById('registerAlert').innerHTML = '';
@@ -2394,7 +2394,7 @@
         }
 
         function showOtpModal() {
-           console.log('📱 Showing OTP modal');
+           console.log(' Showing OTP modal');
             hideAllModals();
             otpModal.classList.remove('hidden');
             document.getElementById('otpAlert').innerHTML = '';
@@ -2402,7 +2402,7 @@
         }
 
         function showForgotPasswordModal() {
-            console.log('📱 Showing forgot password modal');
+            console.log(' Showing forgot password modal');
             hideAllModals();
             forgotPasswordModal.classList.remove('hidden');
             document.getElementById('forgotPasswordAlert').innerHTML = '';
@@ -2437,11 +2437,9 @@
         }
 
         // Demo credentials info
-        console.log('👥 Demo Credentials:');
-        console.log('   Admin: admin@dsvv.ac.in / Admin@123');
+        console.log(' Demo Credentials:');
         console.log('    Doctor: dr.sharma@dsvv.ac.in / Doctor@123');
         console.log('    Reception: reception@dsvv.ac.in / Reception@123');
-        // console.log('  Patient: patient@dsvv.com / Patient@123');
         console.log('    Google OAuth: Available for quick patient registration');
     </script>
 </body>

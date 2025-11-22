@@ -269,7 +269,7 @@ PREDEFINED_USERS = {
         'therapy_type': 'yoga'
     },
     'doctor_physiotherapy': {
-        'user_id': 'DOC008',
+        'user_id': 'DOC006',
         'email': 'dr.sharma2@dsvv.ac.in',
         'password': 'Doctor@123',
         'first_name': 'Neha',
@@ -279,7 +279,7 @@ PREDEFINED_USERS = {
         'therapy_type': 'physiotherapy'
     },
     'doctor_sound': {
-        'user_id': 'DOC011',
+        'user_id': 'DOC07',
         'email': 'dr.desai@dsvv.ac.in',
         'password': 'Doctor@123',
         'first_name': 'Arun',
@@ -287,9 +287,20 @@ PREDEFINED_USERS = {
         'role': 'doctor',
         'specialization': 'Sound Healing Therapist',
         'therapy_type': 'sound'
-    }
-}
+    },
 
+    'Psychotherapy': {
+        'user_id': 'DOC008',
+        'email': 'dr.anjalikumari@dsvv.ac.in',
+        'password': 'Doctor@123',
+        'first_name': 'Anjali',
+        'last_name': 'kumari',
+        'role': 'doctor',
+        'specialization': 'Psychotherapy Therapist',
+        'therapy_type': 'Psychotherapy'
+    }        
+
+}
 # Therapy to Doctor mapping
 THERAPY_DOCTOR_MAPPING = {
     'acupressure': 'DOC001',
@@ -297,8 +308,9 @@ THERAPY_DOCTOR_MAPPING = {
     'homeopathy': 'DOC003',
     'naturopathy': 'DOC004',
     'yoga': 'DOC005',
-    'physiotherapy': 'DOC008',
-    'sound': 'DOC011'
+    'physiotherapy': 'DOC006',
+    'sound': 'DOC007',
+    'Psychotherapy':'DOC008'
 }
 
 # Email configuration
@@ -455,7 +467,7 @@ def send_appointment_confirmation_email(patient_email, patient_name, appointment
         body = f"""
 Dear {patient_name},
 
-🎉 Your appointment has been confirmed!
+Your appointment has been confirmed!
 
 Appointment Details:
 - Therapy: {therapy_name}
@@ -712,7 +724,7 @@ def init_database():
 if db_connected:
     init_database()
 else:
-    logger.warning("⚠️ Running in demo mode without database")
+    logger.warning(" Running in demo mode without database")
 
 def get_dashboard_stats(role, user_id):
     """Get dashboard statistics based on user role"""
@@ -858,13 +870,14 @@ PAYMENT_CONFIG = {
     'stripe_public_key': os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_...'),
     'currency': 'INR',
     'therapy_prices': {
-        'acupressure': 1500,
-        'ayurveda': 1200,
-        'homeopathy': 800,
-        'naturopathy': 1000,
+        'acupressure': 200,
+        'ayurveda': 200,
+        'homeopathy': 200,
+        'naturopathy': 200,
         'yoga': 600,
-        'physiotherapy': 1500,
-        'sound': 1200
+        'physiotherapy': 200,
+        'sound': 200,
+        'Psychotherapy':200
     }
 }
 @app.route('/api/appointment-receipt/<appointment_id>')
@@ -1471,7 +1484,7 @@ def login():
                 elif user['role'] == 'doctor':
                     user_response['specialization'] = user.get('specialization')
                     user_response['therapy_type'] = user.get('therapy_type')
-                logger.info(f"🎉 Login successful for: {data['email']}")
+                logger.info(f"Login successful for: {data['email']}")
                 return jsonify({
                     'message': 'Login successful!',
                     'user': user_response,
