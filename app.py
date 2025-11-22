@@ -1168,7 +1168,7 @@ def reset_password():
                 'warning'
             )
         
-        logger.info(f"✅ Password reset successful for: {email}")
+        logger.info(f" Password reset successful for: {email}")
         
         return jsonify({'message': 'Password reset successfully! You can now login with your new password.'})
         
